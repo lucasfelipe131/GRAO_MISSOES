@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Grãos Missões</title>
+<meta name="description" content="Sistema de oportunidades de grãos para a praça de São Luiz Gonzaga/RS: pedido do produtor, análise personalizada e alvos de fechamento.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Pular para o conteúdo</a>
+<header class="top">
+ <div class="brand"><img src="icon.svg" alt="" width="34" height="34"><div><b>Grãos Missões</b><small>Missões • São Luiz Gonzaga/RS</small></div></div>
+ <nav class="tabs" role="tablist" aria-label="Seções">
+  <button role="tab" data-tab="pedidos" aria-selected="true">Pedidos</button>
+  <button role="tab" data-tab="cotacoes" aria-selected="false">Cotações</button>
+  <button role="tab" data-tab="produtores" aria-selected="false">Produtores</button>
+  <button role="tab" data-tab="praca" aria-selected="false">Praça</button>
+ </nav>
+ <div class="status" id="status" aria-live="polite"></div>
+</header>
+<main id="main" class="main">
+ <section id="login" class="login" hidden>
+  <div class="card">
+   <h1>Acesso ao Grãos Missões</h1>
+   <p>Informe o código de acesso da equipe. Ele fica salvo somente neste navegador.</p>
+   <form id="loginForm"><label>Código de acesso<input name="code" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">Entrar</button></form>
+   <p class="error" id="loginError" role="alert" hidden></p>
+  </div>
+ </section>
+ <section id="hits" class="hits" hidden></section>
+ <section data-panel="pedidos" class="panel">
+  <div class="split">
+   <form id="requestForm" class="card form">
+    <h2>Pedido do produtor</h2>
+    <p class="muted">A análise compara com as cotações registradas, o calendário da praça e o custo. Nada é executado.</p>
+    <div class="grid">
+     <label class="wide">Produtor *<select name="producerId" required></select></label>
+     <label>Grão *<select name="commodity"></select></label>
+     <label>Movimento *<select name="direction"><option value="sell">Produtor quer vender</option><option value="buy">Produtor quer comprar</option></select></label>
+     <label>Volume *<span class="inline"><input name="volume" type="number" min="0.001" step="0.001" inputmode="decimal" required placeholder="0"><select name="volumeUnit"><option value="sc_60kg">sc 60 kg</option><option value="t">t</option><option value="kg">kg</option></select></span></label>
+     <label>Objetivo *<select name="objective"></select></label>
+     <label>Preço-alvo<span class="inline"><input name="targetPrice" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="R$ 0,00"><select name="priceUnit"><option value="BRL/sc_60kg">R$/sc</option><option value="BRL/t">R$/t</option></select></span></label>
+     <label>Custo de produção<input name="costPrice" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="usa o cadastro se vazio"></label>
+     <label>Início da entrega<input name="deliveryStart" type="date"></label>
+     <label>Fim da entrega<input name="deliveryEnd" type="date"></label>
+     <label>Local de entrega<input name="deliveryLocation" placeholder="praça, armazém ou município"></label>
+     <label>Armazenagem própria<select name="hasStorage"><option value="">Usar cadastro</option><option value="sim">Sim</option><option value="nao">Não</option></select></label>
+     <label>Necessidade de caixa (R$)<input name="cashNeedBRL" type="number" min="0" step="0.01" inputmode="decimal"></label>
+     <label>Caixa até<input name="cashNeedDate" type="date"></label>
+     <label class="wide">Qualidade do lote<input name="qualityNotes" placeholder="umidade, pH, impureza…"></label>
+     <label class="wide">Pedido nas palavras do produtor<textarea name="request" rows="3" placeholder="Ex.: quero vender 3 mil sacas até março, mas preciso de R$ 200 mil em outubro"></textarea></label>
+    </div>
+    <p class="error" id="requestError" role="alert" hidden></p>
+    <div class="actions"><button class="secondary" type="button" id="previewBtn">Só analisar</button><button class="primary" type="submit">Analisar e registrar pedido</button></div>
+   </form>
+   <div id="analysis" class="card output"><div class="empty"><h3>A análise nasce do pedido</h3><p>Escolha o produtor, informe volume, preço-alvo e objetivo. Você recebe leitura de mercado, três alvos de fechamento e dicas para a praça.</p></div></div>
+  </div>
+  <div class="card"><div class="cardhead"><h2>Pedidos em acompanhamento</h2><small id="requestCount"></small></div><div id="requests" class="list"></div></div>
+ </section>
+ <section data-panel="cotacoes" class="panel" hidden>
+  <div class="split">
+   <form id="quoteForm" class="card form">
+    <h2>Registrar cotação</h2>
+    <p class="muted">Fonte e horário são obrigatórios. O sistema não busca nem inventa cotações.</p>
+    <div class="grid">
+     <label>Grão *<select name="commodity"></select></label>
+     <label>Mercado *<select name="marketKind"><option value="spot">Disponível</option><option value="forward">A termo</option><option value="futures">Futuro</option></select></label>
+     <label>Cotação *<span class="inline"><input name="price" type="number" min="0.01" step="0.01" inputmode="decimal" required><select name="priceUnit"><option value="BRL/sc_60kg">R$/sc</option><option value="BRL/t">R$/t</option></select></span></label>
+     <label>Praça / comprador *<input name="region" required placeholder="Ex.: São Luiz Gonzaga, Paranaguá/PR"></label>
+     <label>Fonte *<input name="sourceName" required placeholder="Coopatrigo, Cotrisal, CEPEA…"></label>
+     <label>Prazo de pagamento<input name="paymentTerms" placeholder="72 h, à vista, 30 dias"></label>
+     <label>Observada em *<input name="observedAt" type="datetime-local" required></label>
+     <label>Link da fonte<input name="sourceUrl" type="url" placeholder="https://…"></label>
+     <label class="wide">Observações<input name="notes" placeholder="base, condição, vencimento"></label>
+    </div>
+    <p class="error" id="quoteError" role="alert" hidden></p>
+    <div class="actions"><button class="primary" type="submit">Salvar cotação</button></div>
+   </form>
+   <div class="card"><div class="cardhead"><h2>Cotações registradas</h2><small id="quoteCount"></small></div><div id="quotes" class="list"></div></div>
+  </div>
+ </section>
+ <section data-panel="produtores" class="panel" hidden>
+  <div class="split">
+   <form id="producerForm" class="card form">
+    <h2 id="producerFormTitle">Cadastrar produtor</h2>
+    <input type="hidden" name="id">
+    <div class="grid">
+     <label class="wide">Nome *<input name="name" required></label>
+     <label>Município<input name="municipality" value="São Luiz Gonzaga"></label>
+     <label>Telefone<input name="phone"></label>
+     <label>Local usual de entrega<input name="deliveryLocation" placeholder="Coopatrigo, armazém…"></label>
+     <label>Armazenagem própria (t)<input name="storageT" type="number" min="0" step="1"></label>
+     <label>Logística<input name="logistics" placeholder="FOB, CIF, frota própria"></label>
+     <label>Custo soja (R$/sc)<input name="cost_soja" type="number" min="0" step="0.01"></label>
+     <label>Custo milho (R$/sc)<input name="cost_milho" type="number" min="0" step="0.01"></label>
+     <label>Custo trigo (R$/sc)<input name="cost_trigo" type="number" min="0" step="0.01"></label>
+     <label class="wide">Observações<textarea name="notes" rows="2"></textarea></label>
+    </div>
+    <p class="error" id="producerError" role="alert" hidden></p>
+    <div class="actions"><button class="secondary" type="button" id="producerReset">Limpar</button><button class="primary" type="submit">Salvar produtor</button></div>
+   </form>
+   <div class="card"><div class="cardhead"><h2>Produtores</h2><small id="producerCount"></small></div><div id="producers" class="list"></div></div>
+  </div>
+ </section>
+ <section data-panel="praca" class="panel" hidden><div id="brief"></div></section>
+</main>
+<footer class="foot">Análise determinística e explicável para apoiar a conversa. Não é recomendação de investimento nem ordem de negociação; a decisão permanece com o consultor e o produtor.</footer>
+<script src="app.js"></script>
+</body>
+</html>
