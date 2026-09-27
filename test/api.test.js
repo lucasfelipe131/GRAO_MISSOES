@@ -132,3 +132,24 @@ test('pontos pesquisados são semeados uma única vez',async()=>{
  const b=createApp({dataDir:dir,seedHistory:true});await new Promise(r=>b.listen(0,r));const base2=`http://127.0.0.1:${b.address().port}`
  try{const boot=await call(base2,'GET','/api/bootstrap');assert.equal(boot.data.quotes.filter(q=>q.imported).length,(await call(base2,'GET','/api/bootstrap')).data.quotes.filter(q=>q.imported).length);assert.ok(boot.data.quotes.filter(q=>q.imported).length<=20)}finally{b.close()}
 })
+
+test('ofertas: parâmetros, prévia, registro, situação, fechamento e exportação',async()=>{
+ const {server,base}=await start()
+ try{
+  const producer=(await call(base,'POST','/api/producers',{name:'Ana',distanceKm:30,cost_soja:120})).data.producer
+  await call(base,'POST','/api/own-quotes',{soja:141});await call(base,'POST','/api/port-quotes',{sourceId:'porto-bunge',soja:163})
+  const settings=await call(base,'PUT','/api/offer-settings',{defaultMarginPerSc:'3',destinations:[{id:'cvale-slg',name:'Unidade C.Vale',km:0,kind:'unit'},{id:'rio-grande',name:'Porto de Rio Grande',km:600,kind:'port'}]})
+  assert.equal(settings.status,200);assert.equal(settings.data.offerSettings.defaultMarginPerSc,3)
+  const preview=await call(base,'POST','/api/offers/preview',{producerId:producer.id,commodity:'soja',volumeSc:1000,deliveryMonth:'2026-11',destinationId:'rio-grande'})
+  assert.equal(preview.status,200);assert.equal(preview.data.offer.reference.mode,'porto');assert.equal(preview.data.offer.margin.perSc,3);assert.equal(preview.data.offer.distanceKm,630)
+  const created=await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'soja',volumeSc:1000,deliveryMonth:'2026-11',destinationId:'rio-grande',notes:'produtor quer travar parte'})
+  assert.equal(created.status,201);assert.equal(created.data.offer.status,'rascunho');assert.equal(created.data.offer.notes,'produtor quer travar parte')
+  const id=created.data.offer.id
+  assert.equal((await call(base,'PATCH',`/api/offers/${id}`,{status:'enviada'})).data.offer.status,'enviada')
+  const closed=await call(base,'PATCH',`/api/offers/${id}`,{status:'aceita',closedPrice:'139,50',notes:'fechado por telefone'});assert.equal(closed.data.offer.closedPrice,139.5);assert.equal(closed.data.offer.history.length,3)
+  assert.equal((await call(base,'PATCH',`/api/offers/${id}`,{status:'x'})).status,400)
+  const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.offers.length,1);assert.ok(boot.data.offerStatuses.includes('aceita'))
+  const exp=await call(base,'GET','/api/offers/export');assert.equal(exp.data.system,'VAL-SOG');assert.equal(exp.data.offers.length,1);assert.equal(exp.data.producers.length,1)
+  assert.equal((await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'trigo',volumeSc:10,deliveryMonth:'2026-11',referenceMode:'porto'})).status,400)
+ }finally{server.close()}
+})

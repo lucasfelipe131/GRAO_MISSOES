@@ -18,6 +18,7 @@
   <button role="tab" data-tab="pedidos" aria-selected="false">Pedidos</button>
   <button role="tab" data-tab="cotacoes" aria-selected="false">Cotações</button>
   <button role="tab" data-tab="produtores" aria-selected="false">Produtores</button>
+  <button role="tab" data-tab="ofertas" aria-selected="false">Ofertas</button>
   <button role="tab" data-tab="precos" aria-selected="false">Preços</button>
   <button role="tab" data-tab="armazenagem" aria-selected="false">Armazenagem</button>
   <button role="tab" data-tab="praca" aria-selected="false">Praça</button>
@@ -182,6 +183,43 @@
     <div class="actions"><button class="secondary" type="button" id="producerReset">Limpar</button><button class="primary" type="submit">Salvar produtor</button></div>
    </form>
    <div class="card"><div class="cardhead"><h2>Produtores</h2><div class="row"><small id="producerCount"></small><button class="mini" type="button" id="exportProducers">Exportar CSV</button></div></div><div id="producers" class="list"></div></div>
+  </div>
+ </section>
+ <section data-panel="ofertas" class="panel" hidden>
+  <details class="guide"><summary>Guia: como compor uma oferta</summary><div class="guidegrid">
+   <div><b>Referência</b><p>Automática: usa o porto mais recente (Rio Grande ou Paranaguá) ou, sem porto, o preço C.Vale. Pode forçar porto, C.Vale ou digitar uma referência manual da mesa.</p></div>
+   <div><b>Projeção por vencimento</b><p>A referência de hoje é ajustada pelo índice sazonal do mês de entrega e mostra o carrego (custo de armazenar até lá). Use o campo Ajuste para prêmio ou desconto do vencimento informado pela mesa.</p></div>
+   <div><b>Frete</b><p>Distância × tarifa por tonelada-quilômetro + parcela fixa, convertido para saca. Entrega na unidade usa a distância da propriedade; porto soma a distância do cadastro do produtor à do destino.</p></div>
+   <div><b>Margem</b><p>Margem que a C.Vale quer trabalhar por saca. Preço da oferta = referência no vencimento − frete − margem. O painel avisa se ficar abaixo do concorrente ou do custo do produtor.</p></div>
+   <div><b>Registro</b><p>Cada oferta fica salva com situação (rascunho, enviada, aceita, recusada, expirada), preço fechado e observações. Exporte em JSON ou CSV para cruzar com a VAL.</p></div>
+  </div></details>
+  <div class="split">
+   <form id="offerForm" class="card form">
+    <h2>Compor oferta ao produtor</h2>
+    <div class="grid">
+     <label class="wide">Produtor *<select name="producerId" required></select></label>
+     <label>Grão *<select name="commodity"></select></label>
+     <label>Volume (sc) *<input name="volumeSc" type="number" min="1" step="1" required></label>
+     <label>Vencimento *<input name="deliveryMonth" type="month" required></label>
+     <label>Destino<select name="destinationId"></select></label>
+     <label>Distância (km)<input name="distanceKm" type="number" min="0" step="1" placeholder="usa o cadastro"></label>
+     <label>Referência<select name="referenceMode"><option value="auto">Automática (porto → C.Vale)</option><option value="porto">Porto</option><option value="cvale">C.Vale hoje</option><option value="manual">Manual</option></select></label>
+     <label>Referência manual (R$/sc)<input name="manualReference" type="number" min="0" step="0.01"></label>
+     <label>Ajuste do vencimento (R$/sc)<input name="adjustment" type="number" step="0.01" placeholder="+ prêmio / − desconto"></label>
+     <label>Margem (R$/sc)<input name="marginPerSc" type="number" min="0" step="0.01" placeholder="usa a padrão"></label>
+     <label>Prazo de pagamento<input name="paymentTerms" placeholder="à vista, 72 h…"></label>
+     <label>Válida até<input name="validUntil" type="date"></label>
+     <label class="wide">Pedido do produtor<input name="request" placeholder="o que ele pediu"></label>
+     <label class="wide">Observações<textarea name="notes" rows="2" placeholder="condições, qualidade, entrega escalonada…"></textarea></label>
+    </div>
+    <p class="error" id="offerError" role="alert" hidden></p>
+    <div class="actions"><button class="secondary" type="button" id="offerPreview">Calcular</button><button class="primary" type="submit">Registrar oferta</button></div>
+   </form>
+   <div id="offerResult" class="card output"><div class="empty"><h3>A oferta nasce da referência, do frete e da margem</h3><p>Escolha o produtor, o grão, o volume e o vencimento. O painel calcula frete, projeção e preço a oferecer.</p></div></div>
+  </div>
+  <div class="split wide2">
+   <form id="settingsForm" class="card form"><h2>Parâmetros de frete e margem</h2><div class="grid"><label>Tarifa (R$/t/km)<input name="freightRatePerTKm" type="number" min="0" step="0.01"></label><label>Fixo (R$/t)<input name="freightFixedPerT" type="number" min="0" step="0.01"></label><label>Margem padrão (R$/sc)<input name="defaultMarginPerSc" type="number" min="0" step="0.01"></label><label>Carrego (R$/sc/mês)<input name="storageCostScMonth" type="number" min="0" step="0.01"></label><label>Validade padrão (dias)<input name="validityDays" type="number" min="0" step="1"></label></div><p class="muted">Destinos e distâncias</p><div id="destinations" class="destlist"></div><div class="actions"><button class="mini" type="button" id="addDestination">+ destino</button><button class="primary" type="submit">Salvar parâmetros</button></div></form>
+   <div class="card"><div class="cardhead"><h2>Ofertas registradas</h2><div class="row"><small id="offerCount"></small><button class="mini" type="button" id="exportOffersCsv">CSV</button><button class="mini" type="button" id="exportOffersJson">JSON para a VAL</button></div></div><div id="offers" class="list"></div></div>
   </div>
  </section>
  <section data-panel="precos" class="panel" hidden>

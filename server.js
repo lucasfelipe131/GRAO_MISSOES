@@ -6,6 +6,7 @@ import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
 import {analyzeRequest,buildBrief,buildPortfolio,buildPriceYear,checkTargets,commodityLabels,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
 import {runComparison} from './lib/fetch.js'
+import {buildOffer,defaultOfferSettings,normalizeOfferInput,normalizeOfferSettings,normalizeOfferStatus,offerStatuses} from './lib/offers.js'
 import {readFileSync as readFile} from 'node:fs'
 
 const root=dirname(fileURLToPath(import.meta.url))
@@ -63,7 +64,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(path==='/api/bootstrap'&&request.method==='GET'){
    const data=store.read();const now=new Date()
    const requests=data.requests.map(item=>({...item,producerName:producerOf(data,item.producerId)?.name||'Produtor'})).sort((l,r)=>String(r.createdAt).localeCompare(String(l.createdAt)))
-   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,automation:{...(data.automation||{}),autoSave,hours:Number(process.env.AUTO_FETCH_HOURS||4)},priceYear:buildPriceYear({quotes:data.quotes,praca},{now}),storageGuide,portSources:portSources.map(item=>({id:item.id,name:item.name,region:item.region,commodities:item.commodities})),ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
+   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),offers:[...(data.offers||[])].sort((l,r)=>String(r.createdAt).localeCompare(String(l.createdAt))),offerSettings:{...defaultOfferSettings,...(data.offerSettings||{})},offerStatuses,comparison:data.comparison||null,automation:{...(data.automation||{}),autoSave,hours:Number(process.env.AUTO_FETCH_HOURS||4)},priceYear:buildPriceYear({quotes:data.quotes,praca},{now}),storageGuide,portSources:portSources.map(item=>({id:item.id,name:item.name,region:item.region,commodities:item.commodities})),ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
   }
   if(path==='/api/producers'&&request.method==='POST'){const input=normalizeProducer(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.producers.push(record);return record});return json(response,201,{producer:saved})}
   const producerMatch=path.match(/^\/api\/producers\/([0-9a-f-]{36})$/i)
@@ -83,6 +84,22 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
    if(!saved.length)return json(response,400,{error:'Informe ao menos um preço.'})
    return json(response,201,{quotes:saved})
   }
+  if(path==='/api/offer-settings'&&request.method==='PUT'){const payload=await body(request);const saved=store.update(data=>{data.offerSettings=normalizeOfferSettings(payload,{...defaultOfferSettings,...(data.offerSettings||{})});return data.offerSettings});return json(response,200,{offerSettings:saved})}
+  if((path==='/api/offers/preview'||path==='/api/offers')&&request.method==='POST'){
+   const input=normalizeOfferInput(await body(request));const data=store.read();const producer=producerOf(data,input.producerId);if(!producer)return json(response,404,{error:'Produtor não encontrado.'})
+   const settings={...defaultOfferSettings,...(data.offerSettings||{})};const offer=buildOffer({input,producer,quotes:data.quotes,praca,settings})
+   if(path==='/api/offers/preview')return json(response,200,{offer})
+   if(offer.offerPrice==null)return json(response,400,{error:'A oferta não tem preço: informe uma referência.'})
+   const saved=store.update(d=>{const record={id:randomUUID(),producerId:producer.id,producerName:producer.name,input,offer,status:'rascunho',notes:input.notes,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),history:[{status:'rascunho',at:new Date().toISOString(),notes:'Oferta registrada'}]};d.offers=(d.offers||[]).concat(record).slice(-5000);return record})
+   return json(response,201,{offer:saved})
+  }
+  const offerMatch=path.match(/^\/api\/offers\/([0-9a-f-]{36})$/i)
+  if(offerMatch&&request.method==='PATCH'){
+   const payload=await body(request)
+   const saved=store.update(d=>{const record=(d.offers||[]).find(o=>o.id===offerMatch[1]);if(!record)throw Object.assign(new Error('Oferta não encontrada.'),{statusCode:404});if(payload.status){record.status=normalizeOfferStatus(payload.status);record.history.push({status:record.status,at:new Date().toISOString(),notes:text(payload.notes,1000)})}if(payload.notes!==undefined&&!payload.status)record.notes=text(payload.notes,3000);if(payload.closedPrice!==undefined){const v=Number(String(payload.closedPrice).replace(',','.'));if(v>0)record.closedPrice=v}record.updatedAt=new Date().toISOString();return record})
+   return json(response,200,{offer:saved})
+  }
+  if(path==='/api/offers/export'&&request.method==='GET'){const data=store.read();return json(response,200,{exportedAt:new Date().toISOString(),system:'VAL-SOG',praca:praca.id,offers:data.offers||[],requests:data.requests||[],producers:data.producers||[]})}
   if(path==='/api/quotes/import'&&request.method==='POST'){
    const {quotes,rejected}=normalizeImportLines(await body(request))
    const saved=store.update(data=>{const records=quotes.map(q=>({...q,id:randomUUID(),createdAt:new Date().toISOString()}));data.quotes.push(...records);data.quotes=data.quotes.slice(-20000);return records.length})

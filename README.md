@@ -10,6 +10,7 @@ Nada é executado automaticamente e nenhuma cotação é inventada. A comparaç�
 
 - **Produtores**: ficha operacional sem dados confidenciais: área, produtividade e percentual já fixado por cultura; quem decide, tolerância a risco, hábito de venda, o que convence, prazo de pagamento preferido, compradores habituais; armazenagem e custo de carregar, distância, logística, meses de compromisso de caixa, canal de contato. A ficha mostra posição da safra, ritmo de fixação por fase e histórico de pedidos.
 - **Estratégia por produtor**: a análise usa a ficha para ajustar as parcelas (risco baixo ou alto), medir o ritmo de fixação contra a faixa da fase (pré-plantio 10–30%, plantio 25–45%, desenvolvimento 40–60%, colheita 60–80%, pós-colheita 80–100%), calcular o custo de carregar o grão até a entressafra e gerar orientações de abordagem (decisão em família, prova preferida, compradores a consultar).
+- **Ofertas**: composição de oferta por produtor com calculadora de frete (distância × tarifa por tonelada-quilômetro + parcela fixa, em R$/saca), projeção por vencimento (referência de porto ou C.Vale ajustada pelo índice sazonal do mês de entrega, com carrego), margem C.Vale configurável e comparação com o concorrente e com o preço C.Vale do dia. Cada oferta fica registrada com situação (rascunho, enviada, aceita, recusada, expirada, cancelada), preço fechado, histórico e campo de observações; exportação em CSV e em JSON (`GET /api/offers/export`) para cruzar com a VAL.
 - **Preços do ano**: por grão, linha dos últimos 12 meses (C.Vale, média dos concorrentes e porto), estatísticas (atual, média, mínima, máxima, posição no intervalo), média mensal registrada, índice sazonal indicativo com leitura para os próximos 3 meses e importação de histórico em linhas data;preço.
 - **Armazenagem**: guia de pós-colheita por cultura (recebimento, secagem, umidade e temperatura de armazenagem, pragas, riscos que viram desconto, relação com a venda) e regras gerais de aeração, termometria, pragas, expurgo e checklists.
 - **Preços de porto**: Bunge, ADM, LDC e Cargill no porto de Rio Grande, informados pela mesa ou corretora; base = C.Vale menos porto.
@@ -79,6 +80,11 @@ Cada push na branch `main` gera um novo deploy.
 | `/api/comparison/save` | POST | salva uma leitura como cotação (`sourceId`, `commodity`) |
 | `/api/port-quotes` | POST | registra preços de porto de uma trading (`sourceId`, soja, milho, trigo, canola) |
 | `/api/quotes/import` | POST | importa histórico de preços (`commodity`, `sourceName`, `lines`) |
+| `/api/offer-settings` | PUT | tarifa de frete, fixo, margem padrão, carrego, validade e destinos |
+| `/api/offers/preview` | POST | calcula uma oferta sem registrar |
+| `/api/offers` | POST | registra a oferta |
+| `/api/offers/:id` | PATCH | situação, preço fechado e observações |
+| `/api/offers/export` | GET | ofertas, pedidos e produtores em JSON para integração |
 | `/api/analyze` | POST | análise sem registrar o pedido |
 | `/api/requests` | POST | registra pedido com análise |
 | `/api/requests/:id/rerun` | POST | recalcula a análise com as cotações atuais |
