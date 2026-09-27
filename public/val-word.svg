@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 72" fill="none"><defs>
+    <linearGradient id="blue" x1="10" y1="7" x2="36" y2="53" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#24B8FF"/>
+      <stop offset=".44" stop-color="#167FE8"/>
+      <stop offset="1" stop-color="#063A8C"/>
+    </linearGradient>
+    <linearGradient id="blueFold" x1="11" y1="8" x2="30" y2="41" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B57B7"/>
+      <stop offset="1" stop-color="#042B69"/>
+    </linearGradient>
+    <linearGradient id="green" x1="31" y1="51" x2="52" y2="18" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#006E5E"/>
+      <stop offset=".45" stop-color="#00A96F"/>
+      <stop offset="1" stop-color="#58E21A"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="41" y1="27" x2="59" y2="4" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#006A52"/>
+      <stop offset=".48" stop-color="#00A85C"/>
+      <stop offset="1" stop-color="#65ED22"/>
+    </linearGradient>
+    <linearGradient id="leafShade" x1="43" y1="25" x2="57" y2="9" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#004D3E"/>
+      <stop offset="1" stop-color="#008B57"/>
+    </linearGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="220" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#082C57"/>
+      <stop offset="1" stop-color="#0A4C9B"/>
+    </linearGradient>
+  </defs>
+    <path d="M5 9h19l26 43c2.4 4 5.3 4 7.7 0L84 9h19L66 67H42L5 9Z" fill="#FFFFFF"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M91 67 126 9h17l35 58h-20l-23.5-39-23.5 39H91Zm33.2-9.5h20.6l-10.3-17-10.3 17Z" fill="#FFFFFF"/>
+    <path d="m134.5 49.5 10.7 17.5h-21.4l10.7-17.5Z" fill="url(#green)"/>
+    <path d="M181 9h18v39.5c0 4 2 5.5 6.5 5.5H219v13h-21c-11.5 0-17-5.6-17-17V9Z" fill="#FFFFFF"/>
+  </svg>

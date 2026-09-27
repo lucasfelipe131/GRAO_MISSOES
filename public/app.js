@@ -8,22 +8,26 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const unit={'BRL/sc_60kg':'sc','BRL/t':'t','USD/bu':'bu','BRL/USD':'US$'}
 const fresh=v=>{const h=(Date.now()-new Date(v))/36e5;return h<=24?['Atual','fresh']:h<=72?['Atenção','attention']:h<=168?['No limite','limit']:['Vencida','expired']}
 const refFmt=r=>r.priceUnit==='USD/bu'?`US$ ${r.price.toFixed(2).replace('.',',')}/bu`:r.priceUnit==='BRL/USD'?`R$ ${r.price.toFixed(4).replace('.',',')}`:`${money(r.price)}/${unit[r.priceUnit]||r.priceUnit}`
-let code='';try{code=localStorage.getItem('gm.code')||''}catch{}
+let code='';let token='';try{code=localStorage.getItem('gm.code')||'';token=localStorage.getItem('gm.token')||''}catch{}
+const authHeaders=()=>token?{Authorization:'Bearer '+token}:{'x-access-code':code}
 let state={producers:[],quotes:[],requests:[],brief:null,catalog:{commodities:[],objectives:[]},targetHits:[]}
 const status=(t,ms=3500)=>{$('#status').textContent=t;if(ms)setTimeout(()=>{if($('#status').textContent===t)$('#status').textContent=''},ms)}
-async function api(path,options={}){const r=await fetch(path,{...options,headers:{'Content-Type':'application/json','x-access-code':code,...(options.headers||{})}});const data=await r.json().catch(()=>({}));if(r.status===401){showLogin(true);throw new Error(data.error||'Acesso negado.')}if(!r.ok)throw new Error(data.error||'Falha na operação.');return data}
-function showLogin(on){$('#login').hidden=!on;$$('.panel').forEach(p=>p.hidden=on||p.dataset.panel!==currentTab);$('#hits').hidden=on||!state.targetHits.length}
+async function api(path,options={}){const r=await fetch(path,{...options,headers:{'Content-Type':'application/json',...authHeaders(),...(options.headers||{})}});const data=await r.json().catch(()=>({}));if(r.status===401){showLogin(true);throw new Error(data.error||'Acesso negado.')}if(!r.ok)throw new Error(data.error||'Falha na operação.');return data}
+function showLogin(on){$('#login').hidden=!on;$('.tabs').hidden=on;if(on)$('#who').hidden=true;$$('.panel').forEach(p=>p.hidden=on||p.dataset.panel!==currentTab);$('#hits').hidden=on||!state.targetHits.length}
 let currentTab='painel'
 const goTab=t=>{const b=$(`.tabs button[data-tab="${t}"]`);if(b)b.click()}
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)))
 $$('.tabs button').forEach(b=>b.addEventListener('click',()=>{currentTab=b.dataset.tab;$$('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));$$('.panel').forEach(p=>p.hidden=p.dataset.panel!==currentTab);try{localStorage.setItem('gm.tab',currentTab)}catch{}}))
 try{const t=localStorage.getItem('gm.tab');if(t&&$(`.tabs button[data-tab="${t}"]`))$(`.tabs button[data-tab="${t}"]`).click()}catch{}
-$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();code=new FormData(e.target).get('code');try{const s=await api('/api/session');if(s.protected&&!s.authorized)throw new Error('Código de acesso inválido.');try{localStorage.setItem('gm.code',code)}catch{}state.session=s;applyRole();$('#loginError').hidden=true;showLogin(false);await load()}catch(err){$('#loginError').textContent=err.message;$('#loginError').hidden=false}})
-$('#logout').addEventListener('click',()=>{code='';try{localStorage.removeItem('gm.code')}catch{}state.session=null;applyRole();showLogin(true)})
+async function finishLogin(s){if(s.token){token=s.token;code='';try{localStorage.setItem('gm.token',token);localStorage.removeItem('gm.code')}catch{}}else if(s.code){code=s.code;token='';try{localStorage.setItem('gm.code',code);localStorage.removeItem('gm.token')}catch{}}state.session=s;applyRole();$('#loginError').hidden=true;showLogin(false);await load()}
+$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(e.target);try{const s=await api('/api/login',{method:'POST',headers:{'x-access-code':'','Authorization':''},body:JSON.stringify({username:fd.get('username'),password:fd.get('password')})});await finishLogin(s)}catch(err){$('#loginError').textContent=err.message;$('#loginError').hidden=false}})
+$('#codeForm').addEventListener('submit',async e=>{e.preventDefault();const c=new FormData(e.target).get('code');try{const s=await api('/api/login',{method:'POST',headers:{'x-access-code':'','Authorization':''},body:JSON.stringify({code:c})});await finishLogin(s)}catch(err){$('#loginError').textContent=err.message;$('#loginError').hidden=false}})
+$('#logout').addEventListener('click',async()=>{try{await api('/api/logout',{method:'POST'})}catch{}code='';token='';try{localStorage.removeItem('gm.code');localStorage.removeItem('gm.token')}catch{}state.session=null;applyRole();showLogin(true)})
+$('#myPassword').addEventListener('click',async()=>{const cur=prompt('Senha atual:');if(cur==null)return;const next=prompt('Nova senha (mínimo 8 caracteres):');if(next==null)return;try{await api('/api/me/password',{method:'POST',body:JSON.stringify({currentPassword:cur,password:next})});status('Senha alterada.')}catch(e){status(e.message,6000)}})
 const COMMODITY_COLORS={soja:'#0758B6',milho:'#D28A00',trigo:'#8C7A00',canola:'#1E9E6A',arroz:'#5B6B7C',sorgo:'#B3457A',aveia:'#7A5AF8'}
 function applyRole(){
  const s=state.session;const tabs=s?.tabs||[];const write=s?.write||[]
- $('#who').hidden=!s?.role;if(s?.role)$('#roleBadge').textContent=s.roleLabel
+ $('#who').hidden=!s?.role;if(s?.role){$('#roleBadge').textContent=s.roleLabel;const name=s.user?.name||s.user?.username||(s.via==='codigo'?'Código da equipe':'Equipe');$('#userName').textContent=name;$('#userAvatar').textContent=name.split(/\s+/).slice(0,2).map(p=>p[0]||'').join('').toUpperCase()||'VS';$('#myPassword').hidden=!s.user}
  $$('.tabs button').forEach(b=>{b.hidden=Boolean(s?.role)&&!tabs.includes(b.dataset.tab)})
  if(s?.role&&!tabs.includes(currentTab)){goTab(tabs[0]||'painel')}
  $$('[data-write]').forEach(el=>{const ok=!s?.role||write.includes(el.dataset.write);el.hidden=!ok;if(el.tagName==='FORM')el.querySelectorAll('input,select,textarea,button').forEach(x=>x.disabled=!ok)})
@@ -67,7 +71,22 @@ function renderSourceBar(){
 }
 
 async function load(){try{const s=await api('/api/bootstrap');state={...state,...s};fillSelects();applyRole();renderAll();showLogin(false)}catch(e){status(e.message,6000)}}
-function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderOffers();renderStorageOps();renderStorage();renderBrief()}
+function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderOffers();renderStorageOps();renderStorage();renderBrief();renderAdmin()}
+async function renderAdmin(){
+ const s=state.session;if(!s?.role||!(s.write||[]).includes('usuarios')||!$('#users'))return
+ const rolesDef=s.roles||{};$('#roleHelp').innerHTML=Object.entries(rolesDef).map(([k,v])=>`<li><b>${esc(v.label)}</b>: abas ${v.tabs.join(', ')}; escrita em ${v.write.length?v.write.join(', '):'nada'}.${v.configured?' Há código de equipe configurado para este nível.':''}</li>`).join('')
+ $('#adminNotice').innerHTML=s.via==='codigo'?'<p class="note gap">Você entrou com o código de acesso da equipe. Crie o seu usuário gerencial aqui e passe a entrar com usuário e senha; os códigos continuam válidos enquanto estiverem configurados no servidor.</p>':''
+ try{const r=await api('/api/users');const list=r.users||[];$('#userCount').textContent=`${list.length} login(s) • ${list.filter(u=>u.active).length} ativo(s)`
+  $('#users').innerHTML=list.length?list.map(u=>`<article class="item userrow" data-id="${u.id}"><header><div><b>${esc(u.name)}</b> <span class="tag ${u.role}">${esc(rolesDef[u.role]?.label||u.role)}</span>${u.active?'':'<span class="tag inativo">desativado</span>'}<div class="meta">@${esc(u.username)} • criado em ${dt(u.createdAt)}${u.createdBy?' por '+esc(u.createdBy):''}${u.lastLoginAt?' • último acesso '+dt(u.lastLoginAt):' • nunca entrou'}</div></div><div class="row"><button class="mini" data-edit-user="${u.id}">editar</button><button class="mini" data-pass-user="${u.id}">nova senha</button><button class="mini" data-toggle-user="${u.id}" data-active="${u.active}">${u.active?'desativar':'reativar'}</button><button class="mini" data-del-user="${u.id}">remover</button></div></header></article>`).join(''):'<div class="empty"><p>Nenhum login criado. Crie o primeiro usuário gerencial e depois os demais.</p></div>'
+  $$('#users [data-edit-user]').forEach(b=>b.addEventListener('click',()=>{const u=list.find(x=>x.id===b.dataset.editUser);const f=$('#userForm');f.id.value=u.id;f.name.value=u.name;f.username.value=u.username;f.password.value='';f.password.required=false;f.password.placeholder='deixe em branco para manter';f.role.value=u.role;f.active.value=String(u.active);$('#userFormTitle').textContent='Editar login';$('#userCancel').hidden=false;f.scrollIntoView({behavior:'smooth',block:'start'})}))
+  $$('#users [data-pass-user]').forEach(b=>b.addEventListener('click',async()=>{const next=prompt('Nova senha para este usuário (mínimo 8 caracteres):');if(next==null)return;try{await api('/api/users/'+b.dataset.passUser+'/password',{method:'POST',body:JSON.stringify({password:next})});status('Senha redefinida.')}catch(e){status(e.message,6000)}}))
+  $$('#users [data-toggle-user]').forEach(b=>b.addEventListener('click',async()=>{try{await api('/api/users/'+b.dataset.toggleUser,{method:'PUT',body:JSON.stringify({active:b.dataset.active!=='true'})});status('Situação atualizada.');renderAdmin()}catch(e){status(e.message,6000)}}))
+  $$('#users [data-del-user]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover este login?'))return;try{await api('/api/users/'+b.dataset.delUser,{method:'DELETE'});status('Login removido.');renderAdmin()}catch(e){status(e.message,6000)}}))
+ }catch(e){$('#users').innerHTML=`<p class="error">${esc(e.message)}</p>`}
+}
+function resetUserForm(){const f=$('#userForm');f.reset();f.id.value='';f.password.required=true;f.password.placeholder='mínimo 8 caracteres';$('#userFormTitle').textContent='Criar login';$('#userCancel').hidden=true}
+$('#userCancel').addEventListener('click',resetUserForm)
+$('#userForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;$('#userError').hidden=true;try{const p=formData(f);const id=p.id;delete p.id;if(!p.password)delete p.password;await api(id?'/api/users/'+id:'/api/users',{method:id?'PUT':'POST',body:JSON.stringify(p)});status(id?'Login atualizado.':'Login criado.');resetUserForm();renderAdmin()}catch(err){$('#userError').textContent=err.message;$('#userError').hidden=false}})
 function renderHits(){const h=state.targetHits||[];$('#hits').hidden=!h.length;if(!h.length)return;$('#hits').innerHTML=`<b>Alvos atingidos por cotação registrada (${h.length})</b><ul>${h.map(x=>`<li><b>${esc(x.producerName)}</b> • ${esc(x.commodity)} • ${esc(x.target)} (${money(x.targetPrice)}) — mercado ${money(x.marketPrice)} por ${esc(x.sourceName)} em ${dt(x.observedAt)} • ${int(x.volumeSc)} sc</li>`).join('')}</ul>`}
 function analysisHtml(a){
  const m=a.marketReading||{}
@@ -403,5 +422,5 @@ function renderOffers(){
 }
 $('#exportOffersCsv').addEventListener('click',()=>csv((state.offers||[]).map(o=>({id:o.id,produtor:o.producerName,grao:o.offer.commodity,volume_sc:o.offer.volumeSc,vencimento:o.offer.deliveryMonth,destino:o.offer.destination.name,referencia:o.offer.reference?.price,referencia_venc:o.offer.referenceAtDelivery,frete_sc:o.offer.freight.perSc,margem_sc:o.offer.margin.perSc,oferta_sc:o.offer.offerPrice,pedida_sc:o.offer.askingPrice,diferenca_pedida_sc:o.offer.asking?.gapSc,situacao:o.status,fechado_sc:o.closedPrice,criada_em:o.createdAt,observacoes:o.notes})),'ofertas.csv'))
 $('#exportOffersJson').addEventListener('click',async()=>{try{const r=await api('/api/offers/export');const blob=new Blob([JSON.stringify(r,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='val-sog-export.json';a.click();URL.revokeObjectURL(a.href)}catch(e){status(e.message,6000)}})
-;(async()=>{try{const s=await fetch('/api/session',{headers:{'x-access-code':code}}).then(r=>r.json());if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
+;(async()=>{try{const s=await fetch('/api/session',{headers:authHeaders()}).then(r=>r.json());if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
 })()

@@ -210,3 +210,52 @@ test('canola: esmagadoras Camera e Celena são a referência principal',async()=
   const boot=(await call(base,'GET','/api/bootstrap')).data;assert.ok(boot.catalog.sources.some(s=>s.id==='camera-slg'&&s.crusher));assert.ok(boot.catalog.sources.some(s=>s.id==='celena'))
  }finally{server.close()}
 })
+
+test('login com usuário e senha, painel de usuários e regras de proteção',async()=>{
+ const {server,base}=await start({accessCodes:{gerencial:['ger-1']}})
+ try{
+  const callTok=(method,path,payload,tok)=>fetch(base+path,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:payload?JSON.stringify(payload):undefined}).then(async r=>({status:r.status,data:await r.json()}))
+  assert.equal((await call(base,'POST','/api/login',{username:'x',password:'y'})).status,401)
+  const byCode=await call(base,'POST','/api/login',{code:'ger-1'});assert.equal(byCode.status,200);assert.equal(byCode.data.role,'gerencial');assert.equal(byCode.data.via,'codigo');assert.equal(byCode.data.token,null)
+  assert.equal((await call(base,'POST','/api/users',{username:'Maria.Silva',name:'Maria',password:'curta',role:'operador'},'ger-1')).status,400)
+  assert.equal((await call(base,'POST','/api/users',{username:'maria silva',name:'Maria',password:'segredo123',role:'operador'},'ger-1')).status,400)
+  const created=await call(base,'POST','/api/users',{username:'Maria.Silva',name:'Maria Silva',password:'segredo123',role:'operador'},'ger-1')
+  assert.equal(created.status,201);assert.equal(created.data.user.username,'maria.silva');assert.equal(created.data.user.passwordHash,undefined)
+  assert.equal((await call(base,'POST','/api/users',{username:'maria.silva',name:'Outra',password:'segredo123',role:'operador'},'ger-1')).status,409)
+  const admin=await call(base,'POST','/api/users',{username:'chefe',name:'Chefe',password:'senhaforte1',role:'gerencial'},'ger-1');assert.equal(admin.status,201)
+  const login=await call(base,'POST','/api/login',{username:'MARIA.SILVA',password:'segredo123'});assert.equal(login.status,200);assert.ok(login.data.token);assert.equal(login.data.role,'operador');assert.equal(login.data.user.name,'Maria Silva');assert.equal(login.data.via,'usuario')
+  assert.equal((await call(base,'POST','/api/login',{username:'maria.silva',password:'errada123'})).status,401)
+  const tok=login.data.token
+  const sess=await callTok('GET','/api/session',null,tok);assert.equal(sess.data.role,'operador');assert.ok(!sess.data.tabs.includes('admin'))
+  assert.equal((await callTok('GET','/api/users',null,tok)).status,403)
+  assert.equal((await callTok('POST','/api/users',{username:'z',name:'z',password:'12345678',role:'operador'},tok)).status,403)
+  assert.equal((await callTok('POST','/api/producers',{name:'Ana'},tok)).status,201)
+  assert.equal((await callTok('POST','/api/me/password',{currentPassword:'errada',password:'novasenha123'},tok)).status,401)
+  assert.equal((await callTok('POST','/api/me/password',{currentPassword:'segredo123',password:'novasenha123'},tok)).status,200)
+  assert.equal((await call(base,'POST','/api/login',{username:'maria.silva',password:'novasenha123'})).status,200)
+  assert.equal((await callTok('GET','/api/session',null,tok+'x')).data.authorized,false)
+  const adminLogin=await call(base,'POST','/api/login',{username:'chefe',password:'senhaforte1'});const atok=adminLogin.data.token
+  const list=await callTok('GET','/api/users',null,atok);assert.equal(list.status,200);assert.equal(list.data.users.length,2);assert.ok(list.data.users.find(u=>u.username==='maria.silva').lastLoginAt)
+  const mariaId=created.data.user.id
+  assert.equal((await callTok('PUT','/api/users/'+mariaId,{role:'armazem',active:false},atok)).data.user.role,'armazem')
+  assert.equal((await call(base,'POST','/api/login',{username:'maria.silva',password:'novasenha123'})).status,403)
+  assert.equal((await callTok('PUT','/api/users/'+admin.data.user.id,{role:'operador'},atok)).status,400)
+  assert.equal((await callTok('DELETE','/api/users/'+admin.data.user.id,null,atok)).status,400)
+  assert.equal((await callTok('POST','/api/users/'+mariaId+'/password',{password:'outrasenha123'},atok)).status,200)
+  assert.equal((await callTok('PUT','/api/users/'+mariaId,{active:true},atok)).status,200)
+  assert.equal((await call(base,'POST','/api/login',{username:'maria.silva',password:'outrasenha123'})).status,200)
+  assert.equal((await callTok('DELETE','/api/users/'+mariaId,null,atok)).status,200)
+  const boot=await callTok('GET','/api/bootstrap',null,atok);assert.equal(boot.status,200);assert.equal(boot.data.session.user.username,'chefe');assert.ok(boot.data.session.tabs.includes('admin'))
+ }finally{server.close()}
+})
+
+test('sem códigos, o primeiro usuário criado passa a proteger o sistema',async()=>{
+ const {server,base}=await start()
+ try{
+  assert.equal((await call(base,'GET','/api/session')).data.protected,false)
+  const created=await call(base,'POST','/api/users',{username:'admin',name:'Admin',password:'senhaforte1',role:'gerencial'});assert.equal(created.status,201)
+  assert.equal((await call(base,'GET','/api/session')).data.authorized,false);assert.equal((await call(base,'GET','/api/bootstrap')).status,401)
+  const login=await call(base,'POST','/api/login',{username:'admin',password:'senhaforte1'});assert.equal(login.status,200)
+  const r=await fetch(base+'/api/bootstrap',{headers:{Authorization:'Bearer '+login.data.token}});assert.equal(r.status,200)
+ }finally{server.close()}
+})

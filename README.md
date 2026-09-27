@@ -53,6 +53,7 @@ Sem dependências externas: Node 20 ou superior. Os dados ficam em `DATA_DIR` (p
 | `DATA_DIR` | pasta do arquivo de dados; na Railway use um volume montado em `/data` |
 | `ACCESS_CODE` | código de acesso **gerencial** (tudo, inclusive parâmetros e padrões); aceita vários separados por vírgula; alias `ACCESS_CODE_GERENCIAL` |
 | `ACCESS_CODE_OPERADOR` | código do **operador de compra de grãos**: pedidos, produtores, cotações e ofertas; armazenagem e parâmetros só leitura |
+| `SESSION_SECRET` | segredo que assina as sessões de usuário e senha; vazio gera um segredo persistido no volume |
 | `ACCESS_CODE_ARMAZEM` | código do **encarregado de armazém**: unidades, padrões, estoque, qualidade e recebimentos; comercial só leitura (abas Pedidos, Produtores e Ofertas ficam ocultas) |
 | `AUTO_FETCH_HOURS` | intervalo da leitura automática dos concorrentes em horas; `0` desliga (padrão 4) |
 | `AUTO_SAVE` | `false` desliga o registro automático das leituras como cotações (padrão ligado) |
@@ -94,10 +95,17 @@ Cada push na branch `main` gera um novo deploy.
 | `/api/requests/:id/closings` | POST | registra fechamento parcial ou total |
 | `/api/requests/:id` | PATCH | muda o estado (`open`, `closed`, `cancelled`) |
 
-Todas as rotas de `/api/`, exceto `/api/session`, exigem o cabeçalho `x-access-code` quando algum código está definido. O código identifica o nível (gerencial, operador ou armazém); `/api/session` devolve o nível, as abas liberadas e as áreas com escrita. Escrita fora do nível responde 403.
+**Logins e senhas.** A página inicial pede usuário e senha. Os logins são criados no painel **Administração** (aba visível só para o nível gerencial): nome, usuário, senha (mínimo 8 caracteres, guardada com scrypt), nível e situação; dá para editar, redefinir senha, desativar, reativar e remover, com proteções (não rebaixar nem remover o próprio usuário; manter ao menos um gerencial ativo). Cada usuário pode trocar a própria senha pelo botão "senha" no cartão do rodapé do menu. A sessão é um token assinado (Authorization: Bearer) válido por 30 dias. O código de acesso da equipe (variáveis ACCESS_CODE*) continua funcionando pelo atalho "Entrar com código" e serve para o gerencial criar os primeiros usuários; sem nenhum código e sem usuários, o sistema fica aberto (só para teste local) até o primeiro usuário ser criado.
+
+Todas as rotas de `/api/`, exceto `/api/session` e `/api/login`, exigem sessão (token de usuário) ou o cabeçalho `x-access-code` quando o sistema está protegido. O código identifica o nível (gerencial, operador ou armazém); `/api/session` devolve o nível, as abas liberadas e as áreas com escrita. Escrita fora do nível responde 403.
 
 | Rota | Método | Nível com escrita | Uso |
 |---|---|---|---|
+| `/api/login` | POST | público | usuário e senha (ou código) → sessão |
+| `/api/users` | GET, POST | gerencial | lista e cria logins |
+| `/api/users/:id` | PUT, DELETE | gerencial | edita (nome, usuário, nível, situação, senha) ou remove |
+| `/api/users/:id/password` | POST | gerencial | redefine a senha de um login |
+| `/api/me/password` | POST | todos com usuário | troca a própria senha |
 | `/api/storage/units` | POST | armazém, gerencial | cadastra unidade de recebimento (capacidade, secagem, recebimento/dia, metas por grão, safra) |
 | `/api/storage/units/:id` | PUT, DELETE | armazém, gerencial | edita ou remove a unidade |
 | `/api/storage/standards` | PUT | armazém, gerencial | ajusta os padrões por grão (umidade, temperatura, impurezas, avariados, PH…) |

@@ -6,13 +6,13 @@
 <meta name="color-scheme" content="light dark">
 <title>VAL-SOG</title>
 <meta name="description" content="VAL-SOG — Sistema de Operações de Grãos da praça de São Luiz Gonzaga/RS: pedido do produtor, análise personalizada, comparativo de compradores e alvos de fechamento.">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="val-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <a class="skip" href="#main">Pular para o conteúdo</a>
-<header class="top">
- <div class="brand"><img src="icon.svg" alt="" width="34" height="34"><div><b>VAL<span>-SOG</span></b><small>Sistema de Operações de Grãos • Missões</small></div></div>
+<aside class="sidebar">
+ <div class="brand" role="img" aria-label="VAL-SOG — Sistema de Operações de Grãos"><div class="brand-row"><img class="val-mark" src="val-mark.svg" alt=""><img class="val-word" src="val-word.svg" alt="VAL"><b class="brand-sog">SOG</b></div><small>Sistema de Operações de Grãos • Missões</small></div>
  <nav class="tabs" role="tablist" aria-label="Seções">
   <button role="tab" data-tab="painel" aria-selected="true">Painel</button>
   <button role="tab" data-tab="pedidos" aria-selected="false">Pedidos</button>
@@ -22,16 +22,19 @@
   <button role="tab" data-tab="precos" aria-selected="false">Preços</button>
   <button role="tab" data-tab="armazenagem" aria-selected="false">Armazenagem</button>
   <button role="tab" data-tab="praca" aria-selected="false">Praça</button>
+  <button role="tab" data-tab="admin" aria-selected="false">Administração</button>
  </nav>
- <div class="status" id="status" aria-live="polite"></div>
- <div class="who" id="who" hidden><span id="roleBadge" class="rolebadge"></span><button type="button" class="mini ghost" id="logout" title="Sair e trocar de código">sair</button></div>
-</header>
+ <div class="who user-card" id="who" hidden><div class="user-avatar" id="userAvatar">VS</div><div class="user-meta"><strong id="userName">Equipe</strong><span id="roleBadge" class="rolebadge"></span></div><div class="btns"><button type="button" class="mini ghost" id="myPassword" title="Trocar minha senha" hidden>senha</button><button type="button" class="mini ghost" id="logout" title="Sair">sair</button></div></div>
+</aside>
+<div class="status" id="status" aria-live="polite"></div>
 <main id="main" class="main">
  <section id="login" class="login" hidden>
-  <div class="card">
-   <h1>Acesso ao VAL-SOG</h1>
-   <p>Informe o seu código de acesso. O código define o nível: <b>gerencial</b> (tudo), <b>operador de compra de grãos</b> (pedidos, produtores, cotações e ofertas) ou <b>encarregado de armazém</b> (unidades, estoque, qualidade e recebimentos). Ele fica salvo somente neste navegador.</p>
-   <form id="loginForm"><label>Código de acesso<input name="code" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">Entrar</button></form>
+  <div class="card logincard">
+   <div class="loginbrand"><img src="val-mark.svg" alt="" width="54" height="54"><div><b>VAL<span>-SOG</span></b><small>Sistema de Operações de Grãos • Missões</small></div></div>
+   <h1>Entrar</h1>
+   <p>Use o seu usuário e senha. O nível de acesso (gerencial, operador de compra de grãos ou encarregado de armazém) é definido no cadastro feito pela gerência.</p>
+   <form id="loginForm"><label>Usuário<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="nome.sobrenome"></label><label>Senha<input name="password" type="password" autocomplete="current-password"></label><button class="primary" type="submit">Entrar</button></form>
+   <details class="codelogin"><summary>Entrar com código de acesso da equipe</summary><form id="codeForm"><label>Código de acesso<input name="code" type="password" autocomplete="off"></label><button class="secondary" type="submit">Entrar com código</button></form><p class="meta">O código é a chave configurada no servidor (gerencial, operador ou armazém). Com ele o gerencial pode criar os primeiros usuários em Administração.</p></details>
    <p class="error" id="loginError" role="alert" hidden></p>
   </div>
  </section>
@@ -318,6 +321,27 @@
    </div>
   </div>
   <div id="storage" class="storage"></div>
+ </section>
+ <section data-panel="admin" class="panel" hidden>
+  <div class="hero small"><div><small>VAL-SOG • ADMINISTRAÇÃO</small><h1>Usuários e níveis de acesso</h1><p>Crie os logins da equipe e defina o nível de cada um: gerencial (tudo, inclusive parâmetros, padrões e usuários), operador de compra de grãos (pedidos, produtores, cotações e ofertas) e encarregado de armazém (unidades, estoque, qualidade e recebimentos).</p></div></div>
+  <div id="adminNotice"></div>
+  <div class="split">
+   <form id="userForm" class="card form"><div class="cardhead"><h2 id="userFormTitle">Criar login</h2><button class="mini" type="button" id="userCancel" hidden>cancelar edição</button></div>
+    <input type="hidden" name="id">
+    <div class="grid">
+     <label>Nome<input name="name" placeholder="Maria Silva"></label>
+     <label>Usuário *<input name="username" required autocapitalize="none" spellcheck="false" placeholder="maria.silva"></label>
+     <label>Senha *<input name="password" type="password" autocomplete="new-password" placeholder="mínimo 8 caracteres"></label>
+     <label>Nível *<select name="role"><option value="operador">Operador de compra de grãos</option><option value="armazem">Encarregado de armazém</option><option value="gerencial">Gerencial</option></select></label>
+     <label>Situação<select name="active"><option value="true">Ativo</option><option value="false">Desativado</option></select></label>
+    </div>
+    <p class="error" id="userError" role="alert" hidden></p>
+    <div class="actions"><button class="primary" type="submit">Salvar login</button></div>
+   </form>
+   <div class="card"><div class="cardhead"><h2>Logins cadastrados</h2><small id="userCount"></small></div><div id="users" class="list"></div>
+    <div class="box"><h4>O que cada nível pode fazer</h4><ul class="reading" id="roleHelp"></ul></div>
+   </div>
+  </div>
  </section>
  <section data-panel="praca" class="panel" hidden>
  <details class="guide"><summary>Guia: como ler a aba Praça</summary><div class="guidegrid">

@@ -4,6 +4,7 @@ import {dirname,extname,join,normalize,resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
+import {hashPassword,makeToken,normalizeUserInput,publicUser,verifyPassword,verifyToken} from './lib/auth.js'
 import {buildStorageSummary,defaultStandards,normalizeReading,normalizeReceipt,normalizeStandards,normalizeUnit} from './lib/storage.js'
 import {analyzeRequest,buildAskingHistory,buildBrief,buildPortfolio,buildPriceYear,checkTargets,commodityLabels,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
 import {runComparison} from './lib/fetch.js'
@@ -17,7 +18,7 @@ const headers={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-orig
 
 const splitCodes=v=>String(v||'').split(',').map(x=>x.trim()).filter(Boolean)
 export const roles={
- gerencial:{label:'Gerencial',tabs:['painel','pedidos','cotacoes','produtores','ofertas','precos','armazenagem','praca'],write:['comercial','parametros','armazem','cotacoes']},
+ gerencial:{label:'Gerencial',tabs:['painel','pedidos','cotacoes','produtores','ofertas','precos','armazenagem','praca','admin'],write:['comercial','parametros','armazem','cotacoes','usuarios']},
  operador:{label:'Operador de compra de grãos',tabs:['painel','pedidos','cotacoes','produtores','ofertas','precos','armazenagem','praca'],write:['comercial','cotacoes']},
  armazem:{label:'Encarregado de armazém',tabs:['painel','cotacoes','precos','armazenagem','praca'],write:['armazem']}
 }
@@ -60,12 +61,24 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const json=(response,status,payload)=>{response.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});response.end(JSON.stringify(payload))}
  const body=request=>new Promise((resolvePromise,reject)=>{let raw='';request.on('data',chunk=>{raw+=chunk;if(raw.length>1_000_000){reject(Object.assign(new Error('Requisição muito grande.'),{statusCode:413}));request.destroy()}});request.on('end',()=>{try{resolvePromise(raw?JSON.parse(raw):{})}catch{reject(Object.assign(new Error('Conteúdo inválido.'),{statusCode:400}))}});request.on('error',reject)})
  const codes={gerencial:[...splitCodes(accessCode),...splitCodes(process.env.ACCESS_CODE_GERENCIAL),...(accessCodes?.gerencial||[])],operador:[...splitCodes(process.env.ACCESS_CODE_OPERADOR),...(accessCodes?.operador||[])],armazem:[...splitCodes(process.env.ACCESS_CODE_ARMAZEM),...(accessCodes?.armazem||[])]}
- const protectedApp=Object.values(codes).some(list=>list.length)
  const sameCode=(given,expected)=>given.length===expected.length&&timingSafeEqual(Buffer.from(given),Buffer.from(expected))
- const roleOf=request=>{if(!protectedApp)return 'gerencial';const given=String(request.headers['x-access-code']||'');if(!given)return null;for(const role of ['gerencial','operador','armazem'])if(codes[role].some(c=>sameCode(given,c)))return role;return null}
+ const authSecret=()=>{if(process.env.SESSION_SECRET)return process.env.SESSION_SECRET;const data=store.read();if(data.authSecret)return data.authSecret;return store.update(d=>{d.authSecret=d.authSecret||randomUUID()+randomUUID();return d.authSecret})}
+ const activeUsers=data=>(data.users||[]).filter(u=>u.active!==false)
+ const isProtected=()=>Object.values(codes).some(list=>list.length)||activeUsers(store.read()).length>0
+ const identify=request=>{
+  if(request._identity!==undefined)return request._identity
+  const data=store.read();const protectedApp=isProtected()
+  if(!protectedApp){request._identity={role:'gerencial',user:null,via:'aberto'};return request._identity}
+  const auth=String(request.headers.authorization||'');const token=auth.startsWith('Bearer ')?auth.slice(7).trim():String(request.headers['x-session']||'')
+  if(token){const t=verifyToken(token,authSecret());const user=t&&(data.users||[]).find(u=>u.id===t.userId&&u.active!==false);if(user&&roles[user.role]){request._identity={role:user.role,user,via:'usuario'};return request._identity}}
+  const given=String(request.headers['x-access-code']||'')
+  if(given){for(const role of ['gerencial','operador','armazem'])if(codes[role].some(c=>sameCode(given,c))){request._identity={role,user:null,via:'codigo'};return request._identity}}
+  request._identity=null;return null
+ }
+ const roleOf=request=>identify(request)?.role||null
  const authorized=request=>Boolean(roleOf(request))
- const areaOf=(path,method)=>{if(method==='GET')return null;if(path.startsWith('/api/storage'))return 'armazem';if(path==='/api/offer-settings')return 'parametros';if(path.startsWith('/api/quotes')||path.startsWith('/api/own-quotes')||path.startsWith('/api/port-quotes')||path.startsWith('/api/comparison'))return 'cotacoes';return 'comercial'}
- const sessionInfo=request=>{const role=roleOf(request);return {protected:protectedApp,authorized:Boolean(role),role,roleLabel:role?roles[role].label:null,tabs:role?roles[role].tabs:[],write:role?roles[role].write:[],roles:Object.fromEntries(Object.entries(roles).map(([k,v])=>[k,{label:v.label,tabs:v.tabs,write:v.write,configured:codes[k].length>0}]))}}
+ const areaOf=(path,method)=>{if(method==='GET')return null;if(path==='/api/me/password'||path==='/api/logout')return null;if(path.startsWith('/api/users'))return 'usuarios';if(path.startsWith('/api/storage'))return 'armazem';if(path==='/api/offer-settings')return 'parametros';if(path.startsWith('/api/quotes')||path.startsWith('/api/own-quotes')||path.startsWith('/api/port-quotes')||path.startsWith('/api/comparison'))return 'cotacoes';return 'comercial'}
+ const sessionInfo=request=>{const id=identify(request);const role=id?.role||null;const data=store.read();return {protected:isProtected(),authorized:Boolean(role),role,roleLabel:role?roles[role].label:null,via:id?.via||null,user:id?.user?{id:id.user.id,username:id.user.username,name:id.user.name}:null,tabs:role?roles[role].tabs:[],write:role?roles[role].write:[],usersCount:(data.users||[]).length,codesConfigured:Object.values(codes).some(list=>list.length),roles:Object.fromEntries(Object.entries(roles).map(([k,v])=>[k,{label:v.label,tabs:v.tabs,write:v.write,configured:codes[k].length>0}]))}}
  const producerOf=(store,id)=>store.producers.find(item=>item.id===id)||null
  const withAnalysis=(store,item,now)=>{const producer=producerOf(store,item.producerId);return analyzeRequest({request:item,producer,quotes:store.quotes,praca},{now})}
 
@@ -73,8 +86,27 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   const path=url.pathname
   if(path==='/health'||path==='/api/health')return json(response,200,{status:'ok',service:'graos-missoes',praca:praca.id,protected:Boolean(accessCode)})
   if(path==='/api/session'&&request.method==='GET')return json(response,200,sessionInfo(request))
+  if(path==='/api/login'&&request.method==='POST'){
+   const payload=await body(request);const username=text(payload.username,40).toLowerCase();const password=String(payload.password??'')
+   if(payload.code&&!username){request.headers['x-access-code']=String(payload.code);request._identity=undefined;const info=sessionInfo(request);if(!info.authorized)return json(response,401,{error:'Código de acesso inválido.'});return json(response,200,{...info,token:null,code:String(payload.code)})}
+   if(!username||!password)return json(response,400,{error:'Informe usuário e senha.'})
+   const data=store.read();const user=(data.users||[]).find(u=>u.username===username)
+   if(!user||!verifyPassword(password,user.passwordHash))return json(response,401,{error:'Usuário ou senha inválidos.'})
+   if(user.active===false)return json(response,403,{error:'Usuário desativado. Fale com o gerencial.'})
+   store.update(d=>{const u=d.users.find(x=>x.id===user.id);if(u)u.lastLoginAt=new Date().toISOString()})
+   const token=makeToken(user.id,authSecret());request.headers.authorization=`Bearer ${token}`;request._identity=undefined
+   return json(response,200,{...sessionInfo(request),token})
+  }
   const role=roleOf(request);if(!role)return json(response,401,{error:'Código de acesso inválido.'})
+  if(path==='/api/logout'&&request.method==='POST')return json(response,200,{ok:true})
+  if(path==='/api/me/password'&&request.method==='POST'){const id=identify(request);if(!id?.user)return json(response,400,{error:'Troca de senha só para login com usuário e senha.'});const payload=await body(request);if(!verifyPassword(String(payload.currentPassword??''),id.user.passwordHash))return json(response,401,{error:'Senha atual incorreta.'});const next=String(payload.password??'');if(next.length<8)return json(response,400,{error:'A nova senha precisa ter pelo menos 8 caracteres.'});store.update(d=>{const u=d.users.find(x=>x.id===id.user.id);u.passwordHash=hashPassword(next);u.updatedAt=new Date().toISOString()});return json(response,200,{ok:true})}
+  if(path==='/api/users'&&request.method==='GET'){if(!roles[role].write.includes('usuarios'))return json(response,403,{error:'Somente o nível gerencial vê os usuários.'});return json(response,200,{users:(store.read().users||[]).map(publicUser)})}
   const area=areaOf(path,request.method);if(area&&!roles[role].write.includes(area))return json(response,403,{error:`Seu nível de acesso (${roles[role].label}) não permite esta operação${area==='armazem'?' de armazenagem':area==='parametros'?' nos parâmetros':area==='cotacoes'?' em cotações':' comercial'}.`})
+  if(path==='/api/users'&&request.method==='POST'){const input=normalizeUserInput(await body(request));const me=identify(request);const saved=store.update(d=>{d.users=d.users||[];if(d.users.some(u=>u.username===input.username))throw Object.assign(new Error('Já existe um usuário com esse nome.'),{statusCode:409});const record={id:randomUUID(),username:input.username,name:input.name,role:input.role,active:input.active,passwordHash:hashPassword(input.password),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),createdBy:me?.user?.username||'gerencial'};d.users.push(record);return record});return json(response,201,{user:publicUser(saved)})}
+  const userMatch=path.match(/^\/api\/users\/([0-9a-f-]{36})(?:\/(password))?$/i)
+  if(userMatch&&!userMatch[2]&&request.method==='PUT'){const payload=await body(request);const me=identify(request);const saved=store.update(d=>{const u=(d.users||[]).find(x=>x.id===userMatch[1]);if(!u)throw Object.assign(new Error('Usuário não encontrado.'),{statusCode:404});const input=normalizeUserInput({...u,...payload,username:payload.username||u.username,password:payload.password||''},{requirePassword:false});if(input.username!==u.username&&d.users.some(x=>x.username===input.username))throw Object.assign(new Error('Já existe um usuário com esse nome.'),{statusCode:409});if(me?.user?.id===u.id&&(input.role!=='gerencial'||!input.active))throw Object.assign(new Error('Você não pode rebaixar nem desativar o próprio usuário.'),{statusCode:400});if(u.role==='gerencial'&&(input.role!=='gerencial'||!input.active)&&d.users.filter(x=>x.role==='gerencial'&&x.active!==false&&x.id!==u.id).length===0&&!Object.values(codes).some(l=>l.length))throw Object.assign(new Error('Mantenha ao menos um usuário gerencial ativo.'),{statusCode:400});Object.assign(u,{username:input.username,name:input.name,role:input.role,active:input.active,updatedAt:new Date().toISOString()});if(input.password)u.passwordHash=hashPassword(input.password);return u});return json(response,200,{user:publicUser(saved)})}
+  if(userMatch&&userMatch[2]==='password'&&request.method==='POST'){const payload=await body(request);const next=String(payload.password??'');if(next.length<8)return json(response,400,{error:'A nova senha precisa ter pelo menos 8 caracteres.'});store.update(d=>{const u=(d.users||[]).find(x=>x.id===userMatch[1]);if(!u)throw Object.assign(new Error('Usuário não encontrado.'),{statusCode:404});u.passwordHash=hashPassword(next);u.updatedAt=new Date().toISOString()});return json(response,200,{ok:true})}
+  if(userMatch&&!userMatch[2]&&request.method==='DELETE'){const me=identify(request);store.update(d=>{const idx=(d.users||[]).findIndex(x=>x.id===userMatch[1]);if(idx<0)throw Object.assign(new Error('Usuário não encontrado.'),{statusCode:404});if(me?.user?.id===userMatch[1])throw Object.assign(new Error('Você não pode remover o próprio usuário.'),{statusCode:400});const u=d.users[idx];if(u.role==='gerencial'&&d.users.filter(x=>x.role==='gerencial'&&x.active!==false&&x.id!==u.id).length===0&&!Object.values(codes).some(l=>l.length))throw Object.assign(new Error('Mantenha ao menos um usuário gerencial ativo.'),{statusCode:400});d.users.splice(idx,1)});return json(response,200,{ok:true})}
   if(path==='/api/storage/units'&&request.method==='POST'){const input=normalizeUnit(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.storageUnits=(data.storageUnits||[]).concat(record);return record});return json(response,201,{unit:saved})}
   const unitMatch=path.match(/^\/api\/storage\/units\/([0-9a-f-]{36})$/i)
   if(unitMatch&&request.method==='PUT'){const input=normalizeUnit(await body(request));const saved=store.update(data=>{const current=(data.storageUnits||[]).find(u=>u.id===unitMatch[1]);if(!current)throw Object.assign(new Error('Unidade não encontrada.'),{statusCode:404});Object.assign(current,input,{updatedAt:new Date().toISOString()});return current});return json(response,200,{unit:saved})}
