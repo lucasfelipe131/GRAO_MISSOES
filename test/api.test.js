@@ -7,7 +7,7 @@ import {createServer} from 'node:http'
 import {createApp} from '../server.js'
 import {loadSources} from '../lib/analysis.js'
 
-const start=(options={})=>new Promise(resolve=>{const server=createApp({dataDir:mkdtempSync(join(tmpdir(),'gm-')),...options});server.listen(0,()=>resolve({server,base:`http://127.0.0.1:${server.address().port}`}))})
+const start=(options={})=>new Promise(resolve=>{const server=createApp({dataDir:mkdtempSync(join(tmpdir(),'gm-')),seedHistory:false,...options});server.listen(0,()=>resolve({server,base:`http://127.0.0.1:${server.address().port}`}))})
 const call=async(base,method,path,payload,code)=>{const response=await fetch(base+path,{method,headers:{'Content-Type':'application/json',...(code?{'x-access-code':code}:{})},body:payload?JSON.stringify(payload):undefined});return {status:response.status,data:await response.json()}}
 
 test('fluxo completo: produtor, cotação, pedido com análise, fechamento e alvo atingido',async()=>{
@@ -97,9 +97,38 @@ test('preços de porto por trading entram como referência de base e canola é c
   assert.equal(analysis.data.analysis.marketReading.competition.competitors.length,0)
   const canola=await call(base,'POST','/api/analyze',{producerId:producer.id,commodity:'canola',volume:500,targetPrice:220,deliveryLocation:'São Luiz Gonzaga'})
   assert.equal(canola.status,200);assert.equal(canola.data.analysis.praca.applies,true);assert.ok(canola.data.analysis.tips.some(t=>/antes do plantio/.test(t.text)));assert.equal(canola.data.analysis.position.productionSc,1000)
-  const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.portSources.length,4);assert.ok(boot.data.portfolio.commodities.some(c=>c.commodity==='canola'))
+  const boot=await call(base,'GET','/api/bootstrap');assert.ok(boot.data.portSources.length>=4);assert.ok(['porto-bunge','porto-adm','porto-ldc','porto-cargill'].every(id=>boot.data.portSources.some(p=>p.id===id)));assert.ok(boot.data.portfolio.commodities.some(c=>c.commodity==='canola'))
   const imp=await call(base,'POST','/api/quotes/import',{commodity:'milho',sourceName:'Emater',lines:'01/02/2026;58,00\n01/03/2026;56,00'});assert.equal(imp.status,201);assert.equal(imp.data.imported,2)
   const boot2=await call(base,'GET','/api/bootstrap');assert.equal(boot2.data.priceYear.find(c=>c.commodity==='milho').stats.n,2);assert.ok(boot2.data.storageGuide.crops.milho)
   const font=await fetch(base+'/fonts/manrope-latin-wght-normal.woff2');assert.equal(font.status,200);assert.equal(font.headers.get('content-type'),'font/woff2')
  }finally{server.close()}
+})
+
+test('abastecimento automático salva leituras e histórico sem duplicar, e a correção manual prevalece',async()=>{
+ let price='143,00'
+ const site=createServer((req,res)=>{res.setHeader('Content-Type','text/html');if(/cepea-soja/.test(req.url))res.end(`<table><tr><th>Data</th><th>Valor</th></tr><tr><td>26/09/2026</td><td>160,80</td></tr><tr><td>25/09/2026</td><td>161,52</td></tr></table>`);else res.end(`<html><body><table><tr><th>Data</th><th>Soja</th><th>Milho</th></tr><tr><td>27/09/2026</td><td>R$ ${price}</td><td>R$ 61,00</td></tr></table></body></html>`)})
+ await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
+ const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id,fetch:{...s.fetch,urls:undefined}}:s)}
+ const {server,base}=await start({sourcesOverride,autoSave:true})
+ try{
+  const first=await call(base,'POST','/api/comparison/refresh');assert.equal(first.status,200);assert.ok(first.data.comparison.autoSave.inserted>=2);assert.ok(first.data.comparison.autoSave.history>=1)
+  const boot=await call(base,'GET','/api/bootstrap');const coop=boot.data.quotes.filter(q=>q.sourceId==='coopatrigo'&&q.commodity==='soja');assert.equal(coop.length,1);assert.equal(coop[0].automatic,true);assert.equal(coop[0].price,143)
+  assert.ok(boot.data.quotes.some(q=>q.sourceId==='cepea-soja-paranagua'&&String(q.observedAt).startsWith('2026-09-25')))
+  assert.equal(boot.data.automation.autoSave,true);assert.ok(boot.data.automation.lastRun)
+  const second=await call(base,'POST','/api/comparison/refresh');assert.equal(second.data.comparison.autoSave.inserted,0)
+  const boot2=await call(base,'GET','/api/bootstrap');assert.equal(boot2.data.quotes.filter(q=>q.sourceId==='coopatrigo'&&q.commodity==='soja').length,1)
+  const edited=await call(base,'PUT',`/api/quotes/${coop[0].id}`,{price:'141,50',notes:'conferido na página'});assert.equal(edited.status,200);assert.equal(edited.data.quote.price,141.5);assert.equal(edited.data.quote.edited,true);assert.equal(edited.data.quote.original.price,143)
+  price='144,00'
+  await call(base,'POST','/api/comparison/refresh')
+  const boot3=await call(base,'GET','/api/bootstrap');assert.equal(boot3.data.quotes.find(q=>q.id===coop[0].id).price,141.5)
+  assert.equal((await call(base,'PUT','/api/quotes/00000000-0000-4000-8000-000000000000',{price:1})).status,404)
+ }finally{server.close();site.close()}
+})
+
+test('pontos pesquisados são semeados uma única vez',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'gm-seed-'))
+ const a=createApp({dataDir:dir,seedHistory:true});await new Promise(r=>a.listen(0,r));const base=`http://127.0.0.1:${a.address().port}`
+ try{const boot=await call(base,'GET','/api/bootstrap');const seeded=boot.data.quotes.filter(q=>q.imported);assert.ok(seeded.length>=10);assert.ok(seeded.some(q=>q.commodity==='trigo'&&q.priceUnit==='BRL/t'));assert.ok(boot.data.priceYear.find(c=>c.commodity==='trigo').stats)}finally{a.close()}
+ const b=createApp({dataDir:dir,seedHistory:true});await new Promise(r=>b.listen(0,r));const base2=`http://127.0.0.1:${b.address().port}`
+ try{const boot=await call(base2,'GET','/api/bootstrap');assert.equal(boot.data.quotes.filter(q=>q.imported).length,(await call(base2,'GET','/api/bootstrap')).data.quotes.filter(q=>q.imported).length);assert.ok(boot.data.quotes.filter(q=>q.imported).length<=20)}finally{b.close()}
 })

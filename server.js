@@ -6,13 +6,14 @@ import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
 import {analyzeRequest,buildBrief,buildPortfolio,buildPriceYear,checkTargets,commodityLabels,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
 import {runComparison} from './lib/fetch.js'
+import {readFileSync as readFile} from 'node:fs'
 
 const root=dirname(fileURLToPath(import.meta.url))
 const publicDir=join(root,'public')
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8','.png':'image/png','.webmanifest':'application/manifest+json','.woff2':'font/woff2'}
 const headers={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"}
 
-export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',fetchImpl=globalThis.fetch,sourcesOverride=null}={}){
+export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',fetchImpl=globalThis.fetch,sourcesOverride=null,autoSave=!/^(0|false|off|nao|não)$/i.test(String(process.env.AUTO_SAVE||'true')),seedHistory=true}={}){
  const store=createStore(dataDir)
  const praca=loadPraca()
  const sources=sourcesOverride||loadSources()
@@ -20,11 +21,33 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const portSources=sources.sources.filter(item=>item.port)
  const storageGuide=loadStorageGuide()
  let comparisonRunning=null
+ const upsertAutomatic=(data,source,commodity,price,priceUnit,iso,snippet,kind)=>{
+  const observedAt=`${iso}T12:00:00.000Z`
+  const existing=data.quotes.find(q=>q.sourceId===source.id&&q.commodity===commodity&&String(q.observedAt).slice(0,10)===iso&&q.status!=='inactive')
+  if(existing){if(existing.edited)return 'kept';if(Number(existing.price)!==Number(price)||existing.priceUnit!==priceUnit){existing.price=price;existing.priceUnit=priceUnit;existing.notes=`Leitura automática (${kind}): “${snippet}”`;existing.updatedAt=new Date().toISOString();return 'updated'}return 'same'}
+  data.quotes.push({commodity,price,priceUnit,region:source.region,sourceName:source.name,sourceUrl:source.url,observedAt,marketKind:source.marketKind||'spot',paymentTerms:source.paymentTerms||'',notes:`Leitura automática (${kind}): “${snippet}”`,sourceId:source.id,sourceType:source.type,confidence:Math.max(40,(source.confidence||60)-15),automatic:true,status:'active',id:randomUUID(),createdAt:new Date().toISOString()})
+  return 'inserted'
+ }
+ const applyAutoSave=result=>{
+  const summary={inserted:0,updated:0,kept:0,history:0}
+  store.update(data=>{
+   for(const r of result.results){
+    const source=sources.sources.find(f=>f.id===r.sourceId);if(!source||r.status!=='ok')continue
+    const today=result.fetchedAt.slice(0,10)
+    for(const [commodity,p] of Object.entries(r.prices||{})){const iso=p.observedDate||r.pageDate||today;const outcome=upsertAutomatic(data,source,commodity,p.price,p.priceUnit||source.priceUnit,iso,p.snippet||'',`${source.name}`);summary[outcome==='same'?'kept':outcome]++}
+    for(const h of r.history||[]){const outcome=upsertAutomatic(data,source,h.commodity,h.price,source.fetch?.priceUnit||source.priceUnit,h.date,h.snippet||'','histórico');if(outcome==='inserted')summary.history++}
+   }
+   data.quotes=data.quotes.slice(-30000)
+   data.automation={autoSave,lastRun:result.fetchedAt,lastSummary:summary}
+  })
+  return summary
+ }
  const refreshComparison=async()=>{
   if(comparisonRunning)return comparisonRunning
-  comparisonRunning=runComparison(sources.sources,{fetchImpl}).then(result=>{store.update(data=>{data.comparison=result});return result}).finally(()=>{comparisonRunning=null})
+  comparisonRunning=runComparison(sources.sources,{fetchImpl}).then(result=>{store.update(data=>{data.comparison=result});if(autoSave)result.autoSave=applyAutoSave(result);return result}).finally(()=>{comparisonRunning=null})
   return comparisonRunning
  }
+ if(seedHistory){try{const seed=JSON.parse(readFile(join(root,'data','historico.json'),'utf8'));store.update(data=>{if(data.seededHistory===seed.version)return;for(const pt of seed.points||[]){const iso=pt.date;if(data.quotes.some(q=>q.sourceName===pt.sourceName&&q.commodity===pt.commodity&&String(q.observedAt).slice(0,10)===iso))continue;data.quotes.push({commodity:pt.commodity,price:pt.price,priceUnit:pt.priceUnit,region:pt.region,sourceName:pt.sourceName,sourceUrl:pt.sourceUrl||'',observedAt:`${iso}T12:00:00.000Z`,marketKind:'spot',paymentTerms:'',notes:`${pt.notes||''} — ponto pesquisado (${seed.version})`,sourceId:'',sourceType:'research',confidence:65,imported:true,status:'active',id:randomUUID(),createdAt:new Date().toISOString()})}data.seededHistory=seed.version})}catch(error){console.error('Semeadura do histórico falhou',error.message)}}
  const quoteFromCandidate=(source,commodity,candidate,fetchedAt)=>normalizeQuote({sourceId:source.id,commodity,price:candidate.price,priceUnit:candidate.priceUnit,observedAt:candidate.observedDate?`${candidate.observedDate}T12:00:00Z`:fetchedAt,notes:`Leitura automática da página: “${candidate.snippet}”`})
  const json=(response,status,payload)=>{response.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});response.end(JSON.stringify(payload))}
  const body=request=>new Promise((resolvePromise,reject)=>{let raw='';request.on('data',chunk=>{raw+=chunk;if(raw.length>1_000_000){reject(Object.assign(new Error('Requisição muito grande.'),{statusCode:413}));request.destroy()}});request.on('end',()=>{try{resolvePromise(raw?JSON.parse(raw):{})}catch{reject(Object.assign(new Error('Conteúdo inválido.'),{statusCode:400}))}});request.on('error',reject)})
@@ -40,13 +63,18 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(path==='/api/bootstrap'&&request.method==='GET'){
    const data=store.read();const now=new Date()
    const requests=data.requests.map(item=>({...item,producerName:producerOf(data,item.producerId)?.name||'Produtor'})).sort((l,r)=>String(r.createdAt).localeCompare(String(l.createdAt)))
-   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,priceYear:buildPriceYear({quotes:data.quotes,praca},{now}),storageGuide,portSources:portSources.map(item=>({id:item.id,name:item.name,region:item.region,commodities:item.commodities})),ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
+   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,automation:{...(data.automation||{}),autoSave,hours:Number(process.env.AUTO_FETCH_HOURS||4)},priceYear:buildPriceYear({quotes:data.quotes,praca},{now}),storageGuide,portSources:portSources.map(item=>({id:item.id,name:item.name,region:item.region,commodities:item.commodities})),ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
   }
   if(path==='/api/producers'&&request.method==='POST'){const input=normalizeProducer(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.producers.push(record);return record});return json(response,201,{producer:saved})}
   const producerMatch=path.match(/^\/api\/producers\/([0-9a-f-]{36})$/i)
   if(producerMatch&&request.method==='PUT'){const input=normalizeProducer(await body(request));const saved=store.update(data=>{const current=producerOf(data,producerMatch[1]);if(!current)throw Object.assign(new Error('Produtor não encontrado.'),{statusCode:404});Object.assign(current,input,{updatedAt:new Date().toISOString()});return current});return json(response,200,{producer:saved})}
   if(path==='/api/quotes'&&request.method==='POST'){const input=normalizeQuote(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString()};data.quotes.push(record);data.quotes=data.quotes.slice(-5000);return record});return json(response,201,{quote:saved})}
   const quoteMatch=path.match(/^\/api\/quotes\/([0-9a-f-]{36})$/i)
+  if(quoteMatch&&request.method==='PUT'){
+   const payload=await body(request)
+   const saved=store.update(data=>{const quote=data.quotes.find(item=>item.id===quoteMatch[1]);if(!quote)throw Object.assign(new Error('Cotação não encontrada.'),{statusCode:404});const merged=normalizeQuote({...quote,...payload,sourceId:'',observedAt:payload.observedAt||quote.observedAt});if(!quote.original)quote.original={price:quote.price,priceUnit:quote.priceUnit,region:quote.region,observedAt:quote.observedAt,paymentTerms:quote.paymentTerms,notes:quote.notes};Object.assign(quote,{price:merged.price,priceUnit:merged.priceUnit,region:merged.region,paymentTerms:merged.paymentTerms,observedAt:merged.observedAt,notes:text(payload.notes??quote.notes,1000),sourceName:merged.sourceName,edited:true,editedAt:new Date().toISOString()});return quote})
+   return json(response,200,{quote:saved})
+  }
   if(quoteMatch&&request.method==='DELETE'){store.update(data=>{const quote=data.quotes.find(item=>item.id===quoteMatch[1]);if(!quote)throw Object.assign(new Error('Cotação não encontrada.'),{statusCode:404});quote.status='inactive'});return json(response,200,{removed:true})}
   if(path==='/api/own-quotes'&&request.method==='POST'){
    if(!ownSource)return json(response,400,{error:'Nenhuma fonte própria configurada.'})
@@ -120,7 +148,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  app.listen(port,'0.0.0.0',()=>console.log(`VAL-SOG (Grãos Missões) ouvindo em :${port}`))
  const hours=Number(process.env.AUTO_FETCH_HOURS||4)
  if(hours>0){
-  const run=()=>app.refreshComparison().then(result=>{console.log(`Comparativo atualizado: ${result.okCount}/${result.total} fontes lidas`);for(const r of result.results){const prices=Object.entries(r.prices||{}).map(([c,p])=>`${c}=${p.price}${p.priceUnit==='BRL/t'?'/t':''}`).join(' ');console.log(`  ${r.status.padEnd(7)} ${r.name}: ${prices||'-'}${r.pageDate?` (página ${r.pageDate})`:''}${r.error?` — ${r.error}`:''}${r.ms?` [${r.ms} ms]`:''}`);for(const [c,p] of Object.entries(r.prices||{}))console.log(`      trecho ${c}: «${String(p.snippet||'').slice(0,160)}»`);for(const [c,d] of Object.entries(r.debug||{}))console.log(`      debug ${c}: «${String(d).slice(0,220)}»`);for(const a of r.attempts||[])console.log(`      tentativa ${a}`)}}).catch(error=>console.error('Comparativo falhou',error.message))
+  const run=()=>app.refreshComparison().then(result=>{console.log(`Comparativo atualizado: ${result.okCount}/${result.total} fontes lidas${result.autoSave?` • salvas ${result.autoSave.inserted} novas, ${result.autoSave.updated} atualizadas, ${result.autoSave.history} do histórico`:''}`);for(const r of result.results){const prices=Object.entries(r.prices||{}).map(([c,p])=>`${c}=${p.price}${p.priceUnit==='BRL/t'?'/t':''}`).join(' ');console.log(`  ${r.status.padEnd(7)} ${r.name}: ${prices||'-'}${r.pageDate?` (página ${r.pageDate})`:''}${r.error?` — ${r.error}`:''}${r.ms?` [${r.ms} ms]`:''}`);for(const [c,p] of Object.entries(r.prices||{}))console.log(`      trecho ${c}: «${String(p.snippet||'').slice(0,160)}»`);for(const [c,d] of Object.entries(r.debug||{}))console.log(`      debug ${c}: «${String(d).slice(0,220)}»`);for(const a of r.attempts||[])console.log(`      tentativa ${a}`)}}).catch(error=>console.error('Comparativo falhou',error.message))
   setTimeout(run,5000);setInterval(run,hours*3_600_000).unref()
  }
 }

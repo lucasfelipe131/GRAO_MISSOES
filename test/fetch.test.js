@@ -103,3 +103,14 @@ test('sem os nomes dos grãos no texto, a ordem configurada é usada como padrã
  const coop=extractFromHtml(html,sources.find(s=>s.id==='coopatrigo'))
  assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.trigo.price,74);assert.equal(coop.prices.milho.price,61);assert.equal(coop.prices.canola.price,150)
 })
+
+test('histórico de datas é extraído das páginas de indicador e do trigo por linha do RS',()=>{
+ const cepea=`<table><tr><th>Data</th><th>Valor</th><th>Var</th></tr><tr><td>26/09/2026</td><td>160,80</td><td>-0,45%</td></tr><tr><td>25/09/2026</td><td>161,52</td><td>0,10%</td></tr><tr><td>24/09/2026</td><td>161,36</td><td>0,00%</td></tr></table>`
+ const soja=extractFromHtml(cepea,sources.find(s=>s.id==='cepea-soja-paranagua'))
+ assert.equal(soja.history.length,3);assert.equal(soja.history[0].date,'2026-09-24');assert.equal(soja.history[2].price,160.8);assert.equal(soja.history[0].commodity,'soja')
+ const trigo=`<table><tr><th>Data</th><th>Paraná</th><th>Var</th><th>Rio Grande do Sul</th><th>Var</th></tr><tr><td>25/09/2026</td><td>1.532,17</td><td>0,3</td><td>1.437,03</td><td>0,2</td></tr><tr><td>24/09/2026</td><td>1.530,00</td><td>0,1</td><td>1.430,00</td><td>0,1</td></tr></table>`
+ const rs=extractFromHtml(trigo,sources.find(s=>s.id==='cepea-trigo'))
+ assert.equal(rs.history.length,2);assert.equal(rs.history[1].price,1437.03)
+ const porto=extractFromHtml(`<table><tr><th>Praça</th><th>Preço</th></tr><tr><td>Rio Grande/RS</td><td>162,00</td></tr><tr><td>Ijuí/RS</td><td>143,00</td></tr></table>`,sources.find(s=>s.id==='na-soja-porto-rio-grande'))
+ assert.equal(porto.prices.soja.price,162)
+})

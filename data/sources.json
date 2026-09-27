@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v3",
+  "version": "fontes-v4",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -187,8 +187,10 @@
       "primary": true,
       "fetch": {
         "strategy": "table-latest",
-        "commodity": "soja"
-      }
+        "commodity": "soja",
+        "history": true
+      },
+      "port": true
     },
     {
       "id": "cepea-milho",
@@ -208,7 +210,8 @@
       "primary": false,
       "fetch": {
         "strategy": "table-latest",
-        "commodity": "milho"
+        "commodity": "milho",
+        "history": true
       }
     },
     {
@@ -236,7 +239,10 @@
           ]
         },
         "window": 120,
-        "priceUnit": "BRL/t"
+        "priceUnit": "BRL/t",
+        "history": true,
+        "commodity": "trigo",
+        "rowKey": "rio grande do sul"
       }
     },
     {
@@ -273,6 +279,65 @@
             "/rs"
           ]
         }
+      }
+    },
+    {
+      "id": "na-soja-porto-rio-grande",
+      "name": "Notícias Agrícolas — Soja Porto de Rio Grande",
+      "type": "market_feed",
+      "port": true,
+      "region": "Porto de Rio Grande (mercado físico)",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-mercado-fisico-sindicatos-e-cooperativas",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja"
+      ],
+      "paymentTerms": "",
+      "confidence": 75,
+      "cadence": "diária",
+      "howTo": "Linha “Rio Grande/RS” da tabela de mercado físico: preço posto no porto. Serve como base automática quando a mesa das tradings ainda não passou o preço.",
+      "primary": true,
+      "fetch": {
+        "strategy": "table-rows",
+        "rows": {
+          "soja": [
+            "rio grande/rs",
+            "rio grande (rs)",
+            "porto de rio grande",
+            "rio grande"
+          ]
+        }
+      }
+    },
+    {
+      "id": "graodireto-rio-grande",
+      "name": "Grão Direto — Rio Grande (porto)",
+      "type": "broker",
+      "port": true,
+      "region": "Rio Grande (Grão Direto)",
+      "url": "https://www.graodireto.com.br/ofertas/soja/rs/rio-grande/",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja"
+      ],
+      "paymentTerms": "",
+      "confidence": 55,
+      "cadence": "irregular",
+      "howTo": "Oferta publicada para Rio Grande; conferir a data antes de usar como base.",
+      "primary": false,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "soja": [
+            "disponível em rio grande",
+            "disponivel em rio grande",
+            "disponível",
+            "soja"
+          ]
+        },
+        "window": 120
       }
     },
     {

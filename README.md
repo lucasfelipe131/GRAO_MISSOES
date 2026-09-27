@@ -16,6 +16,8 @@ Nada é executado automaticamente e nenhuma cotação é inventada. A comparaç�
 - **Tendência de preço**: gráfico simples por grão com as cotações locais registradas; exportação em CSV de cotações, pedidos e produtores.
 - **Preço C.Vale hoje**: campo manual para a cotação própria da unidade de São Luiz Gonzaga (soja, milho, trigo e prazo). É a referência do comparativo.
 - **Comparativo de compradores**: o servidor abre as páginas dos concorrentes (Coopatrigo, Cotrisal, Agrolink, Grão Direto, Notícias Agrícolas, CEPEA), procura o preço perto do nome do grão e mostra a diferença para a C.Vale. A leitura roda ao subir e a cada `AUTO_FETCH_HOURS` (padrão 4 h) e pode ser disparada pelo botão “Buscar agora”. Nada vira cotação sem clique em salvar; leituras salvas ficam marcadas como automáticas, com confiança reduzida e o trecho lido nas observações.
+- **Abastecimento automático**: a cada `AUTO_FETCH_HOURS` (padrão 4 h) as leituras válidas dos concorrentes, do porto público (Rio Grande no mercado físico e Paranaguá CEPEA) e dos indicadores CEPEA viram cotações “auto”, uma por fonte, grão e dia; as páginas do CEPEA também alimentam o histórico de datas que exibem. `AUTO_SAVE=false` volta ao modo manual. Toda cotação tem **Editar** para corrigir divergências; a correção fica marcada, guarda o valor original e não é sobrescrita pela próxima leitura.
+- **Histórico pesquisado**: `data/historico.json` traz pontos reais de fontes públicas (CEPEA trigo RS mensal, Emater e Agrolink milho RS, porto de Rio Grande, Paranaguá, Cotrisal) que são semeados uma única vez para o painel do ano começar com dados.
 - **Cotações**: registro com grão, preço, praça ou comprador, fonte do catálogo (praça, unidade, prazo e link preenchidos), prazo de pagamento e horário de observação. Cotações com mais de 7 dias ficam marcadas como vencidas.
 - **C.Vale × concorrência na análise**: cada pedido mostra o preço C.Vale contra o melhor concorrente das últimas 72 h; quando um concorrente paga mais, a análise alerta e sugere como conduzir.
 - **Pedidos**: formulário com o pedido do produtor. A análise `analysis-v1` devolve manchete, referência usada, distância ao preço-alvo, margem, base contra porto, Alvo 1 (gatilho imediato), Alvo 2 (preço do produtor) e Alvo 3 (esticada condicional), cenários e dicas. O pedido fica em acompanhamento; fechamentos parciais são registrados com preço, volume e comprador.
@@ -49,6 +51,7 @@ Sem dependências externas: Node 20 ou superior. Os dados ficam em `DATA_DIR` (p
 | `DATA_DIR` | pasta do arquivo de dados; na Railway use um volume montado em `/data` |
 | `ACCESS_CODE` | código de acesso compartilhado da equipe; vazio deixa o acesso aberto (só para teste local) |
 | `AUTO_FETCH_HOURS` | intervalo da leitura automática dos concorrentes em horas; `0` desliga (padrão 4) |
+| `AUTO_SAVE` | `false` desliga o registro automático das leituras como cotações (padrão ligado) |
 
 ## Deploy na Railway
 
@@ -69,6 +72,7 @@ Cada push na branch `main` gera um novo deploy.
 | `/api/producers` | POST | cadastra produtor |
 | `/api/producers/:id` | PUT | atualiza produtor |
 | `/api/quotes` | POST | registra cotação |
+| `/api/quotes/:id` | PUT | corrige uma cotação (preço, unidade, praça, prazo, data, motivo); marca como editada |
 | `/api/quotes/:id` | DELETE | desativa cotação |
 | `/api/own-quotes` | POST | registra o preço C.Vale do dia (soja, milho, trigo, prazo) |
 | `/api/comparison/refresh` | POST | lê as páginas dos concorrentes agora |

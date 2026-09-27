@@ -91,7 +91,8 @@
  <details class="guide" open><summary>Guia: quais cotações registrar e de onde tirar</summary><div class="guidegrid">
   <div><b>Rotina diária (5 minutos)</b><p>1) Preencha o preço C.Vale do dia. 2) Confira o comparativo automático e salve as leituras corretas. 3) Complete à mão o que a leitura não pegou (Coopatrigo, Cotrisal). 4) CEPEA Paranaguá e CEPEA RS para a base contra o porto.</p></div>
   <div><b>Preços de porto</b><p>Bunge, ADM, LDC e Cargill não publicam preço aberto na internet: anote o que a mesa ou a corretora passar, com horário e embarque. O sistema calcula a base (C.Vale menos porto) e usa o porto mais recente na análise dos pedidos.</p></div>
-  <div><b>Comparativo automático</b><p>O sistema abre as páginas dos concorrentes e procura o preço perto do nome do grão. Pode errar quando o site muda; por isso mostra o trecho lido e só vira cotação quando você clica em salvar. Se uma fonte falhar, abra a página e registre à mão.</p></div>
+  <div><b>Abastecimento automático</b><p>A cada 4 h o sistema lê as páginas dos concorrentes, do porto e dos indicadores CEPEA e salva sozinho as leituras válidas como cotações (marcadas “auto”), inclusive o histórico de datas que as páginas do CEPEA mostram. Confira o trecho lido; se algo divergir, clique em Editar na cotação e corrija: a correção fica marcada e não é sobrescrita pela próxima leitura.</p></div>
+  <div><b>Porto automático</b><p>A linha “Rio Grande/RS” do mercado físico e o indicador Paranaguá entram sozinhos como base de porto. Os preços de Bunge, ADM, LDC e Cargill continuam manuais, pela mesa ou corretora, e valem mais que a leitura pública quando informados.</p></div>
   <div><b>Como usar o catálogo</b><p>Escolha a fonte na lista. Praça, unidade, prazo e link são preenchidos sozinhos; você digita só o grão, o valor e confere o horário. O botão “Abrir fonte” abre a página para copiar o número.</p></div>
   <div><b>Unidade</b><p>Cooperativas cotam em R$/saca de 60 kg. O CEPEA de trigo cota em R$/tonelada: escolha R$/t que o sistema converte (÷ 16,67).</p></div>
   <div><b>Horário observado</b><p>Use a data e a hora que aparecem na página da fonte, não a hora em que você registrou. Cotações com mais de 24 h ficam em “Atenção” e com mais de 7 dias ficam vencidas.</p></div>
@@ -104,12 +105,12 @@
    <p class="error" id="ownError" role="alert" hidden></p>
    <div class="actions"><span class="meta" id="ownLast"></span><button class="primary" type="submit">Salvar preço C.Vale</button></div>
   </form>
-  <form id="portForm" class="card port"><div class="cardhead"><div><h2>Preços de porto — Rio Grande</h2><p class="muted">Bunge, ADM, LDC e Cargill, posto no porto, informados pela mesa ou corretora. Base = C.Vale menos porto.</p></div></div>
+  <form id="portForm" class="card port"><div class="cardhead"><div><h2>Preços de porto — Rio Grande</h2><p class="muted">Bunge, ADM, LDC e Cargill, posto no porto, informados pela mesa ou corretora. Base = C.Vale menos porto. O porto público (Rio Grande no mercado físico e Paranaguá CEPEA) entra sozinho.</p></div></div>
    <div class="owngrid"><label class="wide">Trading *<select name="sourceId" required></select></label><label>Soja (R$/sc)<input name="soja" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Milho (R$/sc)<input name="milho" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Trigo (R$/sc)<input name="trigo" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Canola (R$/sc)<input name="canola" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Prazo / embarque<input name="paymentTerms" placeholder="à vista, out/26…"></label><label>Quem informou<input name="notes" placeholder="mesa, corretora…"></label></div>
    <p class="error" id="portError" role="alert" hidden></p>
    <div class="actions"><button class="primary" type="submit">Salvar preço de porto</button></div>
   </form>
-  <div class="card"><div class="cardhead"><div><h2>Comparativo de compradores</h2><p class="muted">Leitura automática das páginas dos concorrentes, atualizada a cada 4 h na Railway. Confira o trecho lido antes de salvar como cotação.</p></div><div class="row"><small id="cmpWhen"></small><button class="mini" type="button" id="cmpRefresh">Buscar agora</button></div></div><div id="comparison" class="cmp"></div></div>
+  <div class="card"><div class="cardhead"><div><h2>Comparativo de compradores</h2><p class="muted">Leitura automática das páginas dos concorrentes e do porto, a cada 4 h. As leituras válidas já entram como cotações “auto”; use Editar na lista de cotações para corrigir divergências.</p></div><div class="row"><small id="cmpWhen"></small><button class="mini" type="button" id="cmpRefresh">Buscar agora</button></div></div><div id="comparison" class="cmp"></div></div>
  </div>
  <div class="sourcebar" id="sourcebar"></div>
   <div class="split">
