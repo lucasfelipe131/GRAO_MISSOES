@@ -88,3 +88,12 @@ test('ordem da página aceita tabela de valores com linhas extras e pares parcia
  const coop=extractFromHtml(html,sources.find(s=>s.id==='coopatrigo'))
  assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.trigo.price,74);assert.equal(coop.prices.milho.price,61);assert.equal(coop.prices.arroz.price,80);assert.equal(coop.prices.canola,undefined)
 })
+
+test('nome de grão exige limite de palavra: “trigo” não casa com “Coopatrigo”',()=>{
+ const html=`<title>Coopatrigo • Cooperativa Tritícola » Cotações completas</title><nav>Soja | Trigo | Milho | Arroz | Canola | Triguilho | Triticale</nav><table>${['R$ 141,00','R$ 74,00','R$ 61,00','R$ 80,00','R$ 150,00','R$','R$'].map(v=>`<tr><td>${v}</td></tr>`).join('')}</table>`
+ const coop=extractFromHtml(html,sources.find(s=>s.id==='coopatrigo'))
+ assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.trigo.price,74);assert.equal(coop.prices.milho.price,61);assert.equal(coop.prices.canola.price,150)
+ const text=htmlToText('<p>Coopatrigo cotações 3352 4400</p><p>Trigo pH 78 R$ 75,00</p>')
+ assert.equal(extractKeyword(text,['trigo'],{commodity:'trigo'}).price,75)
+ assert.equal(extractKeyword('Coopatrigo telefone 3352 4400 valor 75,00',['trigo'],{commodity:'trigo'}),null)
+})
