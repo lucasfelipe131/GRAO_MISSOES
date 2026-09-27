@@ -24,12 +24,13 @@
   <button role="tab" data-tab="praca" aria-selected="false">Praça</button>
  </nav>
  <div class="status" id="status" aria-live="polite"></div>
+ <div class="who" id="who" hidden><span id="roleBadge" class="rolebadge"></span><button type="button" class="mini ghost" id="logout" title="Sair e trocar de código">sair</button></div>
 </header>
 <main id="main" class="main">
  <section id="login" class="login" hidden>
   <div class="card">
    <h1>Acesso ao VAL-SOG</h1>
-   <p>Informe o código de acesso da equipe. Ele fica salvo somente neste navegador.</p>
+   <p>Informe o seu código de acesso. O código define o nível: <b>gerencial</b> (tudo), <b>operador de compra de grãos</b> (pedidos, produtores, cotações e ofertas) ou <b>encarregado de armazém</b> (unidades, estoque, qualidade e recebimentos). Ele fica salvo somente neste navegador.</p>
    <form id="loginForm"><label>Código de acesso<input name="code" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">Entrar</button></form>
    <p class="error" id="loginError" role="alert" hidden></p>
   </div>
@@ -61,7 +62,7 @@
   <div><b>Antes de analisar</b><p>Confira na aba Cotações se há cotação de hoje para o grão. Sem cotação registrada a análise não calcula alvo. Ideal: uma cotação local (Coopatrigo ou Cotrisal) e uma de porto (CEPEA Paranaguá).</p></div>
  </div></details>
   <div class="split">
-   <form id="requestForm" class="card form">
+   <form id="requestForm" class="card form" data-write="comercial">
     <h2>Pedido do produtor</h2>
     <p class="muted">A análise compara com as cotações registradas, o calendário da praça e o custo. Nada é executado.</p>
     <div class="grid">
@@ -101,12 +102,12 @@
   <div><b>O que não registrar</b><p>Chicago em US$/bushel e dólar não são cotações da praça; use-os só para leitura de tendência. Preço de conversa sem fonte identificada também não entra.</p></div>
  </div></details>
  <div class="split ownsplit">
-  <form id="ownForm" class="card own"><div class="cardhead"><div><h2>Preço C.Vale hoje</h2><p class="muted">Nossa cotação em São Luiz Gonzaga, por saca de 60 kg. Preencha o que tiver; é a referência do comparativo.</p></div></div>
+  <form id="ownForm" class="card own" data-write="cotacoes"><div class="cardhead"><div><h2>Preço C.Vale hoje</h2><p class="muted">Nossa cotação em São Luiz Gonzaga, por saca de 60 kg. Preencha o que tiver; é a referência do comparativo.</p></div></div>
    <div class="owngrid"><label>Soja (R$/sc)<input name="soja" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Milho (R$/sc)<input name="milho" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Trigo (R$/sc)<input name="trigo" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Canola (R$/sc)<input name="canola" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label class="wide">Prazo<input name="paymentTerms" placeholder="à vista, 72 h…"></label></div>
    <p class="error" id="ownError" role="alert" hidden></p>
    <div class="actions"><span class="meta" id="ownLast"></span><button class="primary" type="submit">Salvar preço C.Vale</button></div>
   </form>
-  <form id="portForm" class="card port"><div class="cardhead"><div><h2>Preços de porto — Rio Grande</h2><p class="muted">Bunge, ADM, LDC e Cargill, posto no porto, informados pela mesa ou corretora. Base = C.Vale menos porto. O porto público (Rio Grande no mercado físico e Paranaguá CEPEA) entra sozinho.</p></div></div>
+  <form id="portForm" class="card port" data-write="cotacoes"><div class="cardhead"><div><h2>Preços de porto — Rio Grande</h2><p class="muted">Bunge, ADM, LDC e Cargill, posto no porto, informados pela mesa ou corretora. Base = C.Vale menos porto. O porto público (Rio Grande no mercado físico e Paranaguá CEPEA) entra sozinho.</p></div></div>
    <div class="owngrid"><label class="wide">Trading *<select name="sourceId" required></select></label><label>Soja (R$/sc)<input name="soja" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Milho (R$/sc)<input name="milho" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Trigo (R$/sc)<input name="trigo" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Canola (R$/sc)<input name="canola" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Prazo / embarque<input name="paymentTerms" placeholder="à vista, out/26…"></label><label>Quem informou<input name="notes" placeholder="mesa, corretora…"></label></div>
    <p class="error" id="portError" role="alert" hidden></p>
    <div class="actions"><button class="primary" type="submit">Salvar preço de porto</button></div>
@@ -115,7 +116,7 @@
  </div>
  <div class="sourcebar" id="sourcebar"></div>
   <div class="split">
-   <form id="quoteForm" class="card form">
+   <form id="quoteForm" class="card form" data-write="cotacoes">
     <h2>Registrar cotação</h2>
     <p class="muted">Fonte e horário são obrigatórios. O sistema não busca nem inventa cotações.</p>
     <div class="grid">
@@ -150,7 +151,7 @@
   <div><b>Observações</b><p>Restrições (trigo só para moinho X), histórico de fechamentos, compromissos com a cooperativa.</p></div>
  </div></details>
   <div class="split">
-   <form id="producerForm" class="card form">
+   <form id="producerForm" class="card form" data-write="comercial">
     <h2 id="producerFormTitle">Cadastrar produtor</h2>
     <p class="muted">Dados operacionais para a estratégia de comercialização. Nada de CPF, renda, dívidas ou documentos: só o que muda a decisão de fechamento.</p>
     <input type="hidden" name="id">
@@ -195,7 +196,7 @@
    <div><b>Histórico de pedidas</b><p>Ao escolher o produtor, o painel mostra todas as pedidas anteriores dele (ofertas e pedidos), a média, o prêmio que ele costuma pedir sobre o C.Vale do dia e quanto fechou em relação à pedida. Use para calibrar a oferta antes de ligar.</p></div>
   </div></details>
   <div class="split">
-   <form id="offerForm" class="card form">
+   <form id="offerForm" class="card form" data-write="comercial">
     <h2>Compor oferta ao produtor</h2>
     <div class="grid">
      <label class="wide">Produtor *<select name="producerId" required></select></label>
@@ -221,7 +222,7 @@
    <div id="askingHistory" class="card"><div class="cardhead"><h2>Histórico de pedidas do produtor</h2><small id="askingCount"></small></div><div id="askingBody"><p class="meta">Selecione um produtor para comparar as pedidas anteriores com a oferta de hoje.</p></div></div></div>
   </div>
   <div class="split wide2">
-   <form id="settingsForm" class="card form"><h2>Parâmetros de frete e margem</h2><div class="grid"><label>Tarifa (R$/t/km)<input name="freightRatePerTKm" type="number" min="0" step="0.01"></label><label>Fixo (R$/t)<input name="freightFixedPerT" type="number" min="0" step="0.01"></label><label>Margem padrão (R$/sc)<input name="defaultMarginPerSc" type="number" min="0" step="0.01"></label><label>Carrego (R$/sc/mês)<input name="storageCostScMonth" type="number" min="0" step="0.01"></label><label>Validade padrão (dias)<input name="validityDays" type="number" min="0" step="1"></label></div><p class="muted">Destinos e distâncias</p><div id="destinations" class="destlist"></div><div class="actions"><button class="mini" type="button" id="addDestination">+ destino</button><button class="primary" type="submit">Salvar parâmetros</button></div></form>
+   <form id="settingsForm" class="card form" data-write="parametros"><h2>Parâmetros de frete e margem</h2><div class="grid"><label>Tarifa (R$/t/km)<input name="freightRatePerTKm" type="number" min="0" step="0.01"></label><label>Fixo (R$/t)<input name="freightFixedPerT" type="number" min="0" step="0.01"></label><label>Margem padrão (R$/sc)<input name="defaultMarginPerSc" type="number" min="0" step="0.01"></label><label>Carrego (R$/sc/mês)<input name="storageCostScMonth" type="number" min="0" step="0.01"></label><label>Validade padrão (dias)<input name="validityDays" type="number" min="0" step="1"></label></div><p class="muted">Destinos e distâncias</p><div id="destinations" class="destlist"></div><div class="actions"><button class="mini" type="button" id="addDestination">+ destino</button><button class="primary" type="submit">Salvar parâmetros</button></div></form>
    <div class="card"><div class="cardhead"><h2>Ofertas registradas</h2><div class="row"><small id="offerCount"></small><button class="mini" type="button" id="exportOffersCsv">CSV</button><button class="mini" type="button" id="exportOffersJson">JSON para a VAL</button></div></div><div id="offers" class="list"></div></div>
   </div>
  </section>
@@ -233,11 +234,91 @@
    <div><b>Importar histórico</b><p>Cole linhas “data;preço” (ex.: 15/01/2026;138,50) de planilhas da cooperativa, CEPEA ou Emater para preencher o ano antes que o sistema acumule cotações.</p></div>
   </div></details>
   <div id="prices" class="prices"></div>
-  <form id="importForm" class="card form"><h2>Importar histórico de preços</h2><p class="muted">Uma linha por dia no formato data;preço. Aceita 15/01/2026;138,50 ou 2026-01-15;138.50. Os registros entram como histórico importado, com confiança reduzida, e alimentam a linha do ano e a média mensal.</p>
+  <form id="importForm" class="card form" data-write="cotacoes"><h2>Importar histórico de preços</h2><p class="muted">Uma linha por dia no formato data;preço. Aceita 15/01/2026;138,50 ou 2026-01-15;138.50. Os registros entram como histórico importado, com confiança reduzida, e alimentam a linha do ano e a média mensal.</p>
    <div class="grid"><label>Grão *<select name="commodity"></select></label><label>Fonte *<input name="sourceName" required placeholder="Coopatrigo, CEPEA, Emater…"></label><label>Praça<input name="region" placeholder="São Luiz Gonzaga"></label><label>Unidade<select name="priceUnit"><option value="BRL/sc_60kg">R$/sc</option><option value="BRL/t">R$/t</option></select></label><label class="wide">Linhas<textarea name="lines" rows="6" placeholder="15/01/2026;138,50&#10;16/01/2026;139,00"></textarea></label></div>
    <p class="error" id="importError" role="alert" hidden></p><div class="actions"><button class="primary" type="submit">Importar</button></div></form>
  </section>
- <section data-panel="armazenagem" class="panel" hidden><div id="storage" class="storage"></div></section>
+ <section data-panel="armazenagem" class="panel" hidden>
+  <details class="guide"><summary>Guia: operação de armazenagem (unidades, padrões, estoque e recebimentos)</summary><div class="guidegrid">
+   <div><b>Unidade de recebimento</b><p>Cadastre cada unidade com capacidade estática (t), secagem e recebimento por dia, metas por grão e período da safra. Ocupação = estoque ÷ capacidade.</p></div>
+   <div><b>Padrões por grão</b><p>Limites de umidade, temperatura, impurezas, avariados, PH etc. Vêm da referência MAPA e podem ser ajustados ao padrão da unidade. É contra eles que o sistema mede cada leitura.</p></div>
+   <div><b>Leitura de estoque e qualidade</b><p>Informe quantidade armazenada e os parâmetros medidos (termometria, umidade, classificação). A última leitura por unidade e grão vale como situação atual; leituras antigas ficam no histórico.</p></div>
+   <div><b>Recebimentos</b><p>Registre cada dia (ou carga) recebido com toneladas, cargas e umidade. O painel soma na safra, compara com a meta, calcula ritmo em t/dia e avisa quando a meta está em risco.</p></div>
+  </div></details>
+  <div id="stOps" class="stops">
+   <div id="stKpis" class="tiles"></div>
+   <div id="stAlerts"></div>
+   <div id="stUnits" class="unitcards"></div>
+   <div id="stCharts" class="stcharts"></div>
+   <div class="split wide2 stforms" data-write="armazem">
+    <form id="unitForm" class="card form"><div class="cardhead"><h2 id="unitFormTitle">Cadastrar unidade de recebimento</h2><button class="mini" type="button" id="unitCancel" hidden>cancelar edição</button></div>
+     <input type="hidden" name="id">
+     <div class="grid">
+      <label class="wide">Nome *<input name="name" required placeholder="Unidade São Luiz Gonzaga"></label>
+      <label>Município<input name="municipality" placeholder="São Luiz Gonzaga"></label>
+      <label>Tipo<select name="kind"><option value="misto">Misto (silos + graneleiro)</option><option value="silo">Silos</option><option value="graneleiro">Graneleiro</option><option value="armazem">Armazém</option></select></label>
+      <label>Capacidade estática (t) *<input name="capacityT" type="number" min="1" step="1" required></label>
+      <label>Secagem (t/dia)<input name="dryingTDay" type="number" min="0" step="1"></label>
+      <label>Recebimento (t/dia)<input name="receivingTDay" type="number" min="0" step="1"></label>
+      <label>Responsável<input name="manager" placeholder="encarregado"></label>
+      <label>Safra<input name="season" placeholder="2026/27"></label>
+      <label>Início da safra<input name="seasonStart" type="date"></label>
+      <label>Fim da safra<input name="seasonEnd" type="date"></label>
+     </div>
+     <fieldset><legend>Metas de recebimento na safra (t)</legend><div class="grid goals" id="unitGoals"></div></fieldset>
+     <label class="wide">Observações<textarea name="notes" rows="2" placeholder="silos, secador, balança, horário de recebimento…"></textarea></label>
+     <p class="error" id="unitError" role="alert" hidden></p>
+     <div class="actions"><button class="primary" type="submit">Salvar unidade</button></div>
+    </form>
+    <div class="stack">
+     <form id="readingForm" class="card form"><h2>Leitura de estoque e qualidade</h2><p class="muted">Quantidade armazenada e parâmetros medidos na data. A leitura mais recente vira a situação atual do grão na unidade.</p>
+      <div class="grid">
+       <label>Unidade *<select name="unitId" required></select></label>
+       <label>Grão *<select name="commodity"></select></label>
+       <label>Quantidade armazenada (t) *<input name="quantityT" type="number" min="0" step="0.1" required></label>
+       <label>Data<input name="date" type="date"></label>
+       <label>Silo / célula<input name="silo" placeholder="S3, graneleiro A"></label>
+       <label>Umidade (%)<input name="moisture" type="number" min="0" step="0.1"></label>
+       <label>Temperatura da massa (°C)<input name="temperature" type="number" step="0.1"></label>
+       <label>Impurezas (%)<input name="impurities" type="number" min="0" step="0.1"></label>
+       <label>Avariados (%)<input name="damaged" type="number" min="0" step="0.1"></label>
+       <label>Ardidos/queimados (%)<input name="burnt" type="number" min="0" step="0.1"></label>
+       <label>Esverdeados (%)<input name="greenish" type="number" min="0" step="0.1"></label>
+       <label>Quebrados (%)<input name="broken" type="number" min="0" step="0.1"></label>
+       <label>PH (kg/hl)<input name="ph" type="number" min="0" step="0.1"></label>
+       <label>Falling number (s)<input name="fallingNumber" type="number" min="0" step="1"></label>
+       <label>Teor de óleo (%)<input name="oil" type="number" min="0" step="0.1"></label>
+       <label class="wide">Observações<input name="notes" placeholder="aeração ligada, foco no cabo 4…"></label>
+      </div>
+      <p class="error" id="readingError" role="alert" hidden></p>
+      <div class="actions"><button class="primary" type="submit">Registrar leitura</button></div>
+     </form>
+     <form id="receiptForm" class="card form"><h2>Registrar recebimento</h2>
+      <div class="grid">
+       <label>Unidade *<select name="unitId" required></select></label>
+       <label>Grão *<select name="commodity"></select></label>
+       <label>Data<input name="date" type="date"></label>
+       <label>Quantidade (t) *<input name="quantityT" type="number" min="0.1" step="0.1" required></label>
+       <label>Cargas<input name="loads" type="number" min="0" step="1"></label>
+       <label>Umidade (%)<input name="moisture" type="number" min="0" step="0.1"></label>
+       <label>Impurezas (%)<input name="impurities" type="number" min="0" step="0.1"></label>
+       <label>Desconto (t)<input name="discountT" type="number" min="0" step="0.1" placeholder="quebra por umidade/impureza"></label>
+       <label>Produtor<select name="producerId"><option value="">—</option></select></label>
+       <label>Placa<input name="plate" placeholder="ABC1D23"></label>
+       <label class="wide">Observações<input name="notes" placeholder="contrato, classificação, ocorrência"></label>
+      </div>
+      <p class="error" id="receiptError" role="alert" hidden></p>
+      <div class="actions"><button class="primary" type="submit">Registrar recebimento</button></div>
+     </form>
+    </div>
+   </div>
+   <div class="split wide2">
+    <div class="card"><div class="cardhead"><h2>Padrões por grão</h2><div class="row"><button class="mini" type="button" id="standardsReset" data-write="armazem">restaurar referência</button></div></div><p class="muted">Limites usados para avaliar cada leitura. Referência: IN MAPA 11/2007 (soja), 60/2011 (milho), 38/2010 (trigo); canola e arroz conforme prática das esmagadoras e engenhos. Ajuste ao padrão da sua unidade.</p><form id="standardsForm"><div id="standardsBody"></div><p class="error" id="standardsError" role="alert" hidden></p><div class="actions" data-write="armazem"><button class="primary" type="submit">Salvar padrões</button></div></form></div>
+    <div class="card"><div class="cardhead"><h2>Recebimentos e leituras recentes</h2><div class="row"><button class="mini" type="button" id="exportStorageJson">JSON</button><button class="mini" type="button" id="exportReceiptsCsv">CSV recebimentos</button></div></div><div id="stReceipts" class="tablewrap"></div><div id="stReadings" class="tablewrap"></div></div>
+   </div>
+  </div>
+  <div id="storage" class="storage"></div>
+ </section>
  <section data-panel="praca" class="panel" hidden>
  <details class="guide"><summary>Guia: como ler a aba Praça</summary><div class="guidegrid">
   <div><b>Briefing datado</b><p>Leitura de mercado com data e fonte. Não é cotação: serve para entender o momento. Quando passa de 7 dias o sistema avisa.</p></div>

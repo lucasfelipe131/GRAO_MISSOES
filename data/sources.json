@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v6",
+  "version": "fontes-v7",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -463,6 +463,45 @@
       "cadence": "semanal, sexta-feira",
       "howTo": "Abra o PDF da semana e use o preço recebido pelo produtor na região de Santo Ângelo ou São Luiz Gonzaga. Serve para checar a tendência, não para fechar negócio.",
       "primary": false
+    },
+    {
+      "id": "camera-slg",
+      "name": "Camera Agroalimentos — esmagadora São Luiz Gonzaga",
+      "type": "crusher",
+      "region": "São Luiz Gonzaga (esmagadora)",
+      "url": "https://www.camera.ind.br/",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "canola",
+        "soja"
+      ],
+      "paymentTerms": "",
+      "confidence": 85,
+      "cadence": "sob consulta",
+      "howTo": "Referência principal para canola: esmagadora dedicada em São Luiz Gonzaga (capacidade anunciada de 700 t/dia). Peça a cotação do dia à mesa de originação (R$/sc de 60 kg, umidade 8%, impurezas 2%, teor de óleo do contrato) e registre prazo de pagamento e local de entrega. Não há página pública de cotação.",
+      "primary": true,
+      "crusher": true,
+      "requiresName": false
+    },
+    {
+      "id": "celena",
+      "name": "Celena Alimentos — esmagadora de canola",
+      "type": "crusher",
+      "region": "Rio Grande do Sul (esmagadora)",
+      "url": "https://www.celena.com.br/",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "canola"
+      ],
+      "paymentTerms": "",
+      "confidence": 80,
+      "cadence": "sob consulta",
+      "howTo": "Esmagadora de canola e girassol com contratos de fomento (preço fixo por saca ou atrelado à soja mais bônus). Registre a cotação informada pelo comprador e o tipo de contrato nas observações. Não há página pública de cotação.",
+      "primary": true,
+      "crusher": true,
+      "requiresName": false
     },
     {
       "id": "corretora-local",

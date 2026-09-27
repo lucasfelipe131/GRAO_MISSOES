@@ -12,7 +12,8 @@ Nada é executado automaticamente e nenhuma cotação é inventada. A comparaç�
 - **Estratégia por produtor**: a análise usa a ficha para ajustar as parcelas (risco baixo ou alto), medir o ritmo de fixação contra a faixa da fase (pré-plantio 10–30%, plantio 25–45%, desenvolvimento 40–60%, colheita 60–80%, pós-colheita 80–100%), calcular o custo de carregar o grão até a entressafra e gerar orientações de abordagem (decisão em família, prova preferida, compradores a consultar).
 - **Ofertas**: composição de oferta por produtor com calculadora de frete (distância × tarifa por tonelada-quilômetro + parcela fixa, em R$/saca), projeção por vencimento (referência de porto ou C.Vale ajustada pelo índice sazonal observado do mês de entrega, com carrego), margem C.Vale configurável, comparação com o concorrente e com o preço C.Vale do dia, e a **pedida do produtor** (quanto ele quer para vender, em R$/sc): o sistema mostra a diferença por saca e no lote, diz se a oferta atende, se atenderia reduzindo a margem (e para quanto) ou se não fecha nem com margem zero, e aponta os vencimentos em que a pedida seria atendida. O painel também traz o **histórico de pedidas por produtor** (ofertas com pedida e pedidos com preço-alvo): média, mínima e máxima, prêmio que ele costuma pedir sobre o C.Vale do dia, diferença média para a oferta, taxa de aceite e quanto fechou em relação ao que pediu, com a mesma leitura na ficha do produtor. Cada oferta fica registrada com situação (rascunho, enviada, aceita, recusada, expirada, cancelada), preço fechado, histórico e campo de observações; exportação em CSV e em JSON (`GET /api/offers/export`) para cruzar com a VAL.
 - **Preços do ano**: gráfico interativo (ao passar o mouse ou tocar aparece o preço exato de cada série no dia, a média de 12 meses de cada série em linha pontilhada e a média exata do dia; filtros por série para comparar C.Vale, média dos concorrentes, porto e cada concorrente ou trading individualmente; linhas com animação e tabela dos dados). Por grão, linha dos últimos 12 meses (C.Vale, média dos concorrentes e porto), estatísticas (atual, média, mínima, máxima, posição no intervalo), média mensal registrada, padrão sazonal observado (janela de 36 meses; calculado apenas com as cotações registradas ou importadas, incluindo o histórico diário da média do RS lido automaticamente das páginas de histórico do Agrolink para soja, milho e trigo: média de cada mês ÷ média dos meses observados × 100; meses sem cotação ficam vazios e não entram em projeção) com leitura para os próximos 3 meses quando há dados e importação de histórico em linhas data;preço.
-- **Armazenagem**: guia de pós-colheita por cultura (recebimento, secagem, umidade e temperatura de armazenagem, pragas, riscos que viram desconto, relação com a venda) e regras gerais de aeração, termometria, pragas, expurgo e checklists.
+- **Armazenagem (operação)**: cadastro das unidades de recebimento (capacidade estática, secagem e recebimento por dia, metas por grão e período da safra), padrões de qualidade por grão editáveis (referência IN MAPA), leituras de estoque e qualidade por unidade e grão (quantidade, umidade, temperatura, impurezas, avariados, PH…), recebimentos diários com acompanhamento de meta (percentual, ritmo em t/dia, dias para a meta, risco), ocupação por unidade, gráficos de padrões por cereal (valor × limite), volumes por grão e unidade e recebimentos dos últimos 30 dias, alertas e exportação JSON.
+- **Armazenagem (guia)**: guia de pós-colheita por cultura (recebimento, secagem, umidade e temperatura de armazenagem, pragas, riscos que viram desconto, relação com a venda) e regras gerais de aeração, termometria, pragas, expurgo e checklists.
 - **Preços de porto**: Bunge, ADM, LDC e Cargill no porto de Rio Grande, informados pela mesa ou corretora; base = C.Vale menos porto.
 - **Tendência de preço**: gráfico simples por grão com as cotações locais registradas; exportação em CSV de cotações, pedidos e produtores.
 - **Preço C.Vale hoje**: campo manual para a cotação própria da unidade de São Luiz Gonzaga (soja, milho, trigo e prazo). É a referência do comparativo.
@@ -50,7 +51,9 @@ Sem dependências externas: Node 20 ou superior. Os dados ficam em `DATA_DIR` (p
 | --- | --- |
 | `PORT` | porta HTTP; a Railway injeta automaticamente |
 | `DATA_DIR` | pasta do arquivo de dados; na Railway use um volume montado em `/data` |
-| `ACCESS_CODE` | código de acesso compartilhado da equipe; vazio deixa o acesso aberto (só para teste local) |
+| `ACCESS_CODE` | código de acesso **gerencial** (tudo, inclusive parâmetros e padrões); aceita vários separados por vírgula; alias `ACCESS_CODE_GERENCIAL` |
+| `ACCESS_CODE_OPERADOR` | código do **operador de compra de grãos**: pedidos, produtores, cotações e ofertas; armazenagem e parâmetros só leitura |
+| `ACCESS_CODE_ARMAZEM` | código do **encarregado de armazém**: unidades, padrões, estoque, qualidade e recebimentos; comercial só leitura (abas Pedidos, Produtores e Ofertas ficam ocultas) |
 | `AUTO_FETCH_HOURS` | intervalo da leitura automática dos concorrentes em horas; `0` desliga (padrão 4) |
 | `AUTO_SAVE` | `false` desliga o registro automático das leituras como cotações (padrão ligado) |
 
@@ -91,7 +94,16 @@ Cada push na branch `main` gera um novo deploy.
 | `/api/requests/:id/closings` | POST | registra fechamento parcial ou total |
 | `/api/requests/:id` | PATCH | muda o estado (`open`, `closed`, `cancelled`) |
 
-Todas as rotas de `/api/`, exceto `/api/session`, exigem o cabeçalho `x-access-code` quando `ACCESS_CODE` está definido.
+Todas as rotas de `/api/`, exceto `/api/session`, exigem o cabeçalho `x-access-code` quando algum código está definido. O código identifica o nível (gerencial, operador ou armazém); `/api/session` devolve o nível, as abas liberadas e as áreas com escrita. Escrita fora do nível responde 403.
+
+| Rota | Método | Nível com escrita | Uso |
+|---|---|---|---|
+| `/api/storage/units` | POST | armazém, gerencial | cadastra unidade de recebimento (capacidade, secagem, recebimento/dia, metas por grão, safra) |
+| `/api/storage/units/:id` | PUT, DELETE | armazém, gerencial | edita ou remove a unidade |
+| `/api/storage/standards` | PUT | armazém, gerencial | ajusta os padrões por grão (umidade, temperatura, impurezas, avariados, PH…) |
+| `/api/storage/readings` | POST | armazém, gerencial | leitura de estoque e qualidade por unidade e grão |
+| `/api/storage/receipts` | POST | armazém, gerencial | recebimento (data, grão, toneladas, cargas, umidade, produtor) |
+| `/api/storage/export` | GET | todos | unidades, leituras, recebimentos e padrões em JSON |
 
 ## Base técnica da praça
 

@@ -1,6 +1,6 @@
 {
   "id": "sao-luiz-gonzaga-rs",
-  "version": "praca-slg-v2",
+  "version": "praca-slg-v3",
   "label": "São Luiz Gonzaga/RS — Missões",
   "updatedAt": "2026-09-23",
   "aliases": [
@@ -69,10 +69,19 @@
     },
     {
       "name": "Camera Agroalimentos",
-      "type": "trading",
-      "municipality": "Santa Rosa",
-      "note": "Originação regional; confirmar unidade mais próxima.",
-      "confidence": 50
+      "type": "crusher",
+      "municipality": "São Luiz Gonzaga / Santa Rosa",
+      "note": "Esmagadora de soja em Santa Rosa e São Luiz Gonzaga e primeira planta dedicada a canola do país em São Luiz Gonzaga (700 t/dia, anunciada para o 2º semestre de 2025). Referência principal de preço para canola na praça.",
+      "confidence": 80,
+      "url": "https://www.camera.ind.br/"
+    },
+    {
+      "name": "Celena Alimentos",
+      "type": "crusher",
+      "municipality": "Rio Grande do Sul",
+      "note": "Esmagadora de canola e girassol com programa de fomento (semente, assistência e contrato de compra). Referência principal de preço para canola junto com a Camera.",
+      "url": "https://www.celena.com.br/",
+      "confidence": 75
     },
     {
       "name": "Tradings de porto (Bunge, Cargill, ADM, Bianchini)",
@@ -250,11 +259,13 @@
       },
       "qualityStandard": "Base de negociação: umidade 8%, impurezas 2%, teor de óleo conforme contrato; grão ardido, verde ou com odor gera desconto ou recusa.",
       "structuralNotes": [
+        "Compradores com esmagadora na praça e no estado: Camera Agroalimentos (São Luiz Gonzaga) e Celena Alimentos; o preço deles manda na canola, e a relação com a saca de soja (1,3 a 1,6 vez) serve para checar se a proposta está justa.",
         "Preço da canola acompanha o óleo de canola e a soja em Chicago, com poucos compradores na praça (cooperativa e esmagadoras).",
         "Mercado estreito: o comprador costuma exigir contrato antes do plantio; sem contrato, a oferta na colheita pode não encontrar demanda local.",
         "Colheita em set–out concorre com o trigo por máquina, secagem e armazém."
       ],
       "closingTips": [
+        "Para canola, a referência de preço são as esmagadoras: Camera Agroalimentos (planta de canola em São Luiz Gonzaga) e Celena Alimentos. Registre a cotação das duas em Cotações antes de analisar; a cooperativa entra como comparação, não como referência.",
         "Fechar contrato ou intenção de compra antes do plantio; canola sem comprador definido é risco de preço e de recebimento.",
         "Comparar preço em R$/sc com o equivalente em soja (relação histórica próxima de 1,3 a 1,6 vezes a saca de soja) para saber se a proposta está justa.",
         "Conferir umidade e teor de óleo do lote antes de cotar; desconto por umidade acima de 8% é alto.",

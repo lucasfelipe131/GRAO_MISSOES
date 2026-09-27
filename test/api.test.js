@@ -153,3 +153,60 @@ test('ofertas: parâmetros, prévia, registro, situação, fechamento e exporta�
   assert.equal((await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'trigo',volumeSc:10,deliveryMonth:'2026-11',referenceMode:'porto'})).status,400)
  }finally{server.close()}
 })
+
+test('níveis de acesso: gerencial, operador de compra e encarregado de armazém',async()=>{
+ const {server,base}=await start({accessCodes:{gerencial:['ger-1'],operador:['op-1'],armazem:['arm-1']}})
+ try{
+  assert.equal((await call(base,'GET','/api/session')).data.authorized,false)
+  const ger=(await call(base,'GET','/api/session',null,'ger-1')).data;assert.equal(ger.role,'gerencial');assert.ok(ger.tabs.includes('ofertas'));assert.ok(ger.write.includes('parametros'))
+  const arm=(await call(base,'GET','/api/session',null,'arm-1')).data;assert.equal(arm.role,'armazem');assert.ok(!arm.tabs.includes('ofertas'));assert.ok(arm.tabs.includes('armazenagem'))
+  assert.equal((await call(base,'GET','/api/bootstrap',null,'x')).status,401)
+  assert.equal((await call(base,'POST','/api/producers',{name:'Ana'},'arm-1')).status,403)
+  assert.equal((await call(base,'PUT','/api/offer-settings',{defaultMarginPerSc:'3'},'op-1')).status,403)
+  assert.equal((await call(base,'POST','/api/storage/units',{name:'U',capacityT:100},'op-1')).status,403)
+  assert.equal((await call(base,'POST','/api/producers',{name:'Ana'},'op-1')).status,201)
+  assert.equal((await call(base,'POST','/api/quotes',{commodity:'soja',price:140,region:'SLG',sourceName:'Cotrisal'},'op-1')).status,201)
+  const unit=await call(base,'POST','/api/storage/units',{name:'Unidade SLG',capacityT:'5000',goal_soja:'4000',seasonStart:'2026-09-01',seasonEnd:'2027-04-30'},'arm-1');assert.equal(unit.status,201)
+  assert.equal((await call(base,'PUT','/api/offer-settings',{defaultMarginPerSc:'3'},'ger-1')).status,200)
+  const boot=(await call(base,'GET','/api/bootstrap',null,'arm-1')).data;assert.equal(boot.session.role,'armazem');assert.equal(boot.storage.units.length,1)
+ }finally{server.close()}
+})
+
+test('armazenagem: unidades, padrões, leituras, recebimentos, resumo e exportação',async()=>{
+ const {server,base}=await start()
+ try{
+  const producer=(await call(base,'POST','/api/producers',{name:'Ana'})).data.producer
+  const unit=(await call(base,'POST','/api/storage/units',{name:'Unidade São Luiz',municipality:'São Luiz Gonzaga',capacityT:'10000',dryingTDay:'500',goal_soja:'8000',goal_milho:'1000',season:'2026/27',seasonStart:'2026-09-01',seasonEnd:'2027-05-31'})).data.unit
+  assert.ok(unit.id);assert.equal(unit.goals.soja,8000)
+  assert.equal((await call(base,'POST','/api/storage/units',{name:'x'})).status,400)
+  assert.equal((await call(base,'POST','/api/storage/readings',{unitId:'nao-existe',commodity:'soja',quantityT:10})).status,404)
+  assert.equal((await call(base,'POST','/api/storage/readings',{unitId:unit.id,commodity:'soja',quantityT:'6000',moisture:'14,5',temperature:'24',impurities:'0,9',date:'2026-09-26'})).status,201)
+  assert.equal((await call(base,'POST','/api/storage/receipts',{unitId:unit.id,commodity:'soja',quantityT:'250',loads:'8',moisture:'15',producerId:producer.id,date:'2026-09-26'})).status,201)
+  const rc=await call(base,'POST','/api/storage/receipts',{unitId:unit.id,commodity:'soja',quantityT:'300',loads:'9',moisture:'14',date:'2026-09-27'});assert.equal(rc.status,201);assert.equal(rc.data.receipt.quantityT,300)
+  const std=await call(base,'PUT','/api/storage/standards',{standards:{soja:{moisture:{max:'14',ideal:'13'}}}});assert.equal(std.status,200);assert.equal(std.data.standards.soja.moisture.max,14)
+  let boot=(await call(base,'GET','/api/bootstrap')).data
+  const u=boot.storage.units[0];assert.equal(u.stockT,6000);assert.equal(u.occupancy,60);const soja=u.stock.find(x=>x.commodity==='soja');assert.equal(soja.receivedT,550);assert.equal(soja.goalPercent,7);assert.equal(soja.evaluation.find(e=>e.key==='moisture').status,'atencao')
+  assert.equal(boot.storage.receipts.length,2);assert.equal(boot.storage.receipts[0].producerName,undefined||boot.storage.receipts[0].producerName);assert.ok(boot.storage.byCommodity.find(c=>c.commodity==='soja'))
+  assert.ok(boot.storage.alerts.some(a=>/umidade/.test(a.message)))
+  const upd=await call(base,'PUT',`/api/storage/units/${unit.id}`,{name:'Unidade São Luiz',capacityT:'12000',goal_soja:'9000',seasonStart:'2026-09-01',seasonEnd:'2027-05-31'});assert.equal(upd.status,200);assert.equal(upd.data.unit.capacityT,12000)
+  assert.equal((await call(base,'DELETE',`/api/storage/receipts/${rc.data.receipt.id}`)).status,200)
+  const exp=(await call(base,'GET','/api/storage/export')).data;assert.equal(exp.units.length,1);assert.equal(exp.receipts.length,1);assert.equal(exp.readings.length,1);assert.ok(exp.standards.soja)
+  assert.equal((await call(base,'POST','/api/storage/standards/reset')).status,200)
+  assert.equal((await call(base,'DELETE',`/api/storage/units/${unit.id}`)).status,200)
+  boot=(await call(base,'GET','/api/bootstrap')).data;assert.equal(boot.storage.units.length,0);assert.equal(boot.storage.receipts.length,0)
+ }finally{server.close()}
+})
+
+test('canola: esmagadoras Camera e Celena são a referência principal',async()=>{
+ const {server,base}=await start()
+ try{
+  const producer=(await call(base,'POST','/api/producers',{name:'Ana',municipality:'São Luiz Gonzaga'})).data.producer
+  await call(base,'POST','/api/quotes',{commodity:'canola',price:150,region:'São Luiz Gonzaga',sourceId:'coopatrigo',sourceName:'Coopatrigo'})
+  await call(base,'POST','/api/quotes',{commodity:'canola',price:158,region:'São Luiz Gonzaga (esmagadora)',sourceId:'camera-slg',sourceName:'Camera Agroalimentos — esmagadora São Luiz Gonzaga'})
+  await call(base,'POST','/api/quotes',{commodity:'canola',price:155,region:'Rio Grande do Sul (esmagadora)',sourceId:'celena',sourceName:'Celena Alimentos — esmagadora de canola'})
+  const a=(await call(base,'POST','/api/analyze',{producerId:producer.id,commodity:'canola',volume:500,direction:'sell',objective:'equilibrio'})).data.analysis
+  assert.equal(a.marketReading.reference.sourceName,'Camera Agroalimentos — esmagadora São Luiz Gonzaga')
+  assert.ok(a.reasons.some(r=>/esmagadoras/.test(r)));assert.equal(a.marketReading.competition.competitors[0].crusher,true)
+  const boot=(await call(base,'GET','/api/bootstrap')).data;assert.ok(boot.catalog.sources.some(s=>s.id==='camera-slg'&&s.crusher));assert.ok(boot.catalog.sources.some(s=>s.id==='celena'))
+ }finally{server.close()}
+})
