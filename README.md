@@ -1,6 +1,6 @@
-# Grãos Missões
+# VAL-SOG — Grãos Missões
 
-Sistema de oportunidades de grãos para a praça de São Luiz Gonzaga/RS. Cada pedido do produtor ("quero vender 3 mil sacas até março, preciso de caixa em outubro") vira uma análise personalizada: leitura de mercado, base contra porto, margem sobre custo, três alvos de fechamento escalonados por objetivo, cenários e dicas explicáveis.
+VAL-SOG (Sistema de Operações de Grãos) para a praça de São Luiz Gonzaga/RS, com a identidade visual azul da VAL e a fonte Manrope embutida. Cada pedido do produtor ("quero vender 3 mil sacas até março, preciso de caixa em outubro") vira uma análise personalizada: leitura de mercado, base contra porto, margem sobre custo, três alvos de fechamento escalonados por objetivo, cenários e dicas explicáveis.
 
 Nada é executado automaticamente e nenhuma cotação é inventada. A comparação de preço usa apenas cotações registradas com fonte e horário. A decisão permanece com o consultor e o produtor.
 
@@ -10,6 +10,9 @@ Nada é executado automaticamente e nenhuma cotação é inventada. A comparaç�
 
 - **Produtores**: ficha operacional sem dados confidenciais: área, produtividade e percentual já fixado por cultura; quem decide, tolerância a risco, hábito de venda, o que convence, prazo de pagamento preferido, compradores habituais; armazenagem e custo de carregar, distância, logística, meses de compromisso de caixa, canal de contato. A ficha mostra posição da safra, ritmo de fixação por fase e histórico de pedidos.
 - **Estratégia por produtor**: a análise usa a ficha para ajustar as parcelas (risco baixo ou alto), medir o ritmo de fixação contra a faixa da fase (pré-plantio 10–30%, plantio 25–45%, desenvolvimento 40–60%, colheita 60–80%, pós-colheita 80–100%), calcular o custo de carregar o grão até a entressafra e gerar orientações de abordagem (decisão em família, prova preferida, compradores a consultar).
+- **Preços do ano**: por grão, linha dos últimos 12 meses (C.Vale, média dos concorrentes e porto), estatísticas (atual, média, mínima, máxima, posição no intervalo), média mensal registrada, índice sazonal indicativo com leitura para os próximos 3 meses e importação de histórico em linhas data;preço.
+- **Armazenagem**: guia de pós-colheita por cultura (recebimento, secagem, umidade e temperatura de armazenagem, pragas, riscos que viram desconto, relação com a venda) e regras gerais de aeração, termometria, pragas, expurgo e checklists.
+- **Preços de porto**: Bunge, ADM, LDC e Cargill no porto de Rio Grande, informados pela mesa ou corretora; base = C.Vale menos porto.
 - **Tendência de preço**: gráfico simples por grão com as cotações locais registradas; exportação em CSV de cotações, pedidos e produtores.
 - **Preço C.Vale hoje**: campo manual para a cotação própria da unidade de São Luiz Gonzaga (soja, milho, trigo e prazo). É a referência do comparativo.
 - **Comparativo de compradores**: o servidor abre as páginas dos concorrentes (Coopatrigo, Cotrisal, Agrolink, Grão Direto, Notícias Agrícolas, CEPEA), procura o preço perto do nome do grão e mostra a diferença para a C.Vale. A leitura roda ao subir e a cada `AUTO_FETCH_HOURS` (padrão 4 h) e pode ser disparada pelo botão “Buscar agora”. Nada vira cotação sem clique em salvar; leituras salvas ficam marcadas como automáticas, com confiança reduzida e o trecho lido nas observações.
@@ -70,6 +73,8 @@ Cada push na branch `main` gera um novo deploy.
 | `/api/own-quotes` | POST | registra o preço C.Vale do dia (soja, milho, trigo, prazo) |
 | `/api/comparison/refresh` | POST | lê as páginas dos concorrentes agora |
 | `/api/comparison/save` | POST | salva uma leitura como cotação (`sourceId`, `commodity`) |
+| `/api/port-quotes` | POST | registra preços de porto de uma trading (`sourceId`, soja, milho, trigo, canola) |
+| `/api/quotes/import` | POST | importa histórico de preços (`commodity`, `sourceName`, `lines`) |
 | `/api/analyze` | POST | análise sem registrar o pedido |
 | `/api/requests` | POST | registra pedido com análise |
 | `/api/requests/:id/rerun` | POST | recalcula a análise com as cotações atuais |
