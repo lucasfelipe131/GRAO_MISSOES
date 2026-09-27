@@ -69,3 +69,9 @@ test('leitura por linha respeita a prioridade das praças e ignora linhas sem co
  const onlyRs=extractFromHtml(html.replace('Santo Ângelo/RS (Cotrisa)','Tupanciretã/RS'),sources.find(s=>s.id==='na-soja-fisico'))
  assert.equal(onlyRs.prices.soja.price,140);assert.equal(onlyRs.prices.soja.keyword,'passo fundo')
 })
+
+test('tabelas de um grão só (uma por cultura) também são lidas por coluna',()=>{
+ const html=`<table><tr><th>Data</th><th>Soja (60kg) 72hs</th></tr><tr><td>27/09/2026</td><td>141,00</td></tr></table><table><tr><th>Data</th><th>Milho</th></tr><tr><td>27/09/2026</td><td>62,00</td></tr></table><table><tr><th>Data</th><th>Canola</th></tr><tr><td>27/09/2026</td><td></td></tr><tr><td>26/09/2026</td><td>214,00</td></tr></table><table><tr><th>Telefones</th></tr><tr><td>3352 4400</td></tr></table>`
+ const coop=extractFromHtml(html,sources.find(s=>s.id==='coopatrigo'))
+ assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.milho.price,62);assert.equal(coop.prices.canola.price,214);assert.equal(coop.prices.canola.observedDate,'2026-09-26');assert.equal(coop.prices.trigo,undefined)
+})
