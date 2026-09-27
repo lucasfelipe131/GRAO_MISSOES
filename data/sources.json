@@ -1,7 +1,42 @@
 {
-  "version": "fontes-v1",
+  "version": "fontes-v2",
   "updatedAt": "2026-09-27",
   "sources": [
+    {
+      "id": "cvale",
+      "name": "C.Vale — São Luiz Gonzaga",
+      "type": "cooperative",
+      "own": true,
+      "region": "São Luiz Gonzaga (C.Vale)",
+      "url": "https://www.cvale.com.br/site/preco-do-dia",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja",
+        "milho",
+        "trigo"
+      ],
+      "paymentTerms": "",
+      "confidence": 95,
+      "cadence": "diária",
+      "howTo": "Nossa cotação: preencha manualmente no quadro “Preço C.Vale hoje” com o valor da unidade de São Luiz Gonzaga. É a referência contra a qual os concorrentes são comparados.",
+      "primary": true,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "soja": [
+            "soja"
+          ],
+          "milho": [
+            "milho"
+          ],
+          "trigo": [
+            "trigo"
+          ]
+        },
+        "window": 160
+      }
+    },
     {
       "id": "coopatrigo",
       "name": "Coopatrigo",
@@ -21,7 +56,28 @@
       "confidence": 85,
       "cadence": "diária, manhã",
       "howTo": "Abra a página, localize o grão (ex.: Soja 60 kg 72 hs) e copie o valor em R$ por saca. Registre o horário mostrado na página. A cotação vale para entrega na unidade da Coopatrigo.",
-      "primary": true
+      "primary": true,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "soja": [
+            "soja (60kg) 72hs",
+            "soja 60kg",
+            "soja"
+          ],
+          "milho": [
+            "milho (60kg)",
+            "milho 60kg",
+            "milho"
+          ],
+          "trigo": [
+            "trigo (60kg)",
+            "trigo 60kg",
+            "trigo"
+          ]
+        },
+        "window": 160
+      }
     },
     {
       "id": "cotrisal",
@@ -40,7 +96,24 @@
       "confidence": 70,
       "cadence": "diária",
       "howTo": "Na página inicial, use o quadro de cotações do dia. Para trigo o valor é para pH 78. Serve como segunda referência regional.",
-      "primary": true
+      "primary": true,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "soja": [
+            "soja"
+          ],
+          "milho": [
+            "milho"
+          ],
+          "trigo": [
+            "trigo ph 78",
+            "trigo ph78",
+            "trigo"
+          ]
+        },
+        "window": 160
+      }
     },
     {
       "id": "cepea-soja-paranagua",
@@ -57,7 +130,11 @@
       "confidence": 90,
       "cadence": "diária, após 17h",
       "howTo": "Copie o valor do indicador (R$/sc de 60 kg) e a data. É a referência de porto usada para calcular a base da praça.",
-      "primary": true
+      "primary": true,
+      "fetch": {
+        "strategy": "table-latest",
+        "commodity": "soja"
+      }
     },
     {
       "id": "cepea-milho",
@@ -74,7 +151,11 @@
       "confidence": 85,
       "cadence": "diária",
       "howTo": "Use o indicador ESALQ/BM&FBovespa em R$/sc. É referência nacional, não local: registre também uma cotação regional (Cotrisal ou Coopatrigo).",
-      "primary": false
+      "primary": false,
+      "fetch": {
+        "strategy": "table-latest",
+        "commodity": "milho"
+      }
     },
     {
       "id": "cepea-trigo",
@@ -91,7 +172,18 @@
       "confidence": 85,
       "cadence": "diária",
       "howTo": "Copie o valor do RS em R$ por tonelada e escolha a unidade R$/t; o sistema converte para saca. O valor do PR mostra o prêmio que o Paraná paga.",
-      "primary": true
+      "primary": true,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "trigo": [
+            "rio grande do sul",
+            "rs"
+          ]
+        },
+        "window": 120,
+        "priceUnit": "BRL/t"
+      }
     },
     {
       "id": "na-soja-fisico",
@@ -108,7 +200,21 @@
       "confidence": 75,
       "cadence": "diária",
       "howTo": "Procure as praças gaúchas (Passo Fundo, Cruz Alta, Ijuí, Santa Rosa, Rio Grande). Informe a praça escolhida no campo Praça / comprador.",
-      "primary": false
+      "primary": false,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "soja": [
+            "santo angelo",
+            "santo ângelo",
+            "cruz alta",
+            "ijui",
+            "ijuí",
+            "passo fundo"
+          ]
+        },
+        "window": 80
+      }
     },
     {
       "id": "graodireto-slg",
@@ -126,7 +232,18 @@
       "confidence": 55,
       "cadence": "irregular",
       "howTo": "Confira a data da oferta antes de copiar; a página pode estar desatualizada. Use como piso de comparação, não como preço executável.",
-      "primary": false
+      "primary": false,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "soja": [
+            "disponível",
+            "disponivel",
+            "soja"
+          ]
+        },
+        "window": 120
+      }
     },
     {
       "id": "agrolink-slg",
@@ -145,7 +262,22 @@
       "confidence": 65,
       "cadence": "diária",
       "howTo": "Use a cotação do município quando existir; se a página mostrar só a média do estado, registre a região como Rio Grande do Sul.",
-      "primary": false
+      "primary": false,
+      "fetch": {
+        "strategy": "keyword",
+        "keywords": {
+          "soja": [
+            "soja"
+          ],
+          "milho": [
+            "milho"
+          ],
+          "trigo": [
+            "trigo"
+          ]
+        },
+        "window": 140
+      }
     },
     {
       "id": "emater-semanal",

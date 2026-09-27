@@ -5,16 +5,25 @@ import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
 import {analyzeRequest,buildBrief,buildPortfolio,checkTargets,commodityLabels,loadPraca,loadSources,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
+import {runComparison} from './lib/fetch.js'
 
 const root=dirname(fileURLToPath(import.meta.url))
 const publicDir=join(root,'public')
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8','.png':'image/png','.webmanifest':'application/manifest+json'}
 const headers={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"}
 
-export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||''}={}){
+export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',fetchImpl=globalThis.fetch,sourcesOverride=null}={}){
  const store=createStore(dataDir)
  const praca=loadPraca()
- const sources=loadSources()
+ const sources=sourcesOverride||loadSources()
+ const ownSource=sources.sources.find(item=>item.own)||null
+ let comparisonRunning=null
+ const refreshComparison=async()=>{
+  if(comparisonRunning)return comparisonRunning
+  comparisonRunning=runComparison(sources.sources,{fetchImpl}).then(result=>{store.update(data=>{data.comparison=result});return result}).finally(()=>{comparisonRunning=null})
+  return comparisonRunning
+ }
+ const quoteFromCandidate=(source,commodity,candidate,fetchedAt)=>normalizeQuote({sourceId:source.id,commodity,price:candidate.price,priceUnit:candidate.priceUnit,observedAt:candidate.observedDate?`${candidate.observedDate}T12:00:00Z`:fetchedAt,notes:`Leitura automática da página: “${candidate.snippet}”`})
  const json=(response,status,payload)=>{response.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});response.end(JSON.stringify(payload))}
  const body=request=>new Promise((resolvePromise,reject)=>{let raw='';request.on('data',chunk=>{raw+=chunk;if(raw.length>1_000_000){reject(Object.assign(new Error('Requisição muito grande.'),{statusCode:413}));request.destroy()}});request.on('end',()=>{try{resolvePromise(raw?JSON.parse(raw):{})}catch{reject(Object.assign(new Error('Conteúdo inválido.'),{statusCode:400}))}});request.on('error',reject)})
  const authorized=request=>{if(!accessCode)return true;const given=String(request.headers['x-access-code']||'');if(given.length!==accessCode.length)return false;return timingSafeEqual(Buffer.from(given),Buffer.from(accessCode))}
@@ -29,7 +38,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(path==='/api/bootstrap'&&request.method==='GET'){
    const data=store.read();const now=new Date()
    const requests=data.requests.map(item=>({...item,producerName:producerOf(data,item.producerId)?.name||'Produtor'})).sort((l,r)=>String(r.createdAt).localeCompare(String(l.createdAt)))
-   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
+   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
   }
   if(path==='/api/producers'&&request.method==='POST'){const input=normalizeProducer(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.producers.push(record);return record});return json(response,201,{producer:saved})}
   const producerMatch=path.match(/^\/api\/producers\/([0-9a-f-]{36})$/i)
@@ -37,6 +46,21 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(path==='/api/quotes'&&request.method==='POST'){const input=normalizeQuote(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString()};data.quotes.push(record);data.quotes=data.quotes.slice(-5000);return record});return json(response,201,{quote:saved})}
   const quoteMatch=path.match(/^\/api\/quotes\/([0-9a-f-]{36})$/i)
   if(quoteMatch&&request.method==='DELETE'){store.update(data=>{const quote=data.quotes.find(item=>item.id===quoteMatch[1]);if(!quote)throw Object.assign(new Error('Cotação não encontrada.'),{statusCode:404});quote.status='inactive'});return json(response,200,{removed:true})}
+  if(path==='/api/own-quotes'&&request.method==='POST'){
+   if(!ownSource)return json(response,400,{error:'Nenhuma fonte própria configurada.'})
+   const payload=await body(request);const observedAt=payload.observedAt?new Date(payload.observedAt).toISOString():new Date().toISOString();const saved=[]
+   for(const commodity of ownSource.commodities||[]){const price=payload[commodity];if(price===undefined||price===null||price==='')continue;const quote=normalizeQuote({sourceId:ownSource.id,commodity,price,priceUnit:'BRL/sc_60kg',paymentTerms:payload.paymentTerms||'',observedAt,notes:text(payload.notes,400)});saved.push(store.update(data=>{const record={...quote,id:randomUUID(),createdAt:new Date().toISOString()};data.quotes.push(record);data.quotes=data.quotes.slice(-5000);return record}))}
+   if(!saved.length)return json(response,400,{error:'Informe ao menos um preço.'})
+   return json(response,201,{quotes:saved})
+  }
+  if(path==='/api/comparison/refresh'&&request.method==='POST'){const result=await refreshComparison();return json(response,200,{comparison:result})}
+  if(path==='/api/comparison/save'&&request.method==='POST'){
+   const payload=await body(request);const data=store.read();const comparison=data.comparison;if(!comparison)return json(response,400,{error:'Ainda não há leitura automática para salvar.'})
+   const wanted=Array.isArray(payload.items)?payload.items:[payload];const saved=[]
+   for(const item of wanted){const result=comparison.results.find(r=>r.sourceId===item.sourceId);const source=sources.sources.find(f=>f.id===item.sourceId);const candidate=result?.prices?.[item.commodity];if(!result||!source||!candidate)continue;const quote=quoteFromCandidate(source,item.commodity,candidate,comparison.fetchedAt);saved.push(store.update(d=>{const record={...quote,id:randomUUID(),createdAt:new Date().toISOString(),confidence:Math.max(40,(source.confidence||60)-15),automatic:true};d.quotes.push(record);d.quotes=d.quotes.slice(-5000);return record}))}
+   if(!saved.length)return json(response,400,{error:'Nenhum preço lido corresponde ao pedido de salvamento.'})
+   return json(response,201,{quotes:saved})
+  }
   if(path==='/api/analyze'&&request.method==='POST'){const input=normalizeRequest(await body(request));const data=store.read();const producer=producerOf(data,input.producerId);if(!producer)return json(response,404,{error:'Produtor não encontrado.'});return json(response,200,{analysis:analyzeRequest({request:input,producer,quotes:data.quotes,praca})})}
   if(path==='/api/requests'&&request.method==='POST'){
    const input=normalizeRequest(await body(request))
@@ -62,7 +86,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   response.writeHead(200,{...headers,'Content-Type':mime[extname(target)]||'application/octet-stream','Cache-Control':'no-cache'});createReadStream(target).pipe(response)
  }
 
- return createServer(async(request,response)=>{
+ const server=createServer(async(request,response)=>{
   const url=new URL(request.url,'http://localhost')
   if(url.pathname.startsWith('/api/')||url.pathname==='/health'){
    try{const handled=await api(request,response,url);if(handled===false)json(response,404,{error:'Rota não encontrada.'})}
@@ -72,9 +96,17 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(request.method!=='GET')return json(response,405,{error:'Método não permitido.'})
   serveStatic(response,url)
  })
+ server.refreshComparison=refreshComparison
+ return server
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const port=Number(process.env.PORT||3000)
- createApp().listen(port,'0.0.0.0',()=>console.log(`Grãos Missões ouvindo em :${port}`))
+ const app=createApp()
+ app.listen(port,'0.0.0.0',()=>console.log(`Grãos Missões ouvindo em :${port}`))
+ const hours=Number(process.env.AUTO_FETCH_HOURS||4)
+ if(hours>0){
+  const run=()=>app.refreshComparison().then(result=>console.log(`Comparativo atualizado: ${result.okCount}/${result.total} fontes lidas`)).catch(error=>console.error('Comparativo falhou',error.message))
+  setTimeout(run,5000);setInterval(run,hours*3_600_000).unref()
+ }
 }

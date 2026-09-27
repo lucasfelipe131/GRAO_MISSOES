@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import {mkdtempSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
+import {createServer} from 'node:http'
 import {createApp} from '../server.js'
+import {loadSources} from '../lib/analysis.js'
 
 const start=(options={})=>new Promise(resolve=>{const server=createApp({dataDir:mkdtempSync(join(tmpdir(),'gm-')),...options});server.listen(0,()=>resolve({server,base:`http://127.0.0.1:${server.address().port}`}))})
 const call=async(base,method,path,payload,code)=>{const response=await fetch(base+path,{method,headers:{'Content-Type':'application/json',...(code?{'x-access-code':code}:{})},body:payload?JSON.stringify(payload):undefined});return {status:response.status,data:await response.json()}}
@@ -55,4 +57,27 @@ test('código de acesso protege a API quando configurado',async()=>{
   assert.equal((await call(base,'GET','/api/session')).data.protected,true)
   assert.equal((await fetch(base+'/health')).status,200)
  }finally{server.close()}
+})
+
+test('preço C.Vale manual, comparativo automático e salvamento das leituras',async()=>{
+ const html=`<html><body><table><tr><td>Soja (60kg) 72hs</td><td>R$ 143,00</td></tr><tr><td>Milho (60kg)</td><td>R$ 61,00</td></tr></table><p>27/09/2026</p></body></html>`
+ const site=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(html)});await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
+ const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id}:s)}
+ const {server,base}=await start({sourcesOverride})
+ try{
+  const producer=(await call(base,'POST','/api/producers',{name:'Ana',area_soja:100,yield_soja:60})).data.producer
+  const own=await call(base,'POST','/api/own-quotes',{soja:'140,50',milho:'',trigo:'',paymentTerms:'72 h'})
+  assert.equal(own.status,201);assert.equal(own.data.quotes.length,1);assert.equal(own.data.quotes[0].sourceId,'cvale');assert.equal(own.data.quotes[0].price,140.5)
+  assert.equal((await call(base,'POST','/api/own-quotes',{soja:''})).status,400)
+  const refresh=await call(base,'POST','/api/comparison/refresh')
+  assert.equal(refresh.status,200);assert.ok(refresh.data.comparison.okCount>=1)
+  const coop=refresh.data.comparison.results.find(r=>r.sourceId==='coopatrigo');assert.equal(coop.prices.soja.price,143)
+  const saved=await call(base,'POST','/api/comparison/save',{sourceId:'coopatrigo',commodity:'soja'})
+  assert.equal(saved.status,201);assert.equal(saved.data.quotes[0].automatic,true);assert.match(saved.data.quotes[0].notes,/Leitura automática/)
+  const analysis=await call(base,'POST','/api/analyze',{producerId:producer.id,commodity:'soja',volume:1000,targetPrice:150,deliveryLocation:'São Luiz Gonzaga'})
+  const comp=analysis.data.analysis.marketReading.competition
+  assert.equal(comp.own.price,140.5);assert.equal(comp.best.sourceName,'Coopatrigo');assert.equal(comp.gapSc,2.5)
+  assert.ok(analysis.data.analysis.alerts.some(a=>/acima da C\.Vale/.test(a)))
+  const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.ownSource.id,'cvale');assert.ok(boot.data.comparison.fetchedAt)
+ }finally{server.close();site.close()}
 })

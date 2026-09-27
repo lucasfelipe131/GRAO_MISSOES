@@ -11,7 +11,10 @@ Nada é executado automaticamente e nenhuma cotação é inventada. A comparaç�
 - **Produtores**: ficha operacional sem dados confidenciais: área, produtividade e percentual já fixado por cultura; quem decide, tolerância a risco, hábito de venda, o que convence, prazo de pagamento preferido, compradores habituais; armazenagem e custo de carregar, distância, logística, meses de compromisso de caixa, canal de contato. A ficha mostra posição da safra, ritmo de fixação por fase e histórico de pedidos.
 - **Estratégia por produtor**: a análise usa a ficha para ajustar as parcelas (risco baixo ou alto), medir o ritmo de fixação contra a faixa da fase (pré-plantio 10–30%, plantio 25–45%, desenvolvimento 40–60%, colheita 60–80%, pós-colheita 80–100%), calcular o custo de carregar o grão até a entressafra e gerar orientações de abordagem (decisão em família, prova preferida, compradores a consultar).
 - **Tendência de preço**: gráfico simples por grão com as cotações locais registradas; exportação em CSV de cotações, pedidos e produtores.
-- **Cotações**: registro com grão, preço, praça ou comprador, fonte, prazo de pagamento e horário de observação. Cotações com mais de 7 dias ficam marcadas como vencidas.
+- **Preço C.Vale hoje**: campo manual para a cotação própria da unidade de São Luiz Gonzaga (soja, milho, trigo e prazo). É a referência do comparativo.
+- **Comparativo de compradores**: o servidor abre as páginas dos concorrentes (Coopatrigo, Cotrisal, Agrolink, Grão Direto, Notícias Agrícolas, CEPEA), procura o preço perto do nome do grão e mostra a diferença para a C.Vale. A leitura roda ao subir e a cada `AUTO_FETCH_HOURS` (padrão 4 h) e pode ser disparada pelo botão “Buscar agora”. Nada vira cotação sem clique em salvar; leituras salvas ficam marcadas como automáticas, com confiança reduzida e o trecho lido nas observações.
+- **Cotações**: registro com grão, preço, praça ou comprador, fonte do catálogo (praça, unidade, prazo e link preenchidos), prazo de pagamento e horário de observação. Cotações com mais de 7 dias ficam marcadas como vencidas.
+- **C.Vale × concorrência na análise**: cada pedido mostra o preço C.Vale contra o melhor concorrente das últimas 72 h; quando um concorrente paga mais, a análise alerta e sugere como conduzir.
 - **Pedidos**: formulário com o pedido do produtor. A análise `analysis-v1` devolve manchete, referência usada, distância ao preço-alvo, margem, base contra porto, Alvo 1 (gatilho imediato), Alvo 2 (preço do produtor) e Alvo 3 (esticada condicional), cenários e dicas. O pedido fica em acompanhamento; fechamentos parciais são registrados com preço, volume e comprador.
 - **Alvos atingidos**: sempre que uma cotação registrada alcança um alvo de um pedido aberto, o painel avisa.
 - **Praça**: briefing datado de São Luiz Gonzaga (calendário, compradores, frete, base, riscos e fontes), separado das cotações operacionais.
@@ -42,6 +45,7 @@ Sem dependências externas: Node 20 ou superior. Os dados ficam em `DATA_DIR` (p
 | `PORT` | porta HTTP; a Railway injeta automaticamente |
 | `DATA_DIR` | pasta do arquivo de dados; na Railway use um volume montado em `/data` |
 | `ACCESS_CODE` | código de acesso compartilhado da equipe; vazio deixa o acesso aberto (só para teste local) |
+| `AUTO_FETCH_HOURS` | intervalo da leitura automática dos concorrentes em horas; `0` desliga (padrão 4) |
 
 ## Deploy na Railway
 
@@ -63,6 +67,9 @@ Cada push na branch `main` gera um novo deploy.
 | `/api/producers/:id` | PUT | atualiza produtor |
 | `/api/quotes` | POST | registra cotação |
 | `/api/quotes/:id` | DELETE | desativa cotação |
+| `/api/own-quotes` | POST | registra o preço C.Vale do dia (soja, milho, trigo, prazo) |
+| `/api/comparison/refresh` | POST | lê as páginas dos concorrentes agora |
+| `/api/comparison/save` | POST | salva uma leitura como cotação (`sourceId`, `commodity`) |
 | `/api/analyze` | POST | análise sem registrar o pedido |
 | `/api/requests` | POST | registra pedido com análise |
 | `/api/requests/:id/rerun` | POST | recalcula a análise com as cotações atuais |
@@ -83,5 +90,5 @@ O Grãos Missões é independente: tem cadastro, dados, acesso e deploy próprio
 
 - Armazenamento em arquivo JSON: adequado para uma equipe; para várias unidades, migrar para PostgreSQL.
 - Código de acesso único: não há usuários individuais nem trilha por consultor.
-- Cotações são registradas manualmente; um conector para Coopatrigo, Cotrisal e CEPEA é o próximo passo.
+- A leitura automática depende do layout das páginas dos concorrentes; quando um site muda, a fonte aparece como “sem preço” ou “falhou” e o registro volta a ser manual até o ajuste em `data/sources.json`.
 - A análise é determinística e explicável; não usa modelo de linguagem e não prevê preço.
