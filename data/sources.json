@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v4",
+  "version": "fontes-v5",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -308,36 +308,6 @@
             "rio grande"
           ]
         }
-      }
-    },
-    {
-      "id": "graodireto-rio-grande",
-      "name": "Grão Direto — Rio Grande (porto)",
-      "type": "broker",
-      "port": true,
-      "region": "Rio Grande (Grão Direto)",
-      "url": "https://www.graodireto.com.br/ofertas/soja/rs/rio-grande/",
-      "priceUnit": "BRL/sc_60kg",
-      "marketKind": "spot",
-      "commodities": [
-        "soja"
-      ],
-      "paymentTerms": "",
-      "confidence": 55,
-      "cadence": "irregular",
-      "howTo": "Oferta publicada para Rio Grande; conferir a data antes de usar como base.",
-      "primary": false,
-      "fetch": {
-        "strategy": "keyword",
-        "keywords": {
-          "soja": [
-            "disponível em rio grande",
-            "disponivel em rio grande",
-            "disponível",
-            "soja"
-          ]
-        },
-        "window": 120
       }
     },
     {
