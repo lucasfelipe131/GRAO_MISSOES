@@ -123,3 +123,12 @@ test('página só de histórico (Agrolink RS) vira leitura ok com o último dia 
  assert.equal(r.prices.soja.price,143.42);assert.equal(r.prices.soja.observedDate,'2026-09-26');assert.match(r.debug.historico,/4 data/)
  const onlyText=extractFromHtml('<p>15/11/2025 128,00</p><p>26/09/2026 143,42</p>',src,new Date('2026-09-27T12:00:00Z'));assert.equal(onlyText.prices.soja?.fromHistory,true);assert.equal(onlyText.prices.soja.observedDate,'2026-09-26')
 })
+
+test('histórico mensal Mês/Ano (Agrolink RS) vira um ponto por mês com a média estadual',()=>{
+ const html=`<table><tr><th>Mês/Ano</th><th>Estadual</th><th>Nacional</th></tr><tr><td>9/2026</td><td>138,6711</td><td>140,7668</td></tr><tr><td>8/2026</td><td>127,3591</td><td>129,0178</td></tr><tr><td>12/2025</td><td>121,0000</td><td>119,5</td></tr><tr><td>1/2024</td><td>130,1</td><td>128,0</td></tr></table>`
+ const src=sources.find(s=>s.id==='agrolink-hist-rs-soja')
+ const r=extractFromHtml(html,src,new Date('2026-09-27T12:00:00Z'))
+ assert.deepEqual(r.history.map(h=>[h.date,h.price]),[['2024-01-15',130.1],['2025-12-15',121],['2026-08-15',127.36],['2026-09-15',138.67]])
+ assert.match(r.history[0].snippet,/média mensal 1\/2024/);assert.equal(r.prices.soja.price,138.67);assert.equal(r.prices.soja.observedDate,'2026-09-15')
+ const empty=extractFromHtml('<table><tr><th>Mês/Ano</th><th>Estadual</th><th>Nacional</th></tr></table>',sources.find(s=>s.id==='agrolink-hist-rs-trigo'),new Date('2026-09-27T12:00:00Z'));assert.equal(empty.history.length,0);assert.equal(Object.keys(empty.prices).length,0)
+})
