@@ -60,7 +60,7 @@ test('código de acesso protege a API quando configurado',async()=>{
 })
 
 test('preço C.Vale manual, comparativo automático e salvamento das leituras',async()=>{
- const html=`<html><body><table><tr><td>Soja (60kg) 72hs</td><td>R$ 143,00</td></tr><tr><td>Milho (60kg)</td><td>R$ 61,00</td></tr></table><p>27/09/2026</p></body></html>`
+ const html=`<html><body><table><tr><th>Data</th><th>Soja</th><th>Milho</th></tr><tr><td>27/09/2026</td><td>R$ 143,00</td><td>R$ 61,00</td></tr></table></body></html>`
  const site=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(html)});await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
  const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id}:s)}
  const {server,base}=await start({sourcesOverride})
@@ -80,4 +80,23 @@ test('preço C.Vale manual, comparativo automático e salvamento das leituras',a
   assert.ok(analysis.data.analysis.alerts.some(a=>/acima da C\.Vale/.test(a)))
   const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.ownSource.id,'cvale');assert.ok(boot.data.comparison.fetchedAt)
  }finally{server.close();site.close()}
+})
+
+test('preços de porto por trading entram como referência de base e canola é cultura completa',async()=>{
+ const {server,base}=await start()
+ try{
+  const producer=(await call(base,'POST','/api/producers',{name:'Pedro',area_canola:40,yield_canola:25,fixed_canola:0,area_soja:100,yield_soja:60})).data.producer
+  assert.equal(producer.crops.canola.areaHa,40)
+  assert.equal((await call(base,'POST','/api/own-quotes',{soja:141,canola:210})).data.quotes.length,2)
+  const port=await call(base,'POST','/api/port-quotes',{sourceId:'porto-bunge',soja:'162,50',canola:'',paymentTerms:'out/26',notes:'mesa'})
+  assert.equal(port.status,201);assert.equal(port.data.quotes[0].region,'Porto de Rio Grande (Bunge)');assert.equal(port.data.quotes[0].sourceId,'porto-bunge')
+  assert.equal((await call(base,'POST','/api/port-quotes',{sourceId:'porto-x',soja:1})).status,400)
+  assert.equal((await call(base,'POST','/api/port-quotes',{sourceId:'porto-adm'})).status,400)
+  const analysis=await call(base,'POST','/api/analyze',{producerId:producer.id,commodity:'soja',volume:1000,targetPrice:150,deliveryLocation:'São Luiz Gonzaga'})
+  assert.equal(analysis.data.analysis.marketReading.port.sourceName,'Bunge — Porto de Rio Grande');assert.equal(analysis.data.analysis.marketReading.basisSc,-21.5)
+  assert.equal(analysis.data.analysis.marketReading.competition.competitors.length,0)
+  const canola=await call(base,'POST','/api/analyze',{producerId:producer.id,commodity:'canola',volume:500,targetPrice:220,deliveryLocation:'São Luiz Gonzaga'})
+  assert.equal(canola.status,200);assert.equal(canola.data.analysis.praca.applies,true);assert.ok(canola.data.analysis.tips.some(t=>/antes do plantio/.test(t.text)));assert.equal(canola.data.analysis.position.productionSc,1000)
+  const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.portSources.length,4);assert.ok(boot.data.portfolio.commodities.some(c=>c.commodity==='canola'))
+ }finally{server.close()}
 })

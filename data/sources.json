@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v2",
+  "version": "fontes-v3",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -14,7 +14,8 @@
       "commodities": [
         "soja",
         "milho",
-        "trigo"
+        "trigo",
+        "canola"
       ],
       "paymentTerms": "",
       "confidence": 95,
@@ -58,25 +59,24 @@
       "howTo": "Abra a página, localize o grão (ex.: Soja 60 kg 72 hs) e copie o valor em R$ por saca. Registre o horário mostrado na página. A cotação vale para entrega na unidade da Coopatrigo.",
       "primary": true,
       "fetch": {
-        "strategy": "keyword",
-        "keywords": {
+        "strategy": "table-columns",
+        "columns": {
           "soja": [
-            "soja (60kg) 72hs",
-            "soja 60kg",
             "soja"
           ],
+          "trigo": [
+            "trigo"
+          ],
           "milho": [
-            "milho (60kg)",
-            "milho 60kg",
             "milho"
           ],
-          "trigo": [
-            "trigo (60kg)",
-            "trigo 60kg",
-            "trigo"
+          "arroz": [
+            "arroz"
+          ],
+          "canola": [
+            "canola"
           ]
-        },
-        "window": 160
+        }
       }
     },
     {
@@ -99,6 +99,9 @@
       "primary": true,
       "fetch": {
         "strategy": "keyword",
+        "anchor": [
+          "noroeste"
+        ],
         "keywords": {
           "soja": [
             "soja"
@@ -107,12 +110,15 @@
             "milho"
           ],
           "trigo": [
+            "trigo (ph 78)",
             "trigo ph 78",
-            "trigo ph78",
             "trigo"
+          ],
+          "canola": [
+            "canola"
           ]
         },
-        "window": 160
+        "window": 120
       }
     },
     {
@@ -202,18 +208,20 @@
       "howTo": "Procure as praças gaúchas (Passo Fundo, Cruz Alta, Ijuí, Santa Rosa, Rio Grande). Informe a praça escolhida no campo Praça / comprador.",
       "primary": false,
       "fetch": {
-        "strategy": "keyword",
-        "keywords": {
+        "strategy": "table-rows",
+        "rows": {
           "soja": [
             "santo angelo",
             "santo ângelo",
             "cruz alta",
             "ijui",
             "ijuí",
-            "passo fundo"
+            "passo fundo",
+            "santa rosa",
+            "giruá",
+            "girua"
           ]
-        },
-        "window": 80
+        }
       }
     },
     {
@@ -261,22 +269,24 @@
       "paymentTerms": "",
       "confidence": 65,
       "cadence": "diária",
-      "howTo": "Use a cotação do município quando existir; se a página mostrar só a média do estado, registre a região como Rio Grande do Sul.",
+      "howTo": "Use a cotação do município quando existir; se a página mostrar só a média do estado, registre a região como Rio Grande do Sul. A página carrega o preço por script; a leitura automática pode não encontrar valor.",
       "primary": false,
       "fetch": {
-        "strategy": "keyword",
-        "keywords": {
+        "strategy": "table-rows",
+        "rows": {
           "soja": [
-            "soja"
+            "soja em grao",
+            "soja em grão"
           ],
           "milho": [
-            "milho"
+            "milho em grao",
+            "milho em grão"
           ],
           "trigo": [
-            "trigo"
+            "trigo em grao",
+            "trigo em grão"
           ]
-        },
-        "window": 140
+        }
       }
     },
     {
@@ -346,6 +356,94 @@
       "howTo": "Preencha nome, praça e horário. Sem fonte identificada a cotação não entra.",
       "primary": false,
       "requiresName": true
+    },
+    {
+      "id": "porto-bunge",
+      "name": "Bunge — Porto de Rio Grande",
+      "type": "trading",
+      "port": true,
+      "region": "Porto de Rio Grande (Bunge)",
+      "url": "",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja",
+        "milho",
+        "trigo",
+        "canola"
+      ],
+      "paymentTerms": "",
+      "confidence": 80,
+      "cadence": "diária, pela mesa",
+      "howTo": "Preço posto no porto de Rio Grande informado pela mesa da trading ou pela corretora (telefone, WhatsApp ou boletim). Registre o horário da cotação e o vencimento/embarque. Base = preço C.Vale menos preço de porto.",
+      "primary": false,
+      "requiresName": false
+    },
+    {
+      "id": "porto-adm",
+      "name": "ADM — Porto de Rio Grande",
+      "type": "trading",
+      "port": true,
+      "region": "Porto de Rio Grande (ADM)",
+      "url": "",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja",
+        "milho",
+        "trigo",
+        "canola"
+      ],
+      "paymentTerms": "",
+      "confidence": 80,
+      "cadence": "diária, pela mesa",
+      "howTo": "Preço posto no porto de Rio Grande informado pela mesa da trading ou pela corretora (telefone, WhatsApp ou boletim). Registre o horário da cotação e o vencimento/embarque. Base = preço C.Vale menos preço de porto.",
+      "primary": false,
+      "requiresName": false
+    },
+    {
+      "id": "porto-ldc",
+      "name": "LDC (Louis Dreyfus) — Porto de Rio Grande",
+      "type": "trading",
+      "port": true,
+      "region": "Porto de Rio Grande (LDC (Louis Dreyfus))",
+      "url": "",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja",
+        "milho",
+        "trigo",
+        "canola"
+      ],
+      "paymentTerms": "",
+      "confidence": 80,
+      "cadence": "diária, pela mesa",
+      "howTo": "Preço posto no porto de Rio Grande informado pela mesa da trading ou pela corretora (telefone, WhatsApp ou boletim). Registre o horário da cotação e o vencimento/embarque. Base = preço C.Vale menos preço de porto.",
+      "primary": false,
+      "requiresName": false
+    },
+    {
+      "id": "porto-cargill",
+      "name": "Cargill — Porto de Rio Grande",
+      "type": "trading",
+      "port": true,
+      "region": "Porto de Rio Grande (Cargill)",
+      "url": "",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja",
+        "milho",
+        "trigo",
+        "canola"
+      ],
+      "paymentTerms": "",
+      "confidence": 80,
+      "cadence": "diária, pela mesa",
+      "howTo": "Preço posto no porto de Rio Grande informado pela mesa da trading ou pela corretora (telefone, WhatsApp ou boletim). Registre o horário da cotação e o vencimento/embarque. Base = preço C.Vale menos preço de porto.",
+      "primary": false,
+      "requiresName": false
     }
   ],
   "references": [

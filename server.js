@@ -17,6 +17,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const praca=loadPraca()
  const sources=sourcesOverride||loadSources()
  const ownSource=sources.sources.find(item=>item.own)||null
+ const portSources=sources.sources.filter(item=>item.port)
  let comparisonRunning=null
  const refreshComparison=async()=>{
   if(comparisonRunning)return comparisonRunning
@@ -38,7 +39,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(path==='/api/bootstrap'&&request.method==='GET'){
    const data=store.read();const now=new Date()
    const requests=data.requests.map(item=>({...item,producerName:producerOf(data,item.producerId)?.name||'Produtor'})).sort((l,r)=>String(r.createdAt).localeCompare(String(l.createdAt)))
-   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
+   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,portSources:portSources.map(item=>({id:item.id,name:item.name,region:item.region,commodities:item.commodities})),ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
   }
   if(path==='/api/producers'&&request.method==='POST'){const input=normalizeProducer(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.producers.push(record);return record});return json(response,201,{producer:saved})}
   const producerMatch=path.match(/^\/api\/producers\/([0-9a-f-]{36})$/i)
@@ -51,6 +52,13 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
    const payload=await body(request);const observedAt=payload.observedAt?new Date(payload.observedAt).toISOString():new Date().toISOString();const saved=[]
    for(const commodity of ownSource.commodities||[]){const price=payload[commodity];if(price===undefined||price===null||price==='')continue;const quote=normalizeQuote({sourceId:ownSource.id,commodity,price,priceUnit:'BRL/sc_60kg',paymentTerms:payload.paymentTerms||'',observedAt,notes:text(payload.notes,400)});saved.push(store.update(data=>{const record={...quote,id:randomUUID(),createdAt:new Date().toISOString()};data.quotes.push(record);data.quotes=data.quotes.slice(-5000);return record}))}
    if(!saved.length)return json(response,400,{error:'Informe ao menos um preço.'})
+   return json(response,201,{quotes:saved})
+  }
+  if(path==='/api/port-quotes'&&request.method==='POST'){
+   const payload=await body(request);const source=portSources.find(item=>item.id===text(payload.sourceId,60));if(!source)return json(response,400,{error:'Selecione a trading do porto.'})
+   const observedAt=payload.observedAt?new Date(payload.observedAt).toISOString():new Date().toISOString();const saved=[]
+   for(const commodity of source.commodities||[]){const price=payload[commodity];if(price===undefined||price===null||price==='')continue;const quote=normalizeQuote({sourceId:source.id,commodity,price,priceUnit:payload.priceUnit||'BRL/sc_60kg',paymentTerms:payload.paymentTerms||'',observedAt,notes:text(payload.notes,400)});saved.push(store.update(data=>{const record={...quote,id:randomUUID(),createdAt:new Date().toISOString()};data.quotes.push(record);data.quotes=data.quotes.slice(-5000);return record}))}
+   if(!saved.length)return json(response,400,{error:'Informe ao menos um preço de porto.'})
    return json(response,201,{quotes:saved})
   }
   if(path==='/api/comparison/refresh'&&request.method==='POST'){const result=await refreshComparison();return json(response,200,{comparison:result})}

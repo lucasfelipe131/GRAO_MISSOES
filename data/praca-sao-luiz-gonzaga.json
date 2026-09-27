@@ -3,27 +3,107 @@
   "version": "praca-slg-v1",
   "label": "São Luiz Gonzaga/RS — Missões",
   "updatedAt": "2026-09-23",
-  "aliases": ["sao luiz gonzaga", "slg", "missoes", "coopatrigo", "santo antonio das missoes", "bossoroca", "caibate", "sao nicolau", "roque gonzales", "rolador", "garruchos", "pirapo", "dezesseis de novembro", "mato queimado", "capao do cipo", "santiago"],
+  "aliases": [
+    "sao luiz gonzaga",
+    "slg",
+    "missoes",
+    "coopatrigo",
+    "santo antonio das missoes",
+    "bossoroca",
+    "caibate",
+    "sao nicolau",
+    "roque gonzales",
+    "rolador",
+    "garruchos",
+    "pirapo",
+    "dezesseis de novembro",
+    "mato queimado",
+    "capao do cipo",
+    "santiago"
+  ],
   "geography": {
     "state": "RS",
     "region": "Missões (Noroeste do Rio Grande do Sul)",
     "portReference": "Rio Grande/RS",
-    "portDistanceKm": {"value": 600, "confidence": 60, "note": "Distância rodoviária aproximada até o porto de Rio Grande; confirmar rota usada pelo transportador."},
-    "roadCorridors": ["BR-285 (Santo Ângelo → Cruz Alta → Passo Fundo)", "RS-168 / BR-392 (sentido Rio Grande)"],
+    "portDistanceKm": {
+      "value": 600,
+      "confidence": 60,
+      "note": "Distância rodoviária aproximada até o porto de Rio Grande; confirmar rota usada pelo transportador."
+    },
+    "roadCorridors": [
+      "BR-285 (Santo Ângelo → Cruz Alta → Passo Fundo)",
+      "RS-168 / BR-392 (sentido Rio Grande)"
+    ],
     "railNote": "Ramal ferroviário Santo Ângelo–Cruz Alta existe, mas o uso comercial para grãos deve ser confirmado antes de entrar em conta."
   },
   "buyers": [
-    {"name": "Coopatrigo", "type": "cooperative", "municipality": "São Luiz Gonzaga", "note": "Sede na praça; cota soja, trigo, milho, arroz, canola, triguilho e triticale. Pagamento de soja em 72 h aparece nas cotações públicas.", "url": "https://www.coopatrigo.com.br/novo/todas-as-cotacoes/", "confidence": 85},
-    {"name": "Cotrisal", "type": "cooperative", "municipality": "Noroeste/RS", "note": "Publica cotação diária de referência para a região Noroeste (soja, milho, trigo pH 78).", "url": "https://www.cotrisal.com.br/", "confidence": 70},
-    {"name": "Cotrisa", "type": "cooperative", "municipality": "Santo Ângelo", "note": "Cooperativa vizinha; confirmar unidades e condição de recebimento.", "confidence": 50},
-    {"name": "Cotrimaio", "type": "cooperative", "municipality": "Três de Maio", "note": "Cooperativa da Fronteira Noroeste; confirmar alcance na praça.", "confidence": 50},
-    {"name": "Camera Agroalimentos", "type": "trading", "municipality": "Santa Rosa", "note": "Originação regional; confirmar unidade mais próxima.", "confidence": 50},
-    {"name": "Tradings de porto (Bunge, Cargill, ADM, Bianchini)", "type": "trading", "municipality": "Rio Grande", "note": "Referência de porto; preço interior = porto - frete - margem. Confirmar prêmio e base a cada cotação.", "confidence": 55},
-    {"name": "Cerealistas e corretoras locais", "type": "broker", "municipality": "Praça", "note": "Preencher com as corretoras efetivamente usadas pela equipe.", "confidence": 30}
+    {
+      "name": "Coopatrigo",
+      "type": "cooperative",
+      "municipality": "São Luiz Gonzaga",
+      "note": "Sede na praça; cota soja, trigo, milho, arroz, canola, triguilho e triticale. Pagamento de soja em 72 h aparece nas cotações públicas.",
+      "url": "https://www.coopatrigo.com.br/novo/todas-as-cotacoes/",
+      "confidence": 85
+    },
+    {
+      "name": "Cotrisal",
+      "type": "cooperative",
+      "municipality": "Noroeste/RS",
+      "note": "Publica cotação diária de referência para a região Noroeste (soja, milho, trigo pH 78).",
+      "url": "https://www.cotrisal.com.br/",
+      "confidence": 70
+    },
+    {
+      "name": "Cotrisa",
+      "type": "cooperative",
+      "municipality": "Santo Ângelo",
+      "note": "Cooperativa vizinha; confirmar unidades e condição de recebimento.",
+      "confidence": 50
+    },
+    {
+      "name": "Cotrimaio",
+      "type": "cooperative",
+      "municipality": "Três de Maio",
+      "note": "Cooperativa da Fronteira Noroeste; confirmar alcance na praça.",
+      "confidence": 50
+    },
+    {
+      "name": "Camera Agroalimentos",
+      "type": "trading",
+      "municipality": "Santa Rosa",
+      "note": "Originação regional; confirmar unidade mais próxima.",
+      "confidence": 50
+    },
+    {
+      "name": "Tradings de porto (Bunge, Cargill, ADM, Bianchini)",
+      "type": "trading",
+      "municipality": "Rio Grande",
+      "note": "Referência de porto; preço interior = porto - frete - margem. Confirmar prêmio e base a cada cotação.",
+      "confidence": 55
+    },
+    {
+      "name": "Cerealistas e corretoras locais",
+      "type": "broker",
+      "municipality": "Praça",
+      "note": "Preencher com as corretoras efetivamente usadas pela equipe.",
+      "confidence": 30
+    }
   ],
   "logistics": {
-    "freightToPortBRLPerSc": {"low": 21, "high": 24, "observedAt": "2026-09", "source": "Agrolink — diferença interior × porto de Rio Grande em 2026", "confidence": 60},
-    "basisVsParanaguaBRLPerSc": {"low": -24, "high": -18, "observedAt": "2026-09-22", "source": "Cálculo: Cotrisal Noroeste R$ 140,00 × CEPEA Paranaguá R$ 161,52", "confidence": 60},
+    "freightToPortBRLPerSc": {
+      "low": 21,
+      "high": 24,
+      "observedAt": "2026-09",
+      "source": "Agrolink — diferença interior × porto de Rio Grande em 2026",
+      "confidence": 60
+    },
+    "basisVsParanaguaBRLPerSc": {
+      "low": -24,
+      "high": -18,
+      "observedAt": "2026-09-22",
+      "source": "Cálculo: Cotrisal Noroeste R$ 140,00 × CEPEA Paranaguá R$ 161,52",
+      "confidence": 60
+    },
     "notes": [
       "Na colheita, milho e soja disputam armazém e caminhão; frete sobe e a base piora.",
       "Diesel é o principal fator de variação do frete em 2026.",
@@ -32,7 +112,29 @@
   },
   "commodities": {
     "soja": {
-      "calendar": {"planting": [10, 11, 12], "harvest": [3, 4, 5], "pricePressure": [3, 4, 5], "recovery": [7, 8, 9, 10]},
+      "calendar": {
+        "planting": [
+          10,
+          11,
+          12
+        ],
+        "harvest": [
+          3,
+          4,
+          5
+        ],
+        "pricePressure": [
+          3,
+          4,
+          5
+        ],
+        "recovery": [
+          7,
+          8,
+          9,
+          10
+        ]
+      },
       "qualityStandard": "Padrão: umidade 14%, impurezas 1%, avariados até 8%, esverdeados e ardidos com desconto conforme tabela do comprador.",
       "structuralNotes": [
         "O preço do interior segue Chicago × câmbio × prêmio de Paranaguá, menos frete e base regional.",
@@ -48,7 +150,30 @@
       ]
     },
     "milho": {
-      "calendar": {"planting": [8, 9, 10], "harvest": [1, 2, 3, 4], "pricePressure": [1, 2, 3], "recovery": [6, 7, 8, 9]},
+      "calendar": {
+        "planting": [
+          8,
+          9,
+          10
+        ],
+        "harvest": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "pricePressure": [
+          1,
+          2,
+          3
+        ],
+        "recovery": [
+          6,
+          7,
+          8,
+          9
+        ]
+      },
       "qualityStandard": "Padrão: umidade 14%, impurezas 1%, ardidos e avariados conforme tabela; secagem cobrada por ponto de umidade.",
       "structuralNotes": [
         "O RS é deficitário em milho; o preço local depende da demanda de suinocultura e avicultura e da chegada de milho do Centro-Oeste e do Paraguai.",
@@ -64,7 +189,29 @@
       ]
     },
     "trigo": {
-      "calendar": {"planting": [5, 6, 7], "harvest": [9, 10, 11], "pricePressure": [10, 11, 12], "recovery": [3, 4, 5, 6]},
+      "calendar": {
+        "planting": [
+          5,
+          6,
+          7
+        ],
+        "harvest": [
+          9,
+          10,
+          11
+        ],
+        "pricePressure": [
+          10,
+          11,
+          12
+        ],
+        "recovery": [
+          3,
+          4,
+          5,
+          6
+        ]
+      },
       "qualityStandard": "Base de negociação: pH 78, umidade 13%, falling number e W conforme classe; DON e giberela geram desconto ou recusa.",
       "structuralNotes": [
         "O Paraná paga prêmio sobre o RS por proximidade dos moinhos; o RS depende de moinhos locais e exportação por Rio Grande.",
@@ -78,22 +225,158 @@
         "Comparar cotação do moinho com a da cooperativa e a de exportação; a diferença por pH pode superar R$ 10 por saca.",
         "Guardar trigo de qualidade para mar–jun costuma remunerar melhor do que vender na colheita."
       ]
+    },
+    "canola": {
+      "calendar": {
+        "planting": [
+          4,
+          5
+        ],
+        "harvest": [
+          9,
+          10
+        ],
+        "pricePressure": [
+          9,
+          10,
+          11
+        ],
+        "recovery": [
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "qualityStandard": "Base de negociação: umidade 8%, impurezas 2%, teor de óleo conforme contrato; grão ardido, verde ou com odor gera desconto ou recusa.",
+      "structuralNotes": [
+        "Preço da canola acompanha o óleo de canola e a soja em Chicago, com poucos compradores na praça (cooperativa e esmagadoras).",
+        "Mercado estreito: o comprador costuma exigir contrato antes do plantio; sem contrato, a oferta na colheita pode não encontrar demanda local.",
+        "Colheita em set–out concorre com o trigo por máquina, secagem e armazém."
+      ],
+      "closingTips": [
+        "Fechar contrato ou intenção de compra antes do plantio; canola sem comprador definido é risco de preço e de recebimento.",
+        "Comparar preço em R$/sc com o equivalente em soja (relação histórica próxima de 1,3 a 1,6 vezes a saca de soja) para saber se a proposta está justa.",
+        "Conferir umidade e teor de óleo do lote antes de cotar; desconto por umidade acima de 8% é alto.",
+        "Negociar entrega escalonada com o comprador para não coincidir com a colheita do trigo.",
+        "Usar a cotação do dia da Coopatrigo como referência e checar se a esmagadora ou a trading paga prêmio para volume."
+      ]
     }
   },
   "marketBrief": {
     "observedAt": "2026-09-23",
     "validityDays": 7,
     "references": [
-      {"commodity": "soja", "label": "Cotrisal — região Noroeste/RS (disponível)", "price": 140.0, "priceUnit": "BRL/sc_60kg", "region": "Noroeste/RS", "source": "Cotrisal", "url": "https://www.cotrisal.com.br/", "observedAt": "2026-09-23", "confidence": 70},
-      {"commodity": "soja", "label": "Grão Direto — São Luiz Gonzaga (disponível)", "price": 128.84, "priceUnit": "BRL/sc_60kg", "region": "São Luiz Gonzaga", "source": "Grão Direto", "url": "https://www.graodireto.com.br/ofertas/soja/rs/sao-luiz-gonzaga/", "observedAt": "2026-07-09", "confidence": 40, "note": "Última atualização visível é de julho; usar apenas como piso histórico."},
-      {"commodity": "soja", "label": "Indicador CEPEA/ESALQ — Paranaguá", "price": 161.52, "priceUnit": "BRL/sc_60kg", "region": "Paranaguá/PR", "source": "CEPEA/ESALQ via Brasil 61", "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543", "observedAt": "2026-09-22", "confidence": 85},
-      {"commodity": "soja", "label": "Chicago — vencimento nov/26", "price": 13.255, "priceUnit": "USD/bu", "region": "CBOT", "source": "Notícias Agrícolas / CME", "url": "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja", "observedAt": "2026-09-22", "confidence": 85},
-      {"commodity": "cambio", "label": "Dólar comercial (venda)", "price": 5.1027, "priceUnit": "BRL/USD", "region": "Brasil", "source": "Fechamento 22/09/2026", "observedAt": "2026-09-22", "confidence": 85},
-      {"commodity": "milho", "label": "Cotrisal — região Noroeste/RS (disponível)", "price": 62.0, "priceUnit": "BRL/sc_60kg", "region": "Noroeste/RS", "source": "Cotrisal", "url": "https://www.cotrisal.com.br/", "observedAt": "2026-09-23", "confidence": 70},
-      {"commodity": "milho", "label": "Média RS (indicações R$ 60,00–61,98)", "price": 61.98, "priceUnit": "BRL/sc_60kg", "region": "Rio Grande do Sul", "source": "Agrolink / O Correio News", "url": "https://www.ocorreionews.com.br/2026/09/21/plantio-avanca-e-clima-mantem-atencao-no-milho/", "observedAt": "2026-09-21", "confidence": 65},
-      {"commodity": "trigo", "label": "Cotrisal — trigo pH 78 (disponível)", "price": 75.0, "priceUnit": "BRL/sc_60kg", "region": "Noroeste/RS", "source": "Cotrisal", "url": "https://www.cotrisal.com.br/", "observedAt": "2026-09-23", "confidence": 70},
-      {"commodity": "trigo", "label": "Indicador CEPEA — Rio Grande do Sul", "price": 1419.84, "priceUnit": "BRL/t", "region": "Rio Grande do Sul", "source": "CEPEA via Brasil 61", "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543", "observedAt": "2026-09-22", "confidence": 85},
-      {"commodity": "trigo", "label": "Indicador CEPEA — Paraná", "price": 1532.17, "priceUnit": "BRL/t", "region": "Paraná", "source": "CEPEA via Brasil 61", "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543", "observedAt": "2026-09-22", "confidence": 85}
+      {
+        "commodity": "soja",
+        "label": "Cotrisal — região Noroeste/RS (disponível)",
+        "price": 140.0,
+        "priceUnit": "BRL/sc_60kg",
+        "region": "Noroeste/RS",
+        "source": "Cotrisal",
+        "url": "https://www.cotrisal.com.br/",
+        "observedAt": "2026-09-23",
+        "confidence": 70
+      },
+      {
+        "commodity": "soja",
+        "label": "Grão Direto — São Luiz Gonzaga (disponível)",
+        "price": 128.84,
+        "priceUnit": "BRL/sc_60kg",
+        "region": "São Luiz Gonzaga",
+        "source": "Grão Direto",
+        "url": "https://www.graodireto.com.br/ofertas/soja/rs/sao-luiz-gonzaga/",
+        "observedAt": "2026-07-09",
+        "confidence": 40,
+        "note": "Última atualização visível é de julho; usar apenas como piso histórico."
+      },
+      {
+        "commodity": "soja",
+        "label": "Indicador CEPEA/ESALQ — Paranaguá",
+        "price": 161.52,
+        "priceUnit": "BRL/sc_60kg",
+        "region": "Paranaguá/PR",
+        "source": "CEPEA/ESALQ via Brasil 61",
+        "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543",
+        "observedAt": "2026-09-22",
+        "confidence": 85
+      },
+      {
+        "commodity": "soja",
+        "label": "Chicago — vencimento nov/26",
+        "price": 13.255,
+        "priceUnit": "USD/bu",
+        "region": "CBOT",
+        "source": "Notícias Agrícolas / CME",
+        "url": "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja",
+        "observedAt": "2026-09-22",
+        "confidence": 85
+      },
+      {
+        "commodity": "cambio",
+        "label": "Dólar comercial (venda)",
+        "price": 5.1027,
+        "priceUnit": "BRL/USD",
+        "region": "Brasil",
+        "source": "Fechamento 22/09/2026",
+        "observedAt": "2026-09-22",
+        "confidence": 85
+      },
+      {
+        "commodity": "milho",
+        "label": "Cotrisal — região Noroeste/RS (disponível)",
+        "price": 62.0,
+        "priceUnit": "BRL/sc_60kg",
+        "region": "Noroeste/RS",
+        "source": "Cotrisal",
+        "url": "https://www.cotrisal.com.br/",
+        "observedAt": "2026-09-23",
+        "confidence": 70
+      },
+      {
+        "commodity": "milho",
+        "label": "Média RS (indicações R$ 60,00–61,98)",
+        "price": 61.98,
+        "priceUnit": "BRL/sc_60kg",
+        "region": "Rio Grande do Sul",
+        "source": "Agrolink / O Correio News",
+        "url": "https://www.ocorreionews.com.br/2026/09/21/plantio-avanca-e-clima-mantem-atencao-no-milho/",
+        "observedAt": "2026-09-21",
+        "confidence": 65
+      },
+      {
+        "commodity": "trigo",
+        "label": "Cotrisal — trigo pH 78 (disponível)",
+        "price": 75.0,
+        "priceUnit": "BRL/sc_60kg",
+        "region": "Noroeste/RS",
+        "source": "Cotrisal",
+        "url": "https://www.cotrisal.com.br/",
+        "observedAt": "2026-09-23",
+        "confidence": 70
+      },
+      {
+        "commodity": "trigo",
+        "label": "Indicador CEPEA — Rio Grande do Sul",
+        "price": 1419.84,
+        "priceUnit": "BRL/t",
+        "region": "Rio Grande do Sul",
+        "source": "CEPEA via Brasil 61",
+        "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543",
+        "observedAt": "2026-09-22",
+        "confidence": 85
+      },
+      {
+        "commodity": "trigo",
+        "label": "Indicador CEPEA — Paraná",
+        "price": 1532.17,
+        "priceUnit": "BRL/t",
+        "region": "Paraná",
+        "source": "CEPEA via Brasil 61",
+        "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543",
+        "observedAt": "2026-09-22",
+        "confidence": 85
+      }
     ],
     "reading": {
       "soja": [
@@ -110,6 +393,9 @@
         "Colheita iniciando no oeste do RS; CEPEA RS a R$ 1.419,84 por tonelada (≈ R$ 85,19 por saca) contra R$ 1.532,17 no Paraná.",
         "Cotação local pH 78 em R$ 75 por saca: diferença de ~R$ 10 para o indicador reflete frete, margem e prazo.",
         "Chuva excessiva trouxe giberela e oídio; qualidade (pH, DON) vai definir o preço líquido mais do que a média."
+      ],
+      "canola": [
+        "Sem referência pública consolidada para a praça em 23/09/2026; use a cotação do dia da Coopatrigo e registre no sistema com fonte e horário."
       ]
     },
     "risks": [
@@ -119,16 +405,46 @@
       "Qualidade do trigo: doenças fúngicas após chuva excessiva."
     ],
     "sources": [
-      {"name": "Cotrisal — cotações 23/09/2026", "url": "https://www.cotrisal.com.br/"},
-      {"name": "Grão Direto — soja em São Luiz Gonzaga", "url": "https://www.graodireto.com.br/ofertas/soja/rs/sao-luiz-gonzaga/"},
-      {"name": "Coopatrigo — todas as cotações", "url": "https://www.coopatrigo.com.br/novo/todas-as-cotacoes/"},
-      {"name": "Brasil 61 — soja, trigo e CEPEA 22/09/2026", "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543"},
-      {"name": "Notícias Agrícolas — Chicago", "url": "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja"},
-      {"name": "O Correio News — milho RS 21/09/2026", "url": "https://www.ocorreionews.com.br/2026/09/21/plantio-avanca-e-clima-mantem-atencao-no-milho/"},
-      {"name": "Forbes Agro / Emater — colheita de trigo no RS", "url": "https://forbes.com.br/forbes-agro/2026/09/rio-grande-do-sul-comeca-a-colheita-de-trigo-diz-emater-2/"},
-      {"name": "BRA 1 — plantio soja 2026/27", "url": "https://www.bra1.com.br/agronegocio/id-690890/plantio_da_soja_2026_27_comeca_com_precos_atrativos_e_clima_no_rs_em_alerta"},
-      {"name": "Agrolink — frete interior × porto 2026", "url": "https://www.agrolink.com.br/noticias/frete-e-custos-pesam-sobre-mercado-da-soja_518394.html"},
-      {"name": "Emater/RS — cotações semanais", "url": "https://www.emater.tche.br/site/info-agro/precos_semanais.php"}
+      {
+        "name": "Cotrisal — cotações 23/09/2026",
+        "url": "https://www.cotrisal.com.br/"
+      },
+      {
+        "name": "Grão Direto — soja em São Luiz Gonzaga",
+        "url": "https://www.graodireto.com.br/ofertas/soja/rs/sao-luiz-gonzaga/"
+      },
+      {
+        "name": "Coopatrigo — todas as cotações",
+        "url": "https://www.coopatrigo.com.br/novo/todas-as-cotacoes/"
+      },
+      {
+        "name": "Brasil 61 — soja, trigo e CEPEA 22/09/2026",
+        "url": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543"
+      },
+      {
+        "name": "Notícias Agrícolas — Chicago",
+        "url": "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja"
+      },
+      {
+        "name": "O Correio News — milho RS 21/09/2026",
+        "url": "https://www.ocorreionews.com.br/2026/09/21/plantio-avanca-e-clima-mantem-atencao-no-milho/"
+      },
+      {
+        "name": "Forbes Agro / Emater — colheita de trigo no RS",
+        "url": "https://forbes.com.br/forbes-agro/2026/09/rio-grande-do-sul-comeca-a-colheita-de-trigo-diz-emater-2/"
+      },
+      {
+        "name": "BRA 1 — plantio soja 2026/27",
+        "url": "https://www.bra1.com.br/agronegocio/id-690890/plantio_da_soja_2026_27_comeca_com_precos_atrativos_e_clima_no_rs_em_alerta"
+      },
+      {
+        "name": "Agrolink — frete interior × porto 2026",
+        "url": "https://www.agrolink.com.br/noticias/frete-e-custos-pesam-sobre-mercado-da-soja_518394.html"
+      },
+      {
+        "name": "Emater/RS — cotações semanais",
+        "url": "https://www.emater.tche.br/site/info-agro/precos_semanais.php"
+      }
     ]
   }
 }
