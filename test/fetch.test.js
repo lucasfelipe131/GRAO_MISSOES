@@ -120,5 +120,6 @@ test('página só de histórico (Agrolink RS) vira leitura ok com o último dia 
  const src=sources.find(s=>s.id==='agrolink-hist-rs-soja');assert.ok(src&&src.fetch.history)
  const r=extractFromHtml(html,src,new Date('2026-09-27T12:00:00Z'))
  assert.equal(r.history.length,4);assert.equal(r.history[0].date,'2025-11-15');assert.equal(r.history[3].price,143.42)
- assert.equal(r.prices.soja.price,143.42);assert.equal(r.prices.soja.observedDate,'2026-09-26');assert.equal(r.prices.soja.fromHistory,true);assert.match(r.debug.historico,/4 data/)
+ assert.equal(r.prices.soja.price,143.42);assert.equal(r.prices.soja.observedDate,'2026-09-26');assert.match(r.debug.historico,/4 data/)
+ const onlyText=extractFromHtml('<p>15/11/2025 128,00</p><p>26/09/2026 143,42</p>',src,new Date('2026-09-27T12:00:00Z'));assert.equal(onlyText.prices.soja?.fromHistory,true);assert.equal(onlyText.prices.soja.observedDate,'2026-09-26')
 })
