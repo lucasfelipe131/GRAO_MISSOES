@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {analyzeRequest,buildBrief,checkTargets,loadPraca,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
+import {analyzeRequest,buildBrief,checkTargets,loadPraca,loadSources,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
 
 const now=new Date('2026-09-23T12:00:00.000Z')
 const praca=loadPraca()
@@ -47,4 +47,17 @@ test('briefing separa referências datadas e checagem de alvos detecta preço at
  const hits=checkTargets([open],[{...quote,id:'q9',price:151,observedAt:'2026-09-23T11:00:00.000Z'}],now)
  assert.equal(hits.length,2)
  assert.ok(hits.some(h=>/Alvo 2/.test(h.target)))
+})
+
+test('catálogo de fontes preenche praça, unidade, prazo e link ao registrar cotação',()=>{
+ const sources=loadSources()
+ assert.ok(sources.sources.length>=8)
+ for(const item of sources.sources)assert.ok(item.howTo&&item.name&&item.priceUnit,item.id)
+ assert.ok(sources.sources.filter(item=>item.primary).length>=3)
+ const quote=normalizeQuote({sourceId:'coopatrigo',commodity:'soja',price:'141,50'})
+ assert.equal(quote.sourceName,'Coopatrigo');assert.match(quote.sourceUrl,/coopatrigo/);assert.equal(quote.paymentTerms,'72 h');assert.equal(quote.sourceType,'cooperative');assert.equal(quote.confidence,85)
+ const wheat=normalizeQuote({sourceId:'cepea-trigo',commodity:'trigo',price:'1.419,84'})
+ assert.equal(wheat.priceUnit,'BRL/t');assert.equal(wheat.price,1419.84)
+ assert.throws(()=>normalizeQuote({sourceId:'inexistente',commodity:'soja',price:1}),/catálogo/)
+ assert.throws(()=>normalizeQuote({sourceId:'outra',commodity:'soja',price:1,region:'X'}),/fonte/)
 })

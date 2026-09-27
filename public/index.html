@@ -32,6 +32,17 @@
  </section>
  <section id="hits" class="hits" hidden></section>
  <section data-panel="pedidos" class="panel">
+ <details class="guide"><summary>Guia: o que preencher e de onde tirar cada dado</summary><div class="guidegrid">
+  <div><b>Produtor</b><p>Cadastrado na aba Produtores. Se o custo por grão e a armazenagem estiverem no cadastro, a análise usa esses valores sozinha.</p></div>
+  <div><b>Volume</b><p>O que o produtor quer negociar agora, não a safra inteira. Em sacas de 60 kg; toneladas e quilos são convertidos.</p></div>
+  <div><b>Preço-alvo</b><p>O valor que o produtor disse que quer, em R$/saca. Se ele não disse, deixe vazio: os alvos partem do mercado e do custo.</p></div>
+  <div><b>Custo de produção</b><p>Custo por saca da planilha do produtor (custo total do hectare ÷ produtividade). Sem planilha, use a referência da Conab na aba Praça e registre isso nas observações.</p></div>
+  <div><b>Objetivo</b><p>Pergunte: “o que é mais importante, dinheiro logo, melhor preço médio ou não correr risco?”. Isso define o tamanho de cada parcela.</p></div>
+  <div><b>Janela e local de entrega</b><p>Quando o grão pode ser entregue e onde (Coopatrigo, armazém, porto). O local decide qual cotação registrada é usada.</p></div>
+  <div><b>Caixa</b><p>Valor e data das contas que o produtor precisa pagar (insumos, financiamento, arrendamento). O sistema confere se o Alvo 1 cobre.</p></div>
+  <div><b>Qualidade do lote</b><p>Umidade, impureza, avariados; para trigo, pH e DON. Vem da classificação da última entrega ou do laudo do armazém.</p></div>
+  <div><b>Antes de analisar</b><p>Confira na aba Cotações se há cotação de hoje para o grão. Sem cotação registrada a análise não calcula alvo. Ideal: uma cotação local (Coopatrigo ou Cotrisal) e uma de porto (CEPEA Paranaguá).</p></div>
+ </div></details>
   <div class="split">
    <form id="requestForm" class="card form">
     <h2>Pedido do produtor</h2>
@@ -61,16 +72,27 @@
   <div class="card"><div class="cardhead"><h2>Pedidos em acompanhamento</h2><small id="requestCount"></small></div><div id="requests" class="list"></div></div>
  </section>
  <section data-panel="cotacoes" class="panel" hidden>
+ <details class="guide" open><summary>Guia: quais cotações registrar e de onde tirar</summary><div class="guidegrid">
+  <div><b>Rotina diária (5 minutos)</b><p>1) Coopatrigo: soja, milho e trigo. 2) Cotrisal: segunda referência regional. 3) CEPEA Paranaguá (soja) e CEPEA RS (trigo) para calcular a base contra o porto.</p></div>
+  <div><b>Como usar o catálogo</b><p>Escolha a fonte na lista. Praça, unidade, prazo e link são preenchidos sozinhos; você digita só o grão, o valor e confere o horário. O botão “Abrir fonte” abre a página para copiar o número.</p></div>
+  <div><b>Unidade</b><p>Cooperativas cotam em R$/saca de 60 kg. O CEPEA de trigo cota em R$/tonelada: escolha R$/t que o sistema converte (÷ 16,67).</p></div>
+  <div><b>Horário observado</b><p>Use a data e a hora que aparecem na página da fonte, não a hora em que você registrou. Cotações com mais de 24 h ficam em “Atenção” e com mais de 7 dias ficam vencidas.</p></div>
+  <div><b>Prazo de pagamento</b><p>Copie o prazo indicado pela fonte (ex.: 72 h na Coopatrigo). Prazo maior vale menos: um preço 30 dias precisa ser comparado com o preço à vista.</p></div>
+  <div><b>O que não registrar</b><p>Chicago em US$/bushel e dólar não são cotações da praça; use-os só para leitura de tendência. Preço de conversa sem fonte identificada também não entra.</p></div>
+ </div></details>
+ <div class="sourcebar" id="sourcebar"></div>
   <div class="split">
    <form id="quoteForm" class="card form">
     <h2>Registrar cotação</h2>
     <p class="muted">Fonte e horário são obrigatórios. O sistema não busca nem inventa cotações.</p>
     <div class="grid">
+     <label class="wide">Fonte (catálogo) *<span class="inline wideinline"><select name="sourceId" required></select><a class="mini openlink" id="openSource" href="#" target="_blank" rel="noreferrer" hidden>Abrir fonte</a></span></label>
+     <p class="note gap wide" id="sourceHow" hidden></p>
      <label>Grão *<select name="commodity"></select></label>
      <label>Mercado *<select name="marketKind"><option value="spot">Disponível</option><option value="forward">A termo</option><option value="futures">Futuro</option></select></label>
      <label>Cotação *<span class="inline"><input name="price" type="number" min="0.01" step="0.01" inputmode="decimal" required><select name="priceUnit"><option value="BRL/sc_60kg">R$/sc</option><option value="BRL/t">R$/t</option></select></span></label>
      <label>Praça / comprador *<input name="region" required placeholder="Ex.: São Luiz Gonzaga, Paranaguá/PR"></label>
-     <label>Fonte *<input name="sourceName" required placeholder="Coopatrigo, Cotrisal, CEPEA…"></label>
+     <label>Nome da fonte *<input name="sourceName" required placeholder="Coopatrigo, Cotrisal, CEPEA…"></label>
      <label>Prazo de pagamento<input name="paymentTerms" placeholder="72 h, à vista, 30 dias"></label>
      <label>Observada em *<input name="observedAt" type="datetime-local" required></label>
      <label>Link da fonte<input name="sourceUrl" type="url" placeholder="https://…"></label>
@@ -83,6 +105,13 @@
   </div>
  </section>
  <section data-panel="produtores" class="panel" hidden>
+ <details class="guide"><summary>Guia: o que cadastrar em cada produtor</summary><div class="guidegrid">
+  <div><b>Município e local de entrega</b><p>O local usual de entrega (Coopatrigo, armazém, cerealista) decide qual cotação registrada será comparada nos pedidos desse produtor.</p></div>
+  <div><b>Armazenagem própria</b><p>Capacidade em toneladas de silo ou graneleiro da propriedade. Com armazenagem, a análise sugere guardar parcelas para a entressafra.</p></div>
+  <div><b>Custo por grão</b><p>Custo por saca: custo total do hectare (insumos, operações, arrendamento, juros) dividido pela produtividade esperada. Tire da planilha do produtor, do plano de custeio do banco ou da referência da Conab.</p></div>
+  <div><b>Logística</b><p>FOB (o comprador busca), CIF (o produtor entrega) ou frota própria. Muda o preço líquido comparável.</p></div>
+  <div><b>Observações</b><p>Compradores preferidos, restrições (trigo só para moinho X), histórico de fechamentos, sócios que decidem junto.</p></div>
+ </div></details>
   <div class="split">
    <form id="producerForm" class="card form">
     <h2 id="producerFormTitle">Cadastrar produtor</h2>
@@ -105,7 +134,14 @@
    <div class="card"><div class="cardhead"><h2>Produtores</h2><small id="producerCount"></small></div><div id="producers" class="list"></div></div>
   </div>
  </section>
- <section data-panel="praca" class="panel" hidden><div id="brief"></div></section>
+ <section data-panel="praca" class="panel" hidden>
+ <details class="guide"><summary>Guia: como ler a aba Praça</summary><div class="guidegrid">
+  <div><b>Briefing datado</b><p>Leitura de mercado com data e fonte. Não é cotação: serve para entender o momento. Quando passa de 7 dias o sistema avisa.</p></div>
+  <div><b>Cotação registrada</b><p>Ao lado de cada grão aparece a última cotação que a equipe registrou. É ela que entra na análise, nunca o briefing.</p></div>
+  <div><b>Momento da praça</b><p>Plantio, colheita ou entressafra segundo o calendário regional. Colheita pressiona a base; entressafra costuma recuperar.</p></div>
+  <div><b>Compradores</b><p>Lista com confiança declarada. Itens abaixo de 60% precisam de confirmação da equipe antes de entrar em negociação.</p></div>
+ </div></details>
+ <div id="brief"></div></section>
 </main>
 <footer class="foot">Análise determinística e explicável para apoiar a conversa. Não é recomendação de investimento nem ordem de negociação; a decisão permanece com o consultor e o produtor.</footer>
 <script src="app.js"></script>
