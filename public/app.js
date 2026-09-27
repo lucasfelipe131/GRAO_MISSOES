@@ -56,7 +56,7 @@ function renderSourceBar(){
 }
 
 async function load(){try{const s=await api('/api/bootstrap');state={...state,...s};fillSelects();renderAll();showLogin(false)}catch(e){status(e.message,6000)}}
-function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderBrief()}
+function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderStorage();renderBrief()}
 function renderHits(){const h=state.targetHits||[];$('#hits').hidden=!h.length;if(!h.length)return;$('#hits').innerHTML=`<b>Alvos atingidos por cotação registrada (${h.length})</b><ul>${h.map(x=>`<li><b>${esc(x.producerName)}</b> • ${esc(x.commodity)} • ${esc(x.target)} (${money(x.targetPrice)}) — mercado ${money(x.marketPrice)} por ${esc(x.sourceName)} em ${dt(x.observedAt)} • ${int(x.volumeSc)} sc</li>`).join('')}</ul>`}
 function analysisHtml(a){
  const m=a.marketReading||{}
@@ -193,6 +193,49 @@ function renderComparison(){
  $$('#comparison [data-save]').forEach(b=>b.addEventListener('click',async()=>{b.disabled=true;try{await api('/api/comparison/save',{method:'POST',body:JSON.stringify({sourceId:b.dataset.save,commodity:b.dataset.c})});status('Leitura salva como cotação.');await load()}catch(err){status(err.message,6000);b.disabled=false}}))
  const own=ownLatest();const last=Object.values(own).sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt)))[0];$('#ownLast').textContent=last?`último registro ${dt(last.observedAt)}`:'nenhum preço C.Vale registrado'
  if($('#cmpDash')){$('#cmpDash').innerHTML=comparisonTable(true);$('#cmpDashWhen').textContent=cmp?`lido ${dt(cmp.fetchedAt)}`:'sem leitura'}
+}
+const MONTHS=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+function lineChart(seriesList,{w=640,h=220,id=''}={}){
+ const all=seriesList.flatMap(s=>s.points);if(all.length<2)return '<p class="meta">Registre ou importe cotações para desenhar a linha do ano.</p>'
+ const xs=all.map(p=>new Date(p.d+'T12:00:00Z').getTime());const ys=all.map(p=>p.p)
+ const x0=Math.min(...xs),x1=Math.max(...xs);let y0=Math.min(...ys),y1=Math.max(...ys);if(y1===y0){y0-=1;y1+=1}const padY=(y1-y0)*.12;y0-=padY;y1+=padY
+ const L=44,R=150,T=12,B=26
+ const X=t=>L+(x1===x0?0:(t-x0)/(x1-x0))*(w-L-R);const Y=v=>T+(1-(v-y0)/(y1-y0))*(h-T-B)
+ const ticks=4;const grid=[...Array(ticks+1)].map((_,i)=>{const v=y0+(y1-y0)*i/ticks;return `<line x1="${L}" x2="${w-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" class="grid"/><text x="${L-6}" y="${(Y(v)+4).toFixed(1)}" class="ax" text-anchor="end">${Math.round(v)}</text>`}).join('')
+ const months=[];let cursor=new Date(x0);cursor.setUTCDate(1);while(cursor.getTime()<=x1){const t=cursor.getTime();if(t>=x0)months.push(`<text x="${X(t).toFixed(1)}" y="${h-8}" class="ax" text-anchor="middle">${MONTHS[cursor.getUTCMonth()]}</text>`);cursor.setUTCMonth(cursor.getUTCMonth()+1)}
+ const paths=seriesList.filter(s=>s.points.length).map(s=>{const d=s.points.map((p,i)=>`${i?'L':'M'}${X(new Date(p.d+'T12:00:00Z').getTime()).toFixed(1)},${Y(p.p).toFixed(1)}`).join(' ');const last=s.points[s.points.length-1];return `<path d="${d}" class="line s-${s.key}"/>${s.points.map(p=>`<circle cx="${X(new Date(p.d+'T12:00:00Z').getTime()).toFixed(1)}" cy="${Y(p.p).toFixed(1)}" r="9" class="hit"><title>${esc(s.label)} • ${money(p.p)} • ${dt(p.d)}</title></circle>`).join('')}<text x="${(X(new Date(last.d+'T12:00:00Z').getTime())+6).toFixed(1)}" y="${(Y(last.p)+4).toFixed(1)}" class="lbl s-${s.key}">${esc(s.label)} ${money(last.p)}</text>`}).join('')
+ return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${id}t"><title id="${id}t">Linha do ano</title>${grid}${months}${paths}</svg>`
+}
+function seasonBars(seasonal,{w=640,h=120}={}){
+ if(!seasonal)return ''
+ const idx=seasonal.index;const y0=Math.min(...idx)-3,y1=Math.max(...idx)+3;const L=34,R=8,T=10,B=24;const bw=(w-L-R)/12
+ const Y=v=>T+(1-(v-y0)/(y1-y0))*(h-T-B)
+ return `<svg class="chart bars" viewBox="0 0 ${w} ${h}" role="img"><title>Índice sazonal indicativo</title><line x1="${L}" x2="${w-R}" y1="${Y(100).toFixed(1)}" y2="${Y(100).toFixed(1)}" class="grid"/><text x="${L-4}" y="${(Y(100)+4).toFixed(1)}" class="ax" text-anchor="end">100</text>${idx.map((v,i)=>{const x=L+i*bw+2;const y=Y(v);const base=Y(y0);return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw-4).toFixed(1)}" height="${(base-y).toFixed(1)}" rx="3" class="bar${i+1===seasonal.currentMonth?' now':''}"><title>${MONTHS[i]}: índice ${v}</title></rect><text x="${(x+(bw-4)/2).toFixed(1)}" y="${h-8}" class="ax" text-anchor="middle">${MONTHS[i]}</text>${i+1===seasonal.currentMonth||v===Math.max(...idx)||v===Math.min(...idx)?`<text x="${(x+(bw-4)/2).toFixed(1)}" y="${(y-4).toFixed(1)}" class="ax bold" text-anchor="middle">${v}</text>`:''}`}).join('')}</svg>`
+}
+function renderPrices(){
+ const el=$('#prices');if(!el)return;const list=state.priceYear||[]
+ el.innerHTML=list.map((c,i)=>{const st=c.stats;const series=[{key:'own',label:'C.Vale',points:c.series.own},{key:'comp',label:'Concorrentes',points:c.series.competitors},{key:'port',label:'Porto',points:c.series.port}]
+  const tableRows=[...new Set(series.flatMap(s=>s.points.map(p=>p.d)))].sort().slice(-40).reverse().map(d=>`<tr><td>${dt(d)}</td>${series.map(s=>{const p=s.points.find(x=>x.d===d);return `<td>${p?money(p.p):'—'}</td>`}).join('')}</tr>`).join('')
+  return `<div class="card pricecard"><div class="cardhead"><h2>${esc(c.label)}</h2><small>${st?`${st.n} cotações locais em ${st.days} dias`:'sem cotações no ano'}</small></div>
+  <div class="tiles four">${tile('Atual',st?money(st.current):'—',st?dt(st.currentDate):'')}${tile('Média 12 meses',st?money(st.avg):'—',st?`${st.vsAvgPercent>=0?'+':''}${st.vsAvgPercent.toFixed(1).replace('.',',')}% hoje`:'', st?(st.vsAvgPercent>=3?'good':st.vsAvgPercent<=-3?'warn':''):'')}${tile('Mínima • Máxima',st?`${money(st.min)} • ${money(st.max)}`:'—',st?`posição ${st.positionPercent}% do intervalo`:'')}${tile('Sazonal 3 meses',c.seasonal?`${c.seasonal.next3Percent>=0?'+':''}${c.seasonal.next3Percent.toFixed(1).replace('.',',')}%`:'—',c.seasonal?`melhor: ${c.seasonal.bestMonths.map(m=>MONTHS[m-1]).join(', ')}`:'',c.seasonal?(c.seasonal.next3Percent>=2?'good':c.seasonal.next3Percent<=-2?'warn':''):'')}</div>
+  <div class="chartwrap"><div class="legend"><span class="s-own">C.Vale</span><span class="s-comp">Concorrentes (média do dia)</span><span class="s-port">Porto</span><button class="mini" type="button" data-table="${i}">tabela</button></div>${lineChart(series,{id:'c'+i})}<div class="tablewrap" id="table-${i}" hidden><table class="cmptable"><thead><tr><th>Data</th><th>C.Vale</th><th>Concorrentes</th><th>Porto</th></tr></thead><tbody>${tableRows||'<tr><td colspan="4">Sem dados</td></tr>'}</tbody></table></div></div>
+  <div class="cols"><div class="box"><h4>Média mensal registrada</h4><div class="monthly">${c.monthly.map(m=>`<div class="${m.avg?'':'empty'}"><small>${MONTHS[m.month-1]}</small><b>${m.avg?money(m.avg):'—'}</b><span>${m.n?m.n+' d':''}</span></div>`).join('')}</div></div><div class="box"><h4>Padrão sazonal indicativo</h4>${seasonBars(c.seasonal)}<p class="meta">${esc((state.brief?.praca&&state.priceYear)?'Índice 100 = média do ano; indicativo, não previsão.':'')}</p></div></div>
+  <ul class="hints">${c.hints.map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>`}).join('')
+ $$('#prices [data-table]').forEach(b=>b.addEventListener('click',()=>{const t=$('#table-'+b.dataset.table);t.hidden=!t.hidden;b.textContent=t.hidden?'tabela':'gráfico'}))
+ const sel=$('#importForm select[name=commodity]');if(sel&&!sel.options.length)sel.innerHTML=state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')
+}
+$('#importForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;$('#importError').hidden=true;try{const r=await api('/api/quotes/import',{method:'POST',body:JSON.stringify(formData(f))});f.lines.value='';status(`${r.imported} linha(s) importada(s)${r.rejected?`, ${r.rejected} rejeitada(s)`:''}.`,6000);await load()}catch(err){$('#importError').textContent=err.message;$('#importError').hidden=false}})
+function renderStorage(){
+ const el=$('#storage');const g=state.storageGuide;if(!el||!g)return
+ const sec=(t,items)=>`<div class="card"><h3>${esc(t)}</h3><ul class="reading">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`
+ el.innerHTML=`<div class="hero small"><div><small>VAL-SOG • PÓS-COLHEITA</small><h1>Armazenagem e conservação do grão</h1><p>Grão limpo, seco e frio segura preço: o que entra aqui protege a margem enquanto a venda espera a melhor janela. Recomendações gerais; dose e produto conforme bula e receituário.</p></div></div>
+ <div class="cropnav">${Object.entries(g.crops).map(([k,c])=>`<button type="button" class="mini" data-crop="${k}">${esc(c.label)}</button>`).join('')}</div>
+ <div class="cropcards">${Object.entries(g.crops).map(([k,c])=>`<div class="card cropcard" id="crop-${k}"><h2>${esc(c.label)}</h2><dl class="cropdl"><dt>Recebimento</dt><dd>${esc(c.receiving)}</dd><dt>Secagem</dt><dd>${esc(c.drying)}</dd><dt>Umidade de armazenagem</dt><dd>${esc(c.storageMoisture)}</dd><dt>Temperatura da massa</dt><dd>${esc(c.temperature)}</dd><dt>Pragas</dt><dd>${esc(c.pests)}</dd></dl><b class="sub">Riscos que viram desconto</b><ul class="reading">${c.risks.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p class="note gap">${esc(c.sellingLink)}</p></div>`).join('')}</div>
+ <div class="split wide2">${sec('Princípios',g.general.principles)}${sec(g.general.aeration.title,g.general.aeration.items)}</div>
+ <div class="split wide2">${sec(g.general.thermometry.title,g.general.thermometry.items)}${sec(g.general.pests.title,g.general.pests.items)}</div>
+ <div class="split wide2">${sec(g.general.fumigation.title,g.general.fumigation.items)}<div class="card"><h3>Checklists</h3><b class="sub">Antes da colheita</b><ul class="reading">${g.general.checklists.preHarvest.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><b class="sub">Recebimento</b><ul class="reading">${g.general.checklists.receiving.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><b class="sub">Rotina mensal</b><ul class="reading">${g.general.checklists.monthly.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+ <p class="note warn">${esc(g.disclaimer)}</p>`
+ $$('#storage [data-crop]').forEach(b=>b.addEventListener('click',()=>$('#crop-'+b.dataset.crop).scrollIntoView({behavior:'smooth',block:'start'})))
 }
 ;(async()=>{try{const s=await fetch('/api/session',{headers:{'x-access-code':code}}).then(r=>r.json());if(s.protected&&!s.authorized){showLogin(true);return}await load()}catch(e){status('Servidor indisponível.',0)}})()
 })()

@@ -1,0 +1,104 @@
+{
+  "version": "armazenagem-v1",
+  "updatedAt": "2026-09-27",
+  "disclaimer": "Orientações gerais de boas práticas de pós-colheita para a região das Missões. Dose, produto e tempo de exposição de qualquer expurgo ou tratamento seguem a bula e o receituário agronômico emitido por responsável técnico habilitado; a aplicação é feita por pessoa treinada com EPI. Este guia não substitui o manual do equipamento nem a norma da unidade.",
+  "general": {
+    "principles": [
+      "Grão limpo, seco e frio: impureza alimenta insetos e fungos, umidade acima do ponto seguro aquece a massa, e temperatura alta acelera tudo.",
+      "Cada 5 °C a menos na massa reduz pela metade a atividade de insetos e fungos; abaixo de 15 °C a maioria dos insetos para de se reproduzir.",
+      "Aeração serve para resfriar e uniformizar, não para secar. Secagem é no secador.",
+      "Termometria sem rotina de leitura e sem ação não protege nada: leia, registre e aja no primeiro sinal de aquecimento.",
+      "Perda invisível: cada ponto de umidade acima do padrão e cada foco de aquecimento vira desconto na balança do comprador ou quebra técnica no silo."
+    ],
+    "aeration": {
+      "title": "Regras de aeração",
+      "items": [
+        "Ligue os ventiladores quando a temperatura do ar externo estiver pelo menos 3 a 5 °C abaixo da temperatura da massa de grãos.",
+        "Evite aerar com umidade relativa do ar acima de 85% ou com chuva/neblina: o grão ganha umidade em vez de perder calor.",
+        "No verão, aere de madrugada e no começo da manhã; no inverno, aproveite tardes secas e frias.",
+        "Fluxo de manutenção de 0,05 a 0,1 m³ por minuto por tonelada; resfriamento inicial de grão recém-secado pede fluxo maior.",
+        "Uniformize a massa: silo mal nivelado e cone de impurezas no centro criam caminhos preferenciais e pontos sem ar.",
+        "Após atingir a temperatura-alvo, mantenha aerações curtas e periódicas para segurar a massa fria, sempre com o diferencial de temperatura a favor.",
+        "Registre horas de ventilador, temperatura e umidade do ar a cada acionamento; o controlador automático faz isso, mas confira semanalmente."
+      ]
+    },
+    "thermometry": {
+      "title": "Termometria",
+      "items": [
+        "Leia a temperatura em todos os cabos e sensores a cada 24 horas no primeiro mês após o enchimento e a cada 48 a 72 horas depois, com registro em planilha ou sistema.",
+        "Sinal de alerta: aumento de 2 a 3 °C entre leituras no mesmo sensor, ou qualquer ponto 5 °C acima da média da massa.",
+        "Metas de massa para a região: abaixo de 20 °C no inverno e abaixo de 25 °C no verão; grão acima de 30 °C exige ação no mesmo dia.",
+        "Foco de aquecimento é sintoma: a causa é insetos, fungo por umidade alta ou infiltração. Localize o cabo, amostre, e decida entre aerar, transilar ou expurgar.",
+        "Faça a calibração e a inspeção dos cabos antes da safra; sensor quebrado dá leitura constante e esconde o problema.",
+        "Compare a temperatura da massa com a temperatura do ar e a umidade relativa: sem esses dois dados a termometria não orienta a aeração."
+      ]
+    },
+    "pests": {
+      "title": "Pragas de grãos armazenados",
+      "items": [
+        "Principais na região: gorgulho do milho (Sitophilus zeamais), besourinho dos cereais (Rhyzopertha dominica), besouro castanho (Tribolium castaneum), traça dos cereais (Plodia interpunctella) e Cryptolestes em massa quente e úmida.",
+        "Monitore com armadilhas e amostragem a cada 15 dias; olhe o topo da massa, as paredes e o fundo do silo, onde a infestação começa.",
+        "Limpeza da unidade antes da colheita (silos, moegas, elevadores, túneis) e tratamento das estruturas vazias eliminam a fonte de infestação.",
+        "Insetos vivos em amostra de saída viram desconto ou recusa no comprador: monitore antes de embarcar."
+      ]
+    },
+    "fumigation": {
+      "title": "Expurgo e tratamento",
+      "items": [
+        "Expurgo com fosfina (fosfeto de alumínio ou de magnésio) exige silo ou lona com vedação total; sem vedação a concentração cai e a praga sobrevive e cria resistência.",
+        "Dose e tempo de exposição conforme bula e receituário; como regra prática, o tempo mínimo cresce quando a massa está fria (abaixo de 15 °C o expurgo demora mais e abaixo de 5 °C não é recomendado).",
+        "Meça a concentração do gás durante o expurgo com equipamento adequado e registre; só abra e aere após o período de exposição e com leitura segura.",
+        "Alterne estratégias: expurgo curativo com fosfina e tratamento preventivo com inseticida protetor registrado para grãos armazenados, para reduzir o risco de resistência.",
+        "Segurança: aplicação somente por pessoa treinada, EPI completo, sinalização, intervalo de reentrada e distância de áreas ocupadas.",
+        "Expurgo não corrige umidade nem temperatura: se a causa do foco for umidade, seque ou transile; se for temperatura, aere."
+      ]
+    },
+    "checklists": {
+      "preHarvest": ["Limpar e revisar silos, moegas, secador, elevadores e túneis.", "Testar ventiladores, controlador de aeração e todos os cabos de termometria.", "Tratar estruturas vazias contra insetos.", "Conferir vedação do silo para eventual expurgo.", "Calibrar medidor de umidade e balança."],
+      "receiving": ["Medir umidade, impureza e temperatura de cada carga.", "Pré-limpar antes de secar: impureza queima no secador e entope a aeração.", "Secar até o ponto seguro da cultura, sem exceder a temperatura do grão.", "Resfriar a massa nas primeiras 48 horas após o enchimento.", "Registrar lote, talhão, umidade de entrada e de saída."],
+      "monthly": ["Ler e registrar termometria conforme a rotina.", "Amostrar topo, meio e fundo para insetos e odor.", "Conferir umidade da massa em pontos diferentes.", "Revisar telhado, calhas e vedação contra infiltração.", "Avaliar se o custo de carregar ainda compensa contra a cotação (aba Preços)."]
+    }
+  },
+  "crops": {
+    "soja": {
+      "label": "Soja",
+      "receiving": "Colher entre 13 e 15% de umidade para reduzir dano mecânico; recepção acima de 18% exige secagem imediata. Impureza acima de 1% desconta e prejudica a aeração.",
+      "drying": "Ar de secagem até 70 °C em secadores contínuos, mantendo o grão abaixo de 40 °C; temperatura alta trinca o grão e eleva a acidez do óleo. Secagem lenta demais favorece fungos.",
+      "storageMoisture": "12 a 13% para até 6 meses; 11 a 12% para armazenar além disso ou para semente.",
+      "temperature": "Massa abaixo de 20 °C reduz a acidez do óleo e a perda de peso; soja quente e úmida ardida em poucos dias.",
+      "risks": ["Grão ardido e avariado por aquecimento (desconto direto na classificação).", "Acidez do óleo elevada quando a massa fica acima de 25 °C por semanas.", "Esverdeados e grãos imaturos que respiram mais e aquecem o lote."],
+      "pests": "Menos atacada que milho e trigo, mas Plodia e besouros aparecem em grão quente e com impureza; monitorar a cada 15 dias.",
+      "sellingLink": "Soja aguenta bem a entressafra se estiver seca e fria; com custo de carregar conhecido, guardar para jul–out costuma compensar quando a base da colheita está ruim."
+    },
+    "milho": {
+      "label": "Milho",
+      "receiving": "Colher entre 18 e 22% de umidade nas Missões para escapar de perdas de campo; secar no mesmo dia. Impureza e grãos quebrados aumentam ardidos e atraem gorgulho.",
+      "drying": "Secadores contínuos com ar até 100 °C e grão abaixo de 45 °C; para milho destinado a indústria de amido ou semente, grão abaixo de 40 °C. Secagem rápida demais trinca o grão.",
+      "storageMoisture": "13 a 14% para até 6 meses; 13% para armazenagem longa. Cada ponto acima disso é aquecimento em poucas semanas no verão.",
+      "temperature": "Milho colhido no calor de janeiro–fevereiro entra quente: resfriar a massa nas primeiras 48 horas é o que mais evita perda.",
+      "risks": ["Aflatoxina em milho úmido e quente: desconto ou recusa pela indústria de rações e pela exportação.", "Gorgulho e Rhyzopertha: perda de peso e pó, que aquecem ainda mais a massa.", "Ardidos e mofados acima de 6% caem de classificação."],
+      "pests": "Cultura mais atacada: monitorar a cada 15 dias, expurgar ao primeiro sinal de foco e tratar as estruturas vazias antes da colheita.",
+      "sellingLink": "Milho da colheita precoce das Missões (jan–fev) tem janela curta de preço melhor; guardar até jun–set só vale com massa fria, seca e sem gorgulho, senão a perda come o ganho."
+    },
+    "trigo": {
+      "label": "Trigo",
+      "receiving": "Colher a partir de 14 a 16% e secar até 13%. Classificar na recepção por pH, umidade e presença de giberela: lotes com DON não podem se misturar com trigo pão.",
+      "drying": "Trigo para panificação: grão abaixo de 50 °C para não degradar o glúten (ar até 70 °C em secadores contínuos); trigo para ração admite ar mais quente. Não secar mais de 4 pontos por passagem.",
+      "storageMoisture": "12 a 13%; trigo aceita armazenagem longa se ficar frio, o que ajuda a esperar a recuperação de preço de mar–jun.",
+      "temperature": "Massa abaixo de 18 °C preserva a qualidade industrial; trigo quente perde força de glúten e falling number.",
+      "risks": ["Giberela e DON: descontos por qualidade e recusa dos moinhos.", "Rhyzopertha dominica (besourinho) é a praga principal do trigo armazenado.", "Perda de pH por respiração e aquecimento."],
+      "pests": "Besourinho dos cereais e gorgulho; expurgo curativo e monitoramento quinzenal, com atenção ao topo da massa.",
+      "sellingLink": "Trigo de qualidade guardado frio costuma remunerar melhor de mar a jun; trigo com problema de qualidade vende na colheita, porque não melhora no silo."
+    },
+    "canola": {
+      "label": "Canola",
+      "receiving": "Grão pequeno e oleoso: colher entre 10 e 12% e secar até 8%; impureza acima de 2% e grãos verdes elevam a acidez do óleo. Usar peneiras e vedação de moegas e elevadores adequadas ao tamanho do grão.",
+      "drying": "Ar de secagem até 45 a 50 °C com grão abaixo de 40 °C; canola aquece rápido e pode incendiar em secadores sujos. Secar em camada fina e com fluxo bem distribuído.",
+      "storageMoisture": "8% para curto prazo e 7% para armazenagem longa; acima de 9% a massa aquece em dias.",
+      "temperature": "Massa abaixo de 15 °C é o alvo; canola respira muito e a resistência ao fluxo de ar é alta, então a aeração precisa de ventilador dimensionado para o grão pequeno.",
+      "risks": ["Aquecimento rápido e risco de combustão em massa úmida.", "Acidez do óleo e odor, que derrubam o preço na esmagadora.", "Perdas por vazamento em estruturas feitas para grãos maiores."],
+      "pests": "Traças e Cryptolestes em massa quente; monitorar semanalmente no primeiro mês.",
+      "sellingLink": "Mercado estreito: só guardar canola com contrato ou comprador definido; sem isso, vender na colheita e evitar o risco de armazenagem."
+    }
+  }
+}

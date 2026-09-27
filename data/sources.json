@@ -59,7 +59,13 @@
       "howTo": "Abra a página, localize o grão (ex.: Soja 60 kg 72 hs) e copie o valor em R$ por saca. Registre o horário mostrado na página. A cotação vale para entrega na unidade da Coopatrigo.",
       "primary": true,
       "fetch": {
-        "strategy": "table-columns",
+        "strategy": "auto",
+        "urls": [
+          "https://www.coopatrigo.com.br/novo/widget_cotacoes/",
+          "https://www.coopatrigo.com.br/novo/cotacoes-completas/",
+          "https://www.coopatrigo.com.br/novo/soja/",
+          "https://www.coopatrigo.com.br/novo/todas-as-cotacoes/"
+        ],
         "columns": {
           "soja": [
             "soja"
@@ -76,7 +82,42 @@
           "canola": [
             "canola"
           ]
-        }
+        },
+        "rows": {
+          "soja": [
+            "soja"
+          ],
+          "trigo": [
+            "trigo"
+          ],
+          "milho": [
+            "milho"
+          ],
+          "arroz": [
+            "arroz"
+          ],
+          "canola": [
+            "canola"
+          ]
+        },
+        "keywords": {
+          "soja": [
+            "soja (60kg) 72hs",
+            "soja 60kg",
+            "valor da soja",
+            "soja"
+          ],
+          "trigo": [
+            "trigo"
+          ],
+          "milho": [
+            "milho"
+          ],
+          "canola": [
+            "canola"
+          ]
+        },
+        "window": 160
       }
     },
     {
@@ -208,7 +249,7 @@
       "howTo": "Procure as praças gaúchas (Passo Fundo, Cruz Alta, Ijuí, Santa Rosa, Rio Grande). Informe a praça escolhida no campo Praça / comprador.",
       "primary": false,
       "fetch": {
-        "strategy": "table-rows",
+        "strategy": "auto",
         "rows": {
           "soja": [
             "santo angelo",
@@ -219,9 +260,23 @@
             "passo fundo",
             "santa rosa",
             "giruá",
-            "girua"
+            "girua",
+            "sao luiz gonzaga",
+            "são luiz gonzaga"
           ]
-        }
+        },
+        "keywords": {
+          "soja": [
+            "santo angelo",
+            "santo ângelo",
+            "cruz alta",
+            "ijui",
+            "ijuí",
+            "sao luiz gonzaga",
+            "são luiz gonzaga"
+          ]
+        },
+        "window": 60
       }
     },
     {

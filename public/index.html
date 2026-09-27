@@ -4,20 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Grãos Missões</title>
-<meta name="description" content="Sistema de oportunidades de grãos para a praça de São Luiz Gonzaga/RS: pedido do produtor, análise personalizada e alvos de fechamento.">
+<title>VAL-SOG</title>
+<meta name="description" content="VAL-SOG — Sistema de Operações de Grãos da praça de São Luiz Gonzaga/RS: pedido do produtor, análise personalizada, comparativo de compradores e alvos de fechamento.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <a class="skip" href="#main">Pular para o conteúdo</a>
 <header class="top">
- <div class="brand"><img src="icon.svg" alt="" width="34" height="34"><div><b>Grãos Missões</b><small>Missões • São Luiz Gonzaga/RS</small></div></div>
+ <div class="brand"><img src="icon.svg" alt="" width="34" height="34"><div><b>VAL<span>-SOG</span></b><small>Sistema de Operações de Grãos • Missões</small></div></div>
  <nav class="tabs" role="tablist" aria-label="Seções">
   <button role="tab" data-tab="painel" aria-selected="true">Painel</button>
   <button role="tab" data-tab="pedidos" aria-selected="false">Pedidos</button>
   <button role="tab" data-tab="cotacoes" aria-selected="false">Cotações</button>
   <button role="tab" data-tab="produtores" aria-selected="false">Produtores</button>
+  <button role="tab" data-tab="precos" aria-selected="false">Preços</button>
+  <button role="tab" data-tab="armazenagem" aria-selected="false">Armazenagem</button>
   <button role="tab" data-tab="praca" aria-selected="false">Praça</button>
  </nav>
  <div class="status" id="status" aria-live="polite"></div>
@@ -25,7 +27,7 @@
 <main id="main" class="main">
  <section id="login" class="login" hidden>
   <div class="card">
-   <h1>Acesso ao Grãos Missões</h1>
+   <h1>Acesso ao VAL-SOG</h1>
    <p>Informe o código de acesso da equipe. Ele fica salvo somente neste navegador.</p>
    <form id="loginForm"><label>Código de acesso<input name="code" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">Entrar</button></form>
    <p class="error" id="loginError" role="alert" hidden></p>
@@ -33,7 +35,7 @@
  </section>
  <section id="hits" class="hits" hidden></section>
  <section data-panel="painel" class="panel">
-  <div class="hero"><div><small>PRAÇA DE SÃO LUIZ GONZAGA • MISSÕES</small><h1>Painel de originação</h1><p>Posição da carteira, cotações do dia, alvos atingidos e a agenda de fechamentos. Tudo o que entra aqui vem dos cadastros, dos pedidos e das cotações registradas com fonte.</p></div><div class="hero-actions"><button class="primary" type="button" data-go="pedidos">Novo pedido</button><button class="secondary" type="button" data-go="cotacoes">Registrar cotações do dia</button></div></div>
+  <div class="hero"><div><small>VAL-SOG • PRAÇA DE SÃO LUIZ GONZAGA</small><h1>Painel de originação</h1><p>Posição da carteira, cotações do dia, alvos atingidos e a agenda de fechamentos. Tudo o que entra aqui vem dos cadastros, dos pedidos e das cotações registradas com fonte.</p></div><div class="hero-actions"><button class="primary" type="button" data-go="pedidos">Novo pedido</button><button class="secondary" type="button" data-go="cotacoes">Registrar cotações do dia</button></div></div>
   <div id="kpis" class="tiles"></div>
   <div class="split wide2">
    <div class="card"><div class="cardhead"><h2>Posição da carteira por grão</h2><small>produção estimada × fixado</small></div><div id="positions" class="positions"></div></div>
@@ -181,6 +183,19 @@
    <div class="card"><div class="cardhead"><h2>Produtores</h2><div class="row"><small id="producerCount"></small><button class="mini" type="button" id="exportProducers">Exportar CSV</button></div></div><div id="producers" class="list"></div></div>
   </div>
  </section>
+ <section data-panel="precos" class="panel" hidden>
+  <details class="guide"><summary>Guia: como usar o painel de preços na hora de vender</summary><div class="guidegrid">
+   <div><b>Linha do ano</b><p>Cotações registradas nos últimos 12 meses: C.Vale, média dos concorrentes e porto. Quanto mais cotações diárias registradas, melhor a leitura.</p></div>
+   <div><b>Posição no intervalo</b><p>Onde o preço de hoje está entre a mínima e a máxima do ano. Acima de 70% costuma ser janela de venda; abaixo de 30%, de espera, se o caixa permitir.</p></div>
+   <div><b>Padrão sazonal</b><p>Índice histórico regional (100 = média do ano), não previsão. Compare a alta esperada nos próximos meses com o custo de carregar o grão.</p></div>
+   <div><b>Importar histórico</b><p>Cole linhas “data;preço” (ex.: 15/01/2026;138,50) de planilhas da cooperativa, CEPEA ou Emater para preencher o ano antes que o sistema acumule cotações.</p></div>
+  </div></details>
+  <div id="prices" class="prices"></div>
+  <form id="importForm" class="card form"><h2>Importar histórico de preços</h2><p class="muted">Uma linha por dia no formato data;preço. Aceita 15/01/2026;138,50 ou 2026-01-15;138.50. Os registros entram como histórico importado, com confiança reduzida, e alimentam a linha do ano e a média mensal.</p>
+   <div class="grid"><label>Grão *<select name="commodity"></select></label><label>Fonte *<input name="sourceName" required placeholder="Coopatrigo, CEPEA, Emater…"></label><label>Praça<input name="region" placeholder="São Luiz Gonzaga"></label><label>Unidade<select name="priceUnit"><option value="BRL/sc_60kg">R$/sc</option><option value="BRL/t">R$/t</option></select></label><label class="wide">Linhas<textarea name="lines" rows="6" placeholder="15/01/2026;138,50&#10;16/01/2026;139,00"></textarea></label></div>
+   <p class="error" id="importError" role="alert" hidden></p><div class="actions"><button class="primary" type="submit">Importar</button></div></form>
+ </section>
+ <section data-panel="armazenagem" class="panel" hidden><div id="storage" class="storage"></div></section>
  <section data-panel="praca" class="panel" hidden>
  <details class="guide"><summary>Guia: como ler a aba Praça</summary><div class="guidegrid">
   <div><b>Briefing datado</b><p>Leitura de mercado com data e fonte. Não é cotação: serve para entender o momento. Quando passa de 7 dias o sistema avisa.</p></div>
@@ -191,7 +206,7 @@
  <div id="brief"></div></section>
 </main>
 <div id="drawer" class="drawer" hidden><div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle"><header><div><small>FICHA DO PRODUTOR</small><h2 id="drawerTitle"></h2></div><button type="button" class="mini" id="drawerClose">Fechar</button></header><div id="drawerBody"></div></div></div>
-<footer class="foot">Análise determinística e explicável para apoiar a conversa. Não é recomendação de investimento nem ordem de negociação; a decisão permanece com o consultor e o produtor.</footer>
+<footer class="foot">VAL-SOG • Análise determinística e explicável para apoiar a conversa. Não é recomendação de investimento nem ordem de negociação; a decisão permanece com o consultor e o produtor.</footer>
 <script src="app.js"></script>
 </body>
 </html>

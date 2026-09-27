@@ -4,12 +4,12 @@ import {dirname,extname,join,normalize,resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
-import {analyzeRequest,buildBrief,buildPortfolio,checkTargets,commodityLabels,loadPraca,loadSources,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
+import {analyzeRequest,buildBrief,buildPortfolio,buildPriceYear,checkTargets,commodityLabels,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
 import {runComparison} from './lib/fetch.js'
 
 const root=dirname(fileURLToPath(import.meta.url))
 const publicDir=join(root,'public')
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8','.png':'image/png','.webmanifest':'application/manifest+json'}
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8','.png':'image/png','.webmanifest':'application/manifest+json','.woff2':'font/woff2'}
 const headers={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"}
 
 export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',fetchImpl=globalThis.fetch,sourcesOverride=null}={}){
@@ -18,6 +18,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const sources=sourcesOverride||loadSources()
  const ownSource=sources.sources.find(item=>item.own)||null
  const portSources=sources.sources.filter(item=>item.port)
+ const storageGuide=loadStorageGuide()
  let comparisonRunning=null
  const refreshComparison=async()=>{
   if(comparisonRunning)return comparisonRunning
@@ -39,7 +40,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(path==='/api/bootstrap'&&request.method==='GET'){
    const data=store.read();const now=new Date()
    const requests=data.requests.map(item=>({...item,producerName:producerOf(data,item.producerId)?.name||'Produtor'})).sort((l,r)=>String(r.createdAt).localeCompare(String(l.createdAt)))
-   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,portSources:portSources.map(item=>({id:item.id,name:item.name,region:item.region,commodities:item.commodities})),ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
+   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),comparison:data.comparison||null,priceYear:buildPriceYear({quotes:data.quotes,praca},{now}),storageGuide,portSources:portSources.map(item=>({id:item.id,name:item.name,region:item.region,commodities:item.commodities})),ownSource:ownSource?{id:ownSource.id,name:ownSource.name,region:ownSource.region,url:ownSource.url,commodities:ownSource.commodities}:null,catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
   }
   if(path==='/api/producers'&&request.method==='POST'){const input=normalizeProducer(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.producers.push(record);return record});return json(response,201,{producer:saved})}
   const producerMatch=path.match(/^\/api\/producers\/([0-9a-f-]{36})$/i)
@@ -53,6 +54,11 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
    for(const commodity of ownSource.commodities||[]){const price=payload[commodity];if(price===undefined||price===null||price==='')continue;const quote=normalizeQuote({sourceId:ownSource.id,commodity,price,priceUnit:'BRL/sc_60kg',paymentTerms:payload.paymentTerms||'',observedAt,notes:text(payload.notes,400)});saved.push(store.update(data=>{const record={...quote,id:randomUUID(),createdAt:new Date().toISOString()};data.quotes.push(record);data.quotes=data.quotes.slice(-5000);return record}))}
    if(!saved.length)return json(response,400,{error:'Informe ao menos um preço.'})
    return json(response,201,{quotes:saved})
+  }
+  if(path==='/api/quotes/import'&&request.method==='POST'){
+   const {quotes,rejected}=normalizeImportLines(await body(request))
+   const saved=store.update(data=>{const records=quotes.map(q=>({...q,id:randomUUID(),createdAt:new Date().toISOString()}));data.quotes.push(...records);data.quotes=data.quotes.slice(-20000);return records.length})
+   return json(response,201,{imported:saved,rejected:rejected.length,rejectedSample:rejected.slice(0,5)})
   }
   if(path==='/api/port-quotes'&&request.method==='POST'){
    const payload=await body(request);const source=portSources.find(item=>item.id===text(payload.sourceId,60));if(!source)return json(response,400,{error:'Selecione a trading do porto.'})
@@ -111,7 +117,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const port=Number(process.env.PORT||3000)
  const app=createApp()
- app.listen(port,'0.0.0.0',()=>console.log(`Grãos Missões ouvindo em :${port}`))
+ app.listen(port,'0.0.0.0',()=>console.log(`VAL-SOG (Grãos Missões) ouvindo em :${port}`))
  const hours=Number(process.env.AUTO_FETCH_HOURS||4)
  if(hours>0){
   const run=()=>app.refreshComparison().then(result=>{console.log(`Comparativo atualizado: ${result.okCount}/${result.total} fontes lidas`);for(const r of result.results){const prices=Object.entries(r.prices||{}).map(([c,p])=>`${c}=${p.price}${p.priceUnit==='BRL/t'?'/t':''}`).join(' ');console.log(`  ${r.status.padEnd(7)} ${r.name}: ${prices||'-'}${r.pageDate?` (página ${r.pageDate})`:''}${r.error?` — ${r.error}`:''}${r.ms?` [${r.ms} ms]`:''}`);for(const [c,p] of Object.entries(r.prices||{}))console.log(`      trecho ${c}: «${String(p.snippet||'').slice(0,160)}»`);for(const [c,d] of Object.entries(r.debug||{}))console.log(`      debug ${c}: «${String(d).slice(0,220)}»`)}}).catch(error=>console.error('Comparativo falhou',error.message))

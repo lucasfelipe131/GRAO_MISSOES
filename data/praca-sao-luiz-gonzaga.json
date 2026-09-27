@@ -446,5 +446,64 @@
         "url": "https://www.emater.tche.br/site/info-agro/precos_semanais.php"
       }
     ]
+  },
+  "seasonality": {
+    "note": "Índice sazonal indicativo (100 = média do ano) baseado no padrão histórico regional de preços ao produtor; não é preço nem previsão. Confirmar com as séries do CEPEA e da Emater/RS antes de usar em decisão.",
+    "soja": [
+      103,
+      101,
+      97,
+      95,
+      96,
+      98,
+      100,
+      102,
+      103,
+      103,
+      102,
+      101
+    ],
+    "milho": [
+      96,
+      94,
+      93,
+      95,
+      97,
+      100,
+      103,
+      105,
+      106,
+      105,
+      103,
+      100
+    ],
+    "trigo": [
+      102,
+      103,
+      104,
+      105,
+      104,
+      102,
+      100,
+      98,
+      96,
+      94,
+      94,
+      98
+    ],
+    "canola": [
+      100,
+      102,
+      103,
+      103,
+      102,
+      100,
+      99,
+      98,
+      96,
+      95,
+      98,
+      100
+    ]
   }
 }

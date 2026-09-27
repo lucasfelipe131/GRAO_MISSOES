@@ -44,7 +44,7 @@ test('fluxo completo: produtor, cotação, pedido com análise, fechamento e alv
   assert.equal(rerun.data.request.analysis.marketReading.reference.price,151)
   assert.equal((await call(base,'POST','/api/requests',{producerId:'00000000-0000-4000-8000-000000000000',commodity:'soja',volume:10})).status,404)
   assert.equal((await call(base,'POST','/api/quotes',{commodity:'cafe',price:1,region:'x',sourceName:'y'})).status,400)
-  const html=await fetch(base+'/');assert.equal(html.status,200);assert.match(await html.text(),/Grãos Missões/)
+  const html=await fetch(base+'/');assert.equal(html.status,200);assert.match(await html.text(),/VAL-SOG/)
  }finally{server.close()}
 })
 
@@ -98,5 +98,8 @@ test('preços de porto por trading entram como referência de base e canola é c
   const canola=await call(base,'POST','/api/analyze',{producerId:producer.id,commodity:'canola',volume:500,targetPrice:220,deliveryLocation:'São Luiz Gonzaga'})
   assert.equal(canola.status,200);assert.equal(canola.data.analysis.praca.applies,true);assert.ok(canola.data.analysis.tips.some(t=>/antes do plantio/.test(t.text)));assert.equal(canola.data.analysis.position.productionSc,1000)
   const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.portSources.length,4);assert.ok(boot.data.portfolio.commodities.some(c=>c.commodity==='canola'))
+  const imp=await call(base,'POST','/api/quotes/import',{commodity:'milho',sourceName:'Emater',lines:'01/02/2026;58,00\n01/03/2026;56,00'});assert.equal(imp.status,201);assert.equal(imp.data.imported,2)
+  const boot2=await call(base,'GET','/api/bootstrap');assert.equal(boot2.data.priceYear.find(c=>c.commodity==='milho').stats.n,2);assert.ok(boot2.data.storageGuide.crops.milho)
+  const font=await fetch(base+'/fonts/manrope-latin-wght-normal.woff2');assert.equal(font.status,200);assert.equal(font.headers.get('content-type'),'font/woff2')
  }finally{server.close()}
 })

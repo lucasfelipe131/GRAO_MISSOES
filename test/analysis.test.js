@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {analyzeRequest,buildBrief,buildPortfolio,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
+import {analyzeRequest,buildBrief,buildPortfolio,buildPriceYear,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
 
 const now=new Date('2026-09-23T12:00:00.000Z')
 const praca=loadPraca()
@@ -94,4 +94,20 @@ test('portfólio consolida posição, fontes do dia, agenda e produtores abaixo 
  assert.ok(pf.sourcesToday.find(f=>f.id==='cotrisal').done);assert.equal(pf.sourcesToday.find(f=>f.id==='coopatrigo').done,false)
  assert.ok(pf.agenda.some(a=>a.kind==='caixa'&&/João/.test(a.label)));assert.ok(pf.agenda.some(a=>a.kind==='entrega'))
  assert.equal(pf.attention.length,1);assert.equal(pf.attention[0].producerName,'João')
+})
+
+test('painel de preços do ano consolida séries, estatísticas, média mensal e sazonalidade',()=>{
+ const {quotes:imported,rejected}=normalizeImportLines({commodity:'soja',sourceName:'Coopatrigo',lines:'15/01/2026;130,00\n15/03/2026;120,00\n2026-06-15;135.5\nlinha ruim\n15/09/2026;141,00\n99/99/2026;1'})
+ assert.equal(imported.length,4);assert.equal(rejected.length,2);assert.equal(imported[0].observedAt,'2026-01-15T12:00:00.000Z');assert.equal(imported[2].price,135.5)
+ const own={commodity:'soja',price:141,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga (C.Vale)',sourceId:'cvale',sourceName:'C.Vale',observedAt:'2026-09-23T10:00:00.000Z',status:'active'}
+ const year=buildPriceYear({quotes:[...imported,own,port],praca},{now})
+ const soja=year.find(c=>c.commodity==='soja')
+ assert.equal(soja.series.own.length,1);assert.equal(soja.series.competitors.length,4);assert.equal(soja.series.port.length,1)
+ assert.equal(soja.stats.min,120);assert.equal(soja.stats.max,141);assert.equal(soja.stats.current,141);assert.equal(soja.stats.positionPercent,100)
+ assert.equal(soja.monthly.find(m=>m.month===3).avg,120);assert.equal(soja.monthly.find(m=>m.month===9).n,2)
+ assert.equal(soja.seasonal.currentMonth,9);assert.deepEqual(soja.seasonal.bestMonths.slice(0,1),[1])
+ assert.ok(soja.hints.some(h=>/acima da média/.test(h)))
+ const milho=year.find(c=>c.commodity==='milho');assert.equal(milho.stats,null);assert.ok(milho.hints.some(h=>/importe um histórico/.test(h)));assert.equal(typeof milho.seasonal.next3Percent,'number');assert.ok(milho.hints.some(h=>/sazonal/.test(h)))
+ assert.throws(()=>normalizeImportLines({commodity:'soja',sourceName:'X',lines:'nada'}),/Nenhuma linha válida/)
+ const guide=loadStorageGuide();assert.deepEqual(Object.keys(guide.crops),['soja','milho','trigo','canola']);assert.ok(guide.general.fumigation.items.length>=4)
 })
