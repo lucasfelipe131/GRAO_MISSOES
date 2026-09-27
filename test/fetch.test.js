@@ -75,3 +75,10 @@ test('tabelas de um grão só (uma por cultura) também são lidas por coluna',(
  const coop=extractFromHtml(html,sources.find(s=>s.id==='coopatrigo'))
  assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.milho.price,62);assert.equal(coop.prices.canola.price,214);assert.equal(coop.prices.canola.observedDate,'2026-09-26');assert.equal(coop.prices.trigo,undefined)
 })
+
+test('valores em ordem da página (Coopatrigo cotações completas) são pareados com os nomes dos grãos',()=>{
+ const html=`<html><body><div class="cot"><div>Soja</div><div>Trigo</div><div>Milho</div><div>Arroz</div><div>Canola</div><div>Triguilho</div><div>Triticale</div></div><table><tr><td>R$ 141,00</td></tr><tr><td>R$ 74,00</td></tr><tr><td>R$ 61,00</td></tr><tr><td>R$ 80,00</td></tr><tr><td>R$ 214,00</td></tr><tr><td>R$ 40,00</td></tr><tr><td>R$ 55,00</td></tr></table><table><tr><td>55 3352 4400</td></tr></table></body></html>`
+ const coop=extractFromHtml(html,sources.find(s=>s.id==='coopatrigo'))
+ assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.trigo.price,74);assert.equal(coop.prices.milho.price,61);assert.equal(coop.prices.arroz.price,80);assert.equal(coop.prices.canola.price,214)
+ assert.match(coop.prices.soja.snippet,/ordem da página/)
+})

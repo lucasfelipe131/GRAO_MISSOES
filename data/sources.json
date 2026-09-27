@@ -56,14 +56,12 @@
       "paymentTerms": "72 h",
       "confidence": 85,
       "cadence": "diária, manhã",
-      "howTo": "Abra a página, localize o grão (ex.: Soja 60 kg 72 hs) e copie o valor em R$ por saca. Registre o horário mostrado na página. A cotação vale para entrega na unidade da Coopatrigo. Os valores da página entram por script, então a leitura automática não os enxerga: registre pelo cartão da fonte (um clique por grão).",
+      "howTo": "Abra a página, localize o grão (ex.: Soja 60 kg 72 hs) e copie o valor em R$ por saca. Registre o horário mostrado na página. A cotação vale para entrega na unidade da Coopatrigo. A leitura automática usa a ordem dos grãos na página; confira o trecho antes de salvar.",
       "primary": true,
       "fetch": {
         "strategy": "auto",
         "urls": [
-          "https://www.coopatrigo.com.br/novo/widget_cotacoes/",
           "https://www.coopatrigo.com.br/novo/cotacoes-completas/",
-          "https://www.coopatrigo.com.br/novo/soja/",
           "https://www.coopatrigo.com.br/novo/todas-as-cotacoes/"
         ],
         "columns": {
@@ -117,7 +115,16 @@
             "canola"
           ]
         },
-        "window": 160
+        "window": 160,
+        "order": [
+          "soja",
+          "trigo",
+          "milho",
+          "arroz",
+          "canola",
+          "triguilho",
+          "triticale"
+        ]
       }
     },
     {
