@@ -1,21 +1,369 @@
 {
-  "version": "historico-v1",
+  "version": "historico-v2",
   "updatedAt": "2026-09-27",
-  "note": "Pontos reais pesquisados em fontes públicas para semear o painel do ano antes que o abastecimento automático acumule série própria. Cada ponto traz fonte e data; valores mensais do CEPEA são médias do mês, registradas no dia 15.",
+  "note": "Pontos reais pesquisados em fontes públicas (CEPEA, Emater, Agrolink, Notícias Agrícolas, Grão Direto) para o comparativo do ano de 2026. Cada ponto traz fonte, data e observação; médias mensais são registradas no dia 15 e valores aproximados estão marcados na observação. Trechos que se mostraram de 2025 foram descartados.",
   "points": [
-    {"commodity": "trigo", "date": "2026-05-15", "price": 1299.65, "priceUnit": "BRL/t", "region": "Rio Grande do Sul (CEPEA)", "sourceName": "CEPEA — média mensal trigo RS", "sourceUrl": "https://cepea.org.br/br/indicador/trigo.aspx", "notes": "Média de maio/2026 (+7,6% sobre abril), CEPEA"},
-    {"commodity": "trigo", "date": "2026-07-15", "price": 1468.41, "priceUnit": "BRL/t", "region": "Rio Grande do Sul (CEPEA)", "sourceName": "CEPEA — média mensal trigo RS", "sourceUrl": "https://www.cepea.org.br/br/diarias-de-mercado/trigo-cepea-media-real-no-rs-e-a-maior-desde-dez-22.aspx", "notes": "Média de julho/2026 (+3,3% sobre junho), CEPEA"},
-    {"commodity": "trigo", "date": "2026-08-15", "price": 1325.91, "priceUnit": "BRL/t", "region": "Rio Grande do Sul (CEPEA)", "sourceName": "CEPEA — média mensal trigo RS", "sourceUrl": "https://cepea.org.br/br/indicador/trigo.aspx", "notes": "Média de agosto/2026 (+0,7% no mês), CEPEA"},
-    {"commodity": "trigo", "date": "2026-09-22", "price": 1419.84, "priceUnit": "BRL/t", "region": "Rio Grande do Sul (CEPEA)", "sourceName": "CEPEA — trigo RS", "sourceUrl": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543", "notes": "Indicador do dia 22/09/2026"},
-    {"commodity": "milho", "date": "2026-06-15", "price": 59.27, "priceUnit": "BRL/sc_60kg", "region": "Rio Grande do Sul (Emater)", "sourceName": "Emater/RS — preço médio estadual", "sourceUrl": "https://www.emater.tche.br/site/info-agro/informativo_conjuntural.php", "notes": "Média estadual em junho/2026 (subiu de 58,76 para 59,27)"},
-    {"commodity": "milho", "date": "2026-09-16", "price": 61.60, "priceUnit": "BRL/sc_60kg", "region": "Rio Grande do Sul (Agrolink)", "sourceName": "Agrolink — média RS", "sourceUrl": "https://www.agrolink.com.br/noticias/milho-avanca-no-plantio-e-mantem-precos-sustentados_518832.html", "notes": "Média estadual na semana de 16/09/2026; indicações entre R$ 60 e R$ 68"},
-    {"commodity": "milho", "date": "2026-09-21", "price": 61.98, "priceUnit": "BRL/sc_60kg", "region": "Rio Grande do Sul (O Correio News)", "sourceName": "O Correio News — média RS", "sourceUrl": "https://www.ocorreionews.com.br/2026/09/21/plantio-avanca-e-clima-mantem-atencao-no-milho/", "notes": "Média estadual em 21/09/2026"},
-    {"commodity": "soja", "date": "2026-08-24", "price": 154.50, "priceUnit": "BRL/sc_60kg", "region": "Porto de Rio Grande (mercado físico)", "sourceName": "Notícias Agrícolas — Porto de Rio Grande", "sourceUrl": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-mercado-fisico-sindicatos-e-cooperativas", "notes": "Porto de Rio Grande em 24/08/2026"},
-    {"commodity": "soja", "date": "2026-09-07", "price": 162.00, "priceUnit": "BRL/sc_60kg", "region": "Porto de Rio Grande (mercado físico)", "sourceName": "Mercado físico — Porto de Rio Grande", "sourceUrl": "https://divulgardinheiro.com/mercado-da-soja-tem-altas-e-baixas-no-brasil-foco-nas-regioes-produtivas/", "notes": "Porto de Rio Grande em 07/09/2026 (+0,62%)"},
-    {"commodity": "soja", "date": "2026-09-22", "price": 161.52, "priceUnit": "BRL/sc_60kg", "region": "Paranaguá/PR", "sourceName": "CEPEA/ESALQ — Paranaguá", "sourceUrl": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543", "notes": "Indicador do dia 22/09/2026"},
-    {"commodity": "soja", "date": "2026-09-23", "price": 140.00, "priceUnit": "BRL/sc_60kg", "region": "Noroeste/RS (Cotrisal)", "sourceName": "Cotrisal", "sourceUrl": "https://www.cotrisal.com.br/", "notes": "Cotação de 23/09/2026 para a região Noroeste"},
-    {"commodity": "trigo", "date": "2026-09-23", "price": 75.00, "priceUnit": "BRL/sc_60kg", "region": "Noroeste/RS (Cotrisal)", "sourceName": "Cotrisal", "sourceUrl": "https://www.cotrisal.com.br/", "notes": "Trigo pH 78 em 23/09/2026"},
-    {"commodity": "milho", "date": "2026-09-23", "price": 62.00, "priceUnit": "BRL/sc_60kg", "region": "Noroeste/RS (Cotrisal)", "sourceName": "Cotrisal", "sourceUrl": "https://www.cotrisal.com.br/", "notes": "Cotação de 23/09/2026"}
+    {
+      "commodity": "milho",
+      "date": "2026-03-19",
+      "price": 58.36,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Centro Ocidental)",
+      "sourceName": "Emater/RS — preços semanais",
+      "sourceUrl": "https://www.emater.tche.br/site/info-agro/precos_semanais.php",
+      "notes": "Região Centro Ocidental em 19/03/2026"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-03-19",
+      "price": 60.54,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Erechim)",
+      "sourceName": "Emater/RS — preços semanais",
+      "sourceUrl": "https://www.emater.tche.br/site/info-agro/precos_semanais.php",
+      "notes": "Região de Erechim em 19/03/2026"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-04-15",
+      "price": 57.7,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Emater)",
+      "sourceName": "Emater/RS — preço médio estadual",
+      "sourceUrl": "https://www.emater.tche.br/site/info-agro/precos_semanais.php",
+      "notes": "Média estadual em abril/2026 (+0,52%)"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-06-15",
+      "price": 59.27,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Emater)",
+      "sourceName": "Emater/RS — preço médio estadual",
+      "sourceUrl": "https://www.emater.tche.br/site/info-agro/informativo_conjuntural.php",
+      "notes": "Média estadual em junho/2026 (subiu de 58,76 para 59,27)"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-06-22",
+      "price": 58.91,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Agrolink)",
+      "sourceName": "Agrolink — média RS",
+      "sourceUrl": "https://www.agrolink.com.br/noticias/oferta-maior-mantem-mercado-do-milho-pressionado_515860.html",
+      "notes": "Média estadual em 22/06/2026; indicações entre R$ 57 e R$ 63"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-07-15",
+      "price": 59.02,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Agrolink)",
+      "sourceName": "Agrolink — média RS",
+      "sourceUrl": "https://www.agrolink.com.br/noticias/milho-avanca-com-maior-ritmo-de-comercializacao_517038.html",
+      "notes": "Média estadual em julho/2026 (+0,24% na semana); indicações entre R$ 57 e R$ 65"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-08-15",
+      "price": 59.32,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Agrolink)",
+      "sourceName": "Agrolink — média RS",
+      "sourceUrl": "https://www.agrolink.com.br/noticias/mercado-de-milho-mantem-negocios-pontuais_517960.html",
+      "notes": "Média estadual em agosto/2026 (+0,54% na semana); indicações entre R$ 58 e R$ 65"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-09-10",
+      "price": 61.09,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Agrolink)",
+      "sourceName": "Agrolink — média RS",
+      "sourceUrl": "https://www.agrolink.com.br/noticias/milho-segue-firme-com-vendas-seletivas-no-mercado_518693.html",
+      "notes": "Média estadual em 10/09/2026 (de 60,23 para 61,09)"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-09-16",
+      "price": 61.6,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Agrolink)",
+      "sourceName": "Agrolink — média RS",
+      "sourceUrl": "https://www.agrolink.com.br/noticias/milho-avanca-no-plantio-e-mantem-precos-sustentados_518832.html",
+      "notes": "Média estadual na semana de 16/09/2026; indicações entre R$ 60 e R$ 68"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-09-21",
+      "price": 61.98,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (O Correio News)",
+      "sourceName": "O Correio News — média RS",
+      "sourceUrl": "https://www.ocorreionews.com.br/2026/09/21/plantio-avanca-e-clima-mantem-atencao-no-milho/",
+      "notes": "Média estadual em 21/09/2026"
+    },
+    {
+      "commodity": "milho",
+      "date": "2026-09-23",
+      "price": 62,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Noroeste/RS (Cotrisal)",
+      "sourceName": "Cotrisal",
+      "sourceUrl": "https://www.cotrisal.com.br/",
+      "notes": "Cotação de 23/09/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-01-02",
+      "price": 132,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Porto de Rio Grande",
+      "sourceName": "Canal Rural — praças (primeira sexta de 2026)",
+      "sourceUrl": "https://www.canalrural.com.br/",
+      "notes": "Rio Grande porto caiu de 143 para 132 na primeira sexta-feira de janeiro/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-01-27",
+      "price": 124.9,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Paranaguá/PR",
+      "sourceName": "CEPEA/ESALQ — Paranaguá",
+      "sourceUrl": "https://farmnews.com.br/mercado/peeco-da-soja-cai-forte-em-janeiro-de-2026/",
+      "notes": "Indicador abaixo de R$ 125 em 27/01/2026 (queda de 11,5% desde o fim de 2025); valor aproximado"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-04-10",
+      "price": 120.86,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Emater)",
+      "sourceName": "Emater/RS — preço médio estadual soja",
+      "sourceUrl": "https://www.emater.tche.br/site/info-agro/precos_semanais.php",
+      "notes": "Média estadual recebida pelo produtor em 10/04/2026 (colheita)"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-06-01",
+      "price": 125.25,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de Ijuí 124, Cruz Alta 124, Passo Fundo 126, Santa Rosa 127 em 01/06/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-06-03",
+      "price": 124,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de Ijuí 123, Cruz Alta 123, Passo Fundo 125, Santa Rosa 125 em 03/06/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-04",
+      "price": 135.09,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de Ijuí 135,87, Cruz Alta 136, Passo Fundo 136, Santa Rosa 132,50 em 04/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-07",
+      "price": 135.75,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de Ijuí 137, Cruz Alta 136, Passo Fundo 135, Santa Rosa 135 em 07/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-07",
+      "price": 149,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Porto de Rio Grande (mercado físico)",
+      "sourceName": "Agrolink — Porto de Rio Grande",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Porto de Rio Grande em 07/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-17",
+      "price": 137.25,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de 137, 137, 138, 137 em 17/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-18",
+      "price": 139.25,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de Ijuí 137, Cruz Alta 137, Passo Fundo 138, Santa Rosa 145 em 18/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-20",
+      "price": 155,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Paranaguá/PR",
+      "sourceName": "CEPEA/ESALQ — Paranaguá",
+      "sourceUrl": "https://bpmoney.com.br/agro/preco-soja-sobe-5-maior-nivel-desde-2023-cepea/",
+      "notes": "Indicador próximo de R$ 155 em 20/08/2026 (+5,2% na semana); valor aproximado"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-24",
+      "price": 154.5,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Porto de Rio Grande (mercado físico)",
+      "sourceName": "Notícias Agrícolas — Porto de Rio Grande",
+      "sourceUrl": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-mercado-fisico-sindicatos-e-cooperativas",
+      "notes": "Porto de Rio Grande em 24/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-25",
+      "price": 147.25,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de Ijuí 147, Cruz Alta 147,50, Passo Fundo 147, Santa Rosa 147,50 em 25/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-08-28",
+      "price": 148.83,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Rio Grande do Sul (Grão Direto)",
+      "sourceName": "Grão Direto — média RS",
+      "sourceUrl": "https://www.graodireto.com.br/ofertas/soja/rs/",
+      "notes": "Preço RS em 28/08/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-09-06",
+      "price": 148.52,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Praças RS (Ijuí, Cruz Alta, Passo Fundo, Santa Rosa)",
+      "sourceName": "Agrolink — praças RS",
+      "sourceUrl": "https://www.agrolink.com.br/cotacoes/graos/soja",
+      "notes": "Média de Ijuí 148,30, Cruz Alta 147,68, Passo Fundo 148,80, Santa Rosa 149,30 no início de setembro/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-09-07",
+      "price": 162,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Porto de Rio Grande (mercado físico)",
+      "sourceName": "Mercado físico — Porto de Rio Grande",
+      "sourceUrl": "https://divulgardinheiro.com/mercado-da-soja-tem-altas-e-baixas-no-brasil-foco-nas-regioes-produtivas/",
+      "notes": "Porto de Rio Grande em 07/09/2026 (+0,62%)"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-09-22",
+      "price": 161.52,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Paranaguá/PR",
+      "sourceName": "CEPEA/ESALQ — Paranaguá",
+      "sourceUrl": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543",
+      "notes": "Indicador do dia 22/09/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2026-09-23",
+      "price": 140,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Noroeste/RS (Cotrisal)",
+      "sourceName": "Cotrisal",
+      "sourceUrl": "https://www.cotrisal.com.br/",
+      "notes": "Cotação de 23/09/2026 para a região Noroeste"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2026-01-15",
+      "price": 1050.89,
+      "priceUnit": "BRL/t",
+      "region": "Rio Grande do Sul (CEPEA)",
+      "sourceName": "CEPEA — média mensal trigo RS",
+      "sourceUrl": "https://cepea.org.br/br/diarias-de-mercado/trigo-cepea-precos-apresentam-movimentos-distintos-dentre-os-estados-1.aspx",
+      "notes": "Média de janeiro/2026 (+1,4% no mês, -16,1% no ano)"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2026-05-15",
+      "price": 1299.65,
+      "priceUnit": "BRL/t",
+      "region": "Rio Grande do Sul (CEPEA)",
+      "sourceName": "CEPEA — média mensal trigo RS",
+      "sourceUrl": "https://cepea.org.br/br/indicador/trigo.aspx",
+      "notes": "Média de maio/2026 (+7,6% sobre abril), CEPEA"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2026-07-15",
+      "price": 1468.41,
+      "priceUnit": "BRL/t",
+      "region": "Rio Grande do Sul (CEPEA)",
+      "sourceName": "CEPEA — média mensal trigo RS",
+      "sourceUrl": "https://www.cepea.org.br/br/diarias-de-mercado/trigo-cepea-media-real-no-rs-e-a-maior-desde-dez-22.aspx",
+      "notes": "Média de julho/2026 (+3,3% sobre junho), CEPEA"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2026-08-15",
+      "price": 1325.91,
+      "priceUnit": "BRL/t",
+      "region": "Rio Grande do Sul (CEPEA)",
+      "sourceName": "CEPEA — média mensal trigo RS",
+      "sourceUrl": "https://cepea.org.br/br/indicador/trigo.aspx",
+      "notes": "Média de agosto/2026 (+0,7% no mês), CEPEA"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2026-09-22",
+      "price": 1419.84,
+      "priceUnit": "BRL/t",
+      "region": "Rio Grande do Sul (CEPEA)",
+      "sourceName": "CEPEA — trigo RS",
+      "sourceUrl": "https://brasil61.com/n/soja-sobe-no-interior-do-parana-e-recua-em-paranagua-nesta-terca-feira-22-pagr266543",
+      "notes": "Indicador do dia 22/09/2026"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2026-09-23",
+      "price": 75,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Noroeste/RS (Cotrisal)",
+      "sourceName": "Cotrisal",
+      "sourceUrl": "https://www.cotrisal.com.br/",
+      "notes": "Trigo pH 78 em 23/09/2026"
+    }
   ],
-  "canolaRule": {"note": "Canola é contratada com base na soja, normalmente com desconto de 5% a 10% sobre o preço da saca de soja no RS (Abrascanola). Sem cotação própria registrada, o painel usa essa relação apenas como referência no briefing.", "discountLow": 0.05, "discountHigh": 0.10, "sourceUrl": "https://www.observadorregional.com.br/canola-a-soja-de-inverno/"}
+  "canolaRule": {
+    "note": "Canola é contratada com base na soja, normalmente com desconto de 5% a 10% sobre o preço da saca de soja no RS (Abrascanola). Sem cotação própria registrada, o painel usa essa relação apenas como referência no briefing.",
+    "discountLow": 0.05,
+    "discountHigh": 0.1,
+    "sourceUrl": "https://www.observadorregional.com.br/canola-a-soja-de-inverno/"
+  },
+  "coverage": {
+    "soja": "jan (Paranaguá), abr (Emater RS), jun, ago e set (praças RS), porto de Rio Grande ago–set",
+    "milho": "abr, jun, jul, ago, set (média estadual RS)",
+    "trigo": "jan, mai, jul, ago, set (CEPEA RS)",
+    "canola": "sem série pública; referência pela regra de desconto sobre a soja"
+  }
 }

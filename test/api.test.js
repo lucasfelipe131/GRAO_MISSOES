@@ -130,7 +130,7 @@ test('pontos pesquisados são semeados uma única vez',async()=>{
  const a=createApp({dataDir:dir,seedHistory:true});await new Promise(r=>a.listen(0,r));const base=`http://127.0.0.1:${a.address().port}`
  try{const boot=await call(base,'GET','/api/bootstrap');const seeded=boot.data.quotes.filter(q=>q.imported);assert.ok(seeded.length>=10);assert.ok(seeded.some(q=>q.commodity==='trigo'&&q.priceUnit==='BRL/t'));assert.ok(boot.data.priceYear.find(c=>c.commodity==='trigo').stats)}finally{a.close()}
  const b=createApp({dataDir:dir,seedHistory:true});await new Promise(r=>b.listen(0,r));const base2=`http://127.0.0.1:${b.address().port}`
- try{const boot=await call(base2,'GET','/api/bootstrap');assert.equal(boot.data.quotes.filter(q=>q.imported).length,(await call(base2,'GET','/api/bootstrap')).data.quotes.filter(q=>q.imported).length);assert.ok(boot.data.quotes.filter(q=>q.imported).length<=20)}finally{b.close()}
+ try{const boot=await call(base2,'GET','/api/bootstrap');assert.equal(boot.data.quotes.filter(q=>q.imported).length,(await call(base2,'GET','/api/bootstrap')).data.quotes.filter(q=>q.imported).length);assert.ok(boot.data.quotes.filter(q=>q.imported).length<=80)}finally{b.close()}
 })
 
 test('ofertas: parâmetros, prévia, registro, situação, fechamento e exportação',async()=>{
@@ -142,8 +142,8 @@ test('ofertas: parâmetros, prévia, registro, situação, fechamento e exporta�
   assert.equal(settings.status,200);assert.equal(settings.data.offerSettings.defaultMarginPerSc,3)
   const preview=await call(base,'POST','/api/offers/preview',{producerId:producer.id,commodity:'soja',volumeSc:1000,deliveryMonth:'2026-11',destinationId:'rio-grande'})
   assert.equal(preview.status,200);assert.equal(preview.data.offer.reference.mode,'porto');assert.equal(preview.data.offer.margin.perSc,3);assert.equal(preview.data.offer.distanceKm,630)
-  const created=await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'soja',volumeSc:1000,deliveryMonth:'2026-11',destinationId:'rio-grande',notes:'produtor quer travar parte'})
-  assert.equal(created.status,201);assert.equal(created.data.offer.status,'rascunho');assert.equal(created.data.offer.notes,'produtor quer travar parte')
+  const created=await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'soja',volumeSc:1000,deliveryMonth:'2026-11',destinationId:'rio-grande',notes:'produtor quer travar parte',askingPrice:'150'})
+  assert.equal(created.status,201);assert.equal(created.data.offer.status,'rascunho');assert.equal(created.data.offer.notes,'produtor quer travar parte');assert.equal(created.data.offer.offer.askingPrice,150);assert.ok(['ajustavel','inviavel','atende'].includes(created.data.offer.offer.asking.status))
   const id=created.data.offer.id
   assert.equal((await call(base,'PATCH',`/api/offers/${id}`,{status:'enviada'})).data.offer.status,'enviada')
   const closed=await call(base,'PATCH',`/api/offers/${id}`,{status:'aceita',closedPrice:'139,50',notes:'fechado por telefone'});assert.equal(closed.data.offer.closedPrice,139.5);assert.equal(closed.data.offer.history.length,3)
