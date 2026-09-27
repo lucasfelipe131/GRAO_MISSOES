@@ -6,7 +6,11 @@ Nada é executado automaticamente e nenhuma cotação é inventada. A comparaç�
 
 ## O que o sistema faz
 
-- **Produtores**: cadastro com município, local usual de entrega, armazenagem, logística e custo de produção por grão.
+- **Painel**: indicadores da carteira (produtores, pedidos abertos, alvos atingidos, cotações do dia, produtores abaixo do ritmo, volume fechado), posição por grão (produção estimada × fixado), agenda de fechamentos (caixa, entrega, revisão do Alvo 3, meses de caixa) e fontes principais pendentes.
+
+- **Produtores**: ficha operacional sem dados confidenciais: área, produtividade e percentual já fixado por cultura; quem decide, tolerância a risco, hábito de venda, o que convence, prazo de pagamento preferido, compradores habituais; armazenagem e custo de carregar, distância, logística, meses de compromisso de caixa, canal de contato. A ficha mostra posição da safra, ritmo de fixação por fase e histórico de pedidos.
+- **Estratégia por produtor**: a análise usa a ficha para ajustar as parcelas (risco baixo ou alto), medir o ritmo de fixação contra a faixa da fase (pré-plantio 10–30%, plantio 25–45%, desenvolvimento 40–60%, colheita 60–80%, pós-colheita 80–100%), calcular o custo de carregar o grão até a entressafra e gerar orientações de abordagem (decisão em família, prova preferida, compradores a consultar).
+- **Tendência de preço**: gráfico simples por grão com as cotações locais registradas; exportação em CSV de cotações, pedidos e produtores.
 - **Cotações**: registro com grão, preço, praça ou comprador, fonte, prazo de pagamento e horário de observação. Cotações com mais de 7 dias ficam marcadas como vencidas.
 - **Pedidos**: formulário com o pedido do produtor. A análise `analysis-v1` devolve manchete, referência usada, distância ao preço-alvo, margem, base contra porto, Alvo 1 (gatilho imediato), Alvo 2 (preço do produtor) e Alvo 3 (esticada condicional), cenários e dicas. O pedido fica em acompanhamento; fechamentos parciais são registrados com preço, volume e comprador.
 - **Alvos atingidos**: sempre que uma cotação registrada alcança um alvo de um pedido aberto, o painel avisa.

@@ -14,7 +14,8 @@
 <header class="top">
  <div class="brand"><img src="icon.svg" alt="" width="34" height="34"><div><b>Grãos Missões</b><small>Missões • São Luiz Gonzaga/RS</small></div></div>
  <nav class="tabs" role="tablist" aria-label="Seções">
-  <button role="tab" data-tab="pedidos" aria-selected="true">Pedidos</button>
+  <button role="tab" data-tab="painel" aria-selected="true">Painel</button>
+  <button role="tab" data-tab="pedidos" aria-selected="false">Pedidos</button>
   <button role="tab" data-tab="cotacoes" aria-selected="false">Cotações</button>
   <button role="tab" data-tab="produtores" aria-selected="false">Produtores</button>
   <button role="tab" data-tab="praca" aria-selected="false">Praça</button>
@@ -31,7 +32,19 @@
   </div>
  </section>
  <section id="hits" class="hits" hidden></section>
- <section data-panel="pedidos" class="panel">
+ <section data-panel="painel" class="panel">
+  <div class="hero"><div><small>PRAÇA DE SÃO LUIZ GONZAGA • MISSÕES</small><h1>Painel de originação</h1><p>Posição da carteira, cotações do dia, alvos atingidos e a agenda de fechamentos. Tudo o que entra aqui vem dos cadastros, dos pedidos e das cotações registradas com fonte.</p></div><div class="hero-actions"><button class="primary" type="button" data-go="pedidos">Novo pedido</button><button class="secondary" type="button" data-go="cotacoes">Registrar cotações do dia</button></div></div>
+  <div id="kpis" class="tiles"></div>
+  <div class="split wide2">
+   <div class="card"><div class="cardhead"><h2>Posição da carteira por grão</h2><small>produção estimada × fixado</small></div><div id="positions" class="positions"></div></div>
+   <div class="card"><div class="cardhead"><h2>Agenda de fechamentos</h2><small>próximos 45 dias</small></div><div id="agenda" class="agenda"></div></div>
+  </div>
+  <div class="split wide2">
+   <div class="card"><div class="cardhead"><h2>Cotações de hoje</h2><small>fontes principais</small></div><div id="sourcesToday" class="list"></div></div>
+   <div class="card"><div class="cardhead"><h2>Produtores abaixo do ritmo de proteção</h2><small>fixado × fase da safra</small></div><div id="attention" class="list"></div></div>
+  </div>
+ </section>
+ <section data-panel="pedidos" class="panel" hidden>
  <details class="guide"><summary>Guia: o que preencher e de onde tirar cada dado</summary><div class="guidegrid">
   <div><b>Produtor</b><p>Cadastrado na aba Produtores. Se o custo por grão e a armazenagem estiverem no cadastro, a análise usa esses valores sozinha.</p></div>
   <div><b>Volume</b><p>O que o produtor quer negociar agora, não a safra inteira. Em sacas de 60 kg; toneladas e quilos são convertidos.</p></div>
@@ -69,7 +82,7 @@
    </form>
    <div id="analysis" class="card output"><div class="empty"><h3>A análise nasce do pedido</h3><p>Escolha o produtor, informe volume, preço-alvo e objetivo. Você recebe leitura de mercado, três alvos de fechamento e dicas para a praça.</p></div></div>
   </div>
-  <div class="card"><div class="cardhead"><h2>Pedidos em acompanhamento</h2><small id="requestCount"></small></div><div id="requests" class="list"></div></div>
+  <div class="card"><div class="cardhead"><h2>Pedidos em acompanhamento</h2><div class="row"><small id="requestCount"></small><button class="mini" type="button" id="exportRequests">Exportar CSV</button></div></div><div id="requests" class="list"></div></div>
  </section>
  <section data-panel="cotacoes" class="panel" hidden>
  <details class="guide" open><summary>Guia: quais cotações registrar e de onde tirar</summary><div class="guidegrid">
@@ -101,7 +114,7 @@
     <p class="error" id="quoteError" role="alert" hidden></p>
     <div class="actions"><button class="primary" type="submit">Salvar cotação</button></div>
    </form>
-   <div class="card"><div class="cardhead"><h2>Cotações registradas</h2><small id="quoteCount"></small></div><div id="quotes" class="list"></div></div>
+   <div class="card"><div class="cardhead"><h2>Cotações registradas</h2><div class="row"><small id="quoteCount"></small><button class="mini" type="button" id="exportQuotes">Exportar CSV</button></div></div><div id="trend" class="trend"></div><div id="quotes" class="list"></div></div>
   </div>
  </section>
  <section data-panel="produtores" class="panel" hidden>
@@ -110,28 +123,46 @@
   <div><b>Armazenagem própria</b><p>Capacidade em toneladas de silo ou graneleiro da propriedade. Com armazenagem, a análise sugere guardar parcelas para a entressafra.</p></div>
   <div><b>Custo por grão</b><p>Custo por saca: custo total do hectare (insumos, operações, arrendamento, juros) dividido pela produtividade esperada. Tire da planilha do produtor, do plano de custeio do banco ou da referência da Conab.</p></div>
   <div><b>Logística</b><p>FOB (o comprador busca), CIF (o produtor entrega) ou frota própria. Muda o preço líquido comparável.</p></div>
-  <div><b>Observações</b><p>Compradores preferidos, restrições (trigo só para moinho X), histórico de fechamentos, sócios que decidem junto.</p></div>
+  <div><b>Área, produtividade e fixado</b><p>Área plantada por cultura e produtividade esperada (média dos últimos anos). O percentual fixado é o que já foi vendido ou tem preço travado nesta safra. Com isso o sistema mede o ritmo de proteção.</p></div>
+  <div><b>Como decide</b><p>Pergunte de forma natural: “quem participa da decisão?”, “você prefere garantir cedo ou esperar?”, “o que te convence: número, vizinho ou cooperativa?”. Isso muda as parcelas e as dicas.</p></div>
+  <div><b>Meses de caixa</b><p>Meses em que costuma ter contas grandes (insumos, financiamento, arrendamento). Só o mês, sem valores; a agenda avisa com antecedência.</p></div>
+  <div><b>O que não cadastrar</b><p>CPF, renda, dívidas, contratos de financiamento, documentos da terra. Nada disso é necessário para a estratégia de fechamento.</p></div>
+  <div><b>Observações</b><p>Restrições (trigo só para moinho X), histórico de fechamentos, compromissos com a cooperativa.</p></div>
  </div></details>
   <div class="split">
    <form id="producerForm" class="card form">
     <h2 id="producerFormTitle">Cadastrar produtor</h2>
+    <p class="muted">Dados operacionais para a estratégia de comercialização. Nada de CPF, renda, dívidas ou documentos: só o que muda a decisão de fechamento.</p>
     <input type="hidden" name="id">
-    <div class="grid">
+    <fieldset><legend>Identificação e contato</legend><div class="grid">
      <label class="wide">Nome *<input name="name" required></label>
      <label>Município<input name="municipality" value="São Luiz Gonzaga"></label>
      <label>Telefone<input name="phone"></label>
+     <label>Canal preferido<select name="contactChannel" data-options="contactChannel"></select></label>
+     <label>Melhor dia e horário<input name="bestContact" placeholder="Ex.: terças de manhã"></label>
+    </div></fieldset>
+    <fieldset><legend>Produção e posição da safra <span class="legend-note" id="seasonNote">2026/27</span></legend><p class="muted">Área × produtividade estima a produção; o percentual fixado mostra quanto já está vendido ou com preço travado.</p><div class="cropgrid" id="cropgrid"></div><input type="hidden" name="season" value="2026/27"></fieldset>
+    <fieldset><legend>Como o produtor decide</legend><div class="grid">
+     <label>Quem decide<select name="decisionMaker" data-options="decisionMaker"></select></label>
+     <label>Tolerância a risco<select name="riskTolerance" data-options="riskTolerance"></select></label>
+     <label>Hábito de venda<select name="sellingStyle" data-options="sellingStyle"></select></label>
+     <label>O que convence<select name="proofPreference" data-options="proofPreference"></select></label>
+     <label>Prazo de pagamento preferido<select name="paymentPreference" data-options="paymentPreference"></select></label>
+     <label>Compradores habituais<input name="usualBuyers" placeholder="Coopatrigo, Cotrisal, cerealista X"></label>
+    </div></fieldset>
+    <fieldset><legend>Logística, armazenagem e caixa</legend><div class="grid">
      <label>Local usual de entrega<input name="deliveryLocation" placeholder="Coopatrigo, armazém…"></label>
+     <label>Distância até a unidade (km)<input name="distanceKm" type="number" min="0" step="1"></label>
      <label>Armazenagem própria (t)<input name="storageT" type="number" min="0" step="1"></label>
+     <label>Custo de armazenar (R$/sc/mês)<input name="storageCostScMonth" type="number" min="0" step="0.01" placeholder="Ex.: 1,20"></label>
      <label>Logística<input name="logistics" placeholder="FOB, CIF, frota própria"></label>
-     <label>Custo soja (R$/sc)<input name="cost_soja" type="number" min="0" step="0.01"></label>
-     <label>Custo milho (R$/sc)<input name="cost_milho" type="number" min="0" step="0.01"></label>
-     <label>Custo trigo (R$/sc)<input name="cost_trigo" type="number" min="0" step="0.01"></label>
-     <label class="wide">Observações<textarea name="notes" rows="2"></textarea></label>
-    </div>
+     <label class="wide">Meses com compromisso de caixa<div class="months" id="cashMonths"></div></label>
+    </div></fieldset>
+    <fieldset><legend>Observações</legend><textarea name="notes" rows="2" placeholder="Restrições, preferências, histórico de fechamentos"></textarea></fieldset>
     <p class="error" id="producerError" role="alert" hidden></p>
     <div class="actions"><button class="secondary" type="button" id="producerReset">Limpar</button><button class="primary" type="submit">Salvar produtor</button></div>
    </form>
-   <div class="card"><div class="cardhead"><h2>Produtores</h2><small id="producerCount"></small></div><div id="producers" class="list"></div></div>
+   <div class="card"><div class="cardhead"><h2>Produtores</h2><div class="row"><small id="producerCount"></small><button class="mini" type="button" id="exportProducers">Exportar CSV</button></div></div><div id="producers" class="list"></div></div>
   </div>
  </section>
  <section data-panel="praca" class="panel" hidden>
@@ -143,6 +174,7 @@
  </div></details>
  <div id="brief"></div></section>
 </main>
+<div id="drawer" class="drawer" hidden><div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle"><header><div><small>FICHA DO PRODUTOR</small><h2 id="drawerTitle"></h2></div><button type="button" class="mini" id="drawerClose">Fechar</button></header><div id="drawerBody"></div></div></div>
 <footer class="foot">Análise determinística e explicável para apoiar a conversa. Não é recomendação de investimento nem ordem de negociação; a decisão permanece com o consultor e o produtor.</footer>
 <script src="app.js"></script>
 </body>

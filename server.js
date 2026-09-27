@@ -4,7 +4,7 @@ import {dirname,extname,join,normalize,resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
-import {analyzeRequest,buildBrief,checkTargets,commodityLabels,loadPraca,loadSources,normalizeProducer,normalizeQuote,normalizeRequest,objectives,text} from './lib/analysis.js'
+import {analyzeRequest,buildBrief,buildPortfolio,checkTargets,commodityLabels,loadPraca,loadSources,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
 
 const root=dirname(fileURLToPath(import.meta.url))
 const publicDir=join(root,'public')
@@ -29,7 +29,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   if(path==='/api/bootstrap'&&request.method==='GET'){
    const data=store.read();const now=new Date()
    const requests=data.requests.map(item=>({...item,producerName:producerOf(data,item.producerId)?.name||'Produtor'})).sort((l,r)=>String(r.createdAt).localeCompare(String(l.createdAt)))
-   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),catalog:{commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
+   return json(response,200,{producers:data.producers,quotes:[...data.quotes].sort((l,r)=>String(r.observedAt).localeCompare(String(l.observedAt))),requests,targetHits:checkTargets(requests,data.quotes,now),brief:buildBrief({praca,quotes:data.quotes},{now}),portfolio:buildPortfolio({producers:data.producers,requests,quotes:data.quotes,praca,sources:sources.sources},{now}),catalog:{producerOptions,commodities:Object.entries(commodityLabels).map(([value,label])=>({value,label})),objectives:Object.entries(objectives).map(([value,item])=>({value,label:item.label,note:item.note})),sources:sources.sources,references:sources.references,sourcesVersion:sources.version},praca:{id:praca.id,label:praca.label,updatedAt:praca.updatedAt},governance:{automaticTrading:false,humanReviewRequired:true}})
   }
   if(path==='/api/producers'&&request.method==='POST'){const input=normalizeProducer(await body(request));const saved=store.update(data=>{const record={...input,id:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.producers.push(record);return record});return json(response,201,{producer:saved})}
   const producerMatch=path.match(/^\/api\/producers\/([0-9a-f-]{36})$/i)

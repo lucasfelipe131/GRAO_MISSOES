@@ -11,7 +11,8 @@ const call=async(base,method,path,payload,code)=>{const response=await fetch(bas
 test('fluxo completo: produtor, cotação, pedido com análise, fechamento e alvo atingido',async()=>{
  const {server,base}=await start()
  try{
-  const producer=(await call(base,'POST','/api/producers',{name:'João da Silva',municipality:'São Luiz Gonzaga',storageT:1200,cost_soja:120})).data.producer
+  const producer=(await call(base,'POST','/api/producers',{name:'João da Silva',municipality:'São Luiz Gonzaga',storageT:1200,cost_soja:120,area_soja:200,yield_soja:60,fixed_soja:10,riskTolerance:'media',cashMonths:['10']})).data.producer
+  assert.equal(producer.crops.soja.areaHa,200);assert.deepEqual(producer.cashMonths,[10])
   assert.ok(producer.id)
   assert.equal((await call(base,'POST','/api/quotes',{commodity:'soja',price:140,region:'São Luiz Gonzaga',sourceName:'Cotrisal'})).status,201)
   assert.equal((await call(base,'POST','/api/quotes',{commodity:'soja',price:161.52,region:'Paranaguá/PR',sourceName:'CEPEA'})).status,201)
@@ -27,6 +28,9 @@ test('fluxo completo: produtor, cotação, pedido com análise, fechamento e alv
   assert.equal(bootstrap.status,200);assert.equal(bootstrap.data.producers.length,1);assert.equal(bootstrap.data.quotes.length,3)
   assert.ok(bootstrap.data.targetHits.some(h=>/Alvo 2/.test(h.target)))
   assert.equal(bootstrap.data.brief.praca.id,'sao-luiz-gonzaga-rs')
+  assert.equal(bootstrap.data.portfolio.commodities.find(c=>c.commodity==='soja').productionSc,12000)
+  assert.ok(bootstrap.data.catalog.producerOptions.riskTolerance.baixa)
+  assert.ok(created.data.request.analysis.position)
   assert.ok(bootstrap.data.catalog.sources.some(item=>item.id==='coopatrigo'&&item.url))
   assert.ok(bootstrap.data.catalog.references.length>=3)
   const fromCatalog=await call(base,'POST','/api/quotes',{sourceId:'cotrisal',commodity:'milho',price:62})
