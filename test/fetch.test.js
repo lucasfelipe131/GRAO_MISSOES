@@ -61,3 +61,11 @@ test('tabela por coluna (Coopatrigo) e por linha (praças) são lidas a partir d
  const cotrisal=extractFromHtml(`<div>Região Norte | SOJA | R$ 138,00 | MILHO | R$ 60,00</div><div>Região Noroeste | SOJA | R$ 141,00 | MILHO | R$ 62,00 | TRIGO (pH 78) | R$ 75,00</div>`,sources.find(s=>s.id==='cotrisal'))
  assert.equal(cotrisal.prices.soja.price,141);assert.equal(cotrisal.prices.milho.price,62);assert.equal(cotrisal.prices.trigo.price,75)
 })
+
+test('leitura por linha respeita a prioridade das praças e ignora linhas sem cotação',()=>{
+ const html=`<table><tr><th>Praça</th><th>Preço</th><th>Var</th></tr><tr><td>Não-Me-Toque/RS (Cotrijal)</td><td>s/ cotação</td><td>-</td></tr><tr><td>Ubiratã/PR (Coagru)</td><td>139,00</td><td>-0,71</td></tr><tr><td>Passo Fundo/RS</td><td>140,00</td><td>0,00</td></tr><tr><td>Santo Ângelo/RS (Cotrisa)</td><td>141,50</td><td>0,35</td></tr></table>`
+ const na=extractFromHtml(html,sources.find(s=>s.id==='na-soja-fisico'))
+ assert.equal(na.prices.soja.price,141.5);assert.equal(na.prices.soja.keyword,'santo angelo')
+ const onlyRs=extractFromHtml(html.replace('Santo Ângelo/RS (Cotrisa)','Tupanciretã/RS'),sources.find(s=>s.id==='na-soja-fisico'))
+ assert.equal(onlyRs.prices.soja.price,140);assert.equal(onlyRs.prices.soja.keyword,'passo fundo')
+})

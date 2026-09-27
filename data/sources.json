@@ -56,7 +56,7 @@
       "paymentTerms": "72 h",
       "confidence": 85,
       "cadence": "diária, manhã",
-      "howTo": "Abra a página, localize o grão (ex.: Soja 60 kg 72 hs) e copie o valor em R$ por saca. Registre o horário mostrado na página. A cotação vale para entrega na unidade da Coopatrigo.",
+      "howTo": "Abra a página, localize o grão (ex.: Soja 60 kg 72 hs) e copie o valor em R$ por saca. Registre o horário mostrado na página. A cotação vale para entrega na unidade da Coopatrigo. Os valores da página entram por script, então a leitura automática não os enxerga: registre pelo cartão da fonte (um clique por grão).",
       "primary": true,
       "fetch": {
         "strategy": "auto",
@@ -236,7 +236,7 @@
       "id": "na-soja-fisico",
       "name": "Notícias Agrícolas — Soja mercado físico",
       "type": "market_feed",
-      "region": "Rio Grande do Sul (praças)",
+      "region": "Rio Grande do Sul (praça lida)",
       "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-mercado-fisico-sindicatos-e-cooperativas",
       "priceUnit": "BRL/sc_60kg",
       "marketKind": "spot",
@@ -249,34 +249,23 @@
       "howTo": "Procure as praças gaúchas (Passo Fundo, Cruz Alta, Ijuí, Santa Rosa, Rio Grande). Informe a praça escolhida no campo Praça / comprador.",
       "primary": false,
       "fetch": {
-        "strategy": "auto",
+        "strategy": "table-rows",
         "rows": {
           "soja": [
+            "sao luiz gonzaga",
             "santo angelo",
-            "santo ângelo",
             "cruz alta",
             "ijui",
-            "ijuí",
-            "passo fundo",
             "santa rosa",
-            "giruá",
             "girua",
-            "sao luiz gonzaga",
-            "são luiz gonzaga"
+            "panambi",
+            "palmeira das missoes",
+            "tres de maio",
+            "santa barbara do sul",
+            "passo fundo",
+            "/rs"
           ]
-        },
-        "keywords": {
-          "soja": [
-            "santo angelo",
-            "santo ângelo",
-            "cruz alta",
-            "ijui",
-            "ijuí",
-            "sao luiz gonzaga",
-            "são luiz gonzaga"
-          ]
-        },
-        "window": 60
+        }
       }
     },
     {
