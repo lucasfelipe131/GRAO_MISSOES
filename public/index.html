@@ -192,6 +192,7 @@
    <div><b>Frete</b><p>Distância × tarifa por tonelada-quilômetro + parcela fixa, convertido para saca. Entrega na unidade usa a distância da propriedade; porto soma a distância do cadastro do produtor à do destino.</p></div>
    <div><b>Margem</b><p>Margem que a C.Vale quer trabalhar por saca. Preço da oferta = referência no vencimento − frete − margem. O painel avisa se ficar abaixo do concorrente ou do custo do produtor.</p></div>
    <div><b>Registro</b><p>Cada oferta fica salva com situação (rascunho, enviada, aceita, recusada, expirada), preço fechado e observações. Exporte em JSON ou CSV para cruzar com a VAL.</p></div>
+   <div><b>Histórico de pedidas</b><p>Ao escolher o produtor, o painel mostra todas as pedidas anteriores dele (ofertas e pedidos), a média, o prêmio que ele costuma pedir sobre o C.Vale do dia e quanto fechou em relação à pedida. Use para calibrar a oferta antes de ligar.</p></div>
   </div></details>
   <div class="split">
    <form id="offerForm" class="card form">
@@ -216,7 +217,8 @@
     <p class="error" id="offerError" role="alert" hidden></p>
     <div class="actions"><button class="secondary" type="button" id="offerPreview">Calcular</button><button class="primary" type="submit">Registrar oferta</button></div>
    </form>
-   <div id="offerResult" class="card output"><div class="empty"><h3>A oferta nasce da referência, do frete e da margem</h3><p>Escolha o produtor, o grão, o volume e o vencimento. O painel calcula frete, projeção e preço a oferecer.</p></div></div>
+   <div class="stack"><div id="offerResult" class="card output"><div class="empty"><h3>A oferta nasce da referência, do frete e da margem</h3><p>Escolha o produtor, o grão, o volume e o vencimento. O painel calcula frete, projeção e preço a oferecer.</p></div></div>
+   <div id="askingHistory" class="card"><div class="cardhead"><h2>Histórico de pedidas do produtor</h2><small id="askingCount"></small></div><div id="askingBody"><p class="meta">Selecione um produtor para comparar as pedidas anteriores com a oferta de hoje.</p></div></div></div>
   </div>
   <div class="split wide2">
    <form id="settingsForm" class="card form"><h2>Parâmetros de frete e margem</h2><div class="grid"><label>Tarifa (R$/t/km)<input name="freightRatePerTKm" type="number" min="0" step="0.01"></label><label>Fixo (R$/t)<input name="freightFixedPerT" type="number" min="0" step="0.01"></label><label>Margem padrão (R$/sc)<input name="defaultMarginPerSc" type="number" min="0" step="0.01"></label><label>Carrego (R$/sc/mês)<input name="storageCostScMonth" type="number" min="0" step="0.01"></label><label>Validade padrão (dias)<input name="validityDays" type="number" min="0" step="1"></label></div><p class="muted">Destinos e distâncias</p><div id="destinations" class="destlist"></div><div class="actions"><button class="mini" type="button" id="addDestination">+ destino</button><button class="primary" type="submit">Salvar parâmetros</button></div></form>

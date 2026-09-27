@@ -148,7 +148,7 @@ test('ofertas: parâmetros, prévia, registro, situação, fechamento e exporta�
   assert.equal((await call(base,'PATCH',`/api/offers/${id}`,{status:'enviada'})).data.offer.status,'enviada')
   const closed=await call(base,'PATCH',`/api/offers/${id}`,{status:'aceita',closedPrice:'139,50',notes:'fechado por telefone'});assert.equal(closed.data.offer.closedPrice,139.5);assert.equal(closed.data.offer.history.length,3)
   assert.equal((await call(base,'PATCH',`/api/offers/${id}`,{status:'x'})).status,400)
-  const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.offers.length,1);assert.ok(boot.data.offerStatuses.includes('aceita'))
+  const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.offers.length,1);assert.ok(boot.data.offerStatuses.includes('aceita'));assert.equal(boot.data.askingHistory.length,1);assert.equal(boot.data.askingHistory[0].producerId,producer.id);assert.equal(boot.data.askingHistory[0].entries[0].askingPrice,150);assert.equal(boot.data.askingHistory[0].entries[0].closedPrice,139.5);assert.ok(boot.data.priceYear.find(c=>c.commodity==='soja').sources.length>=2)
   const exp=await call(base,'GET','/api/offers/export');assert.equal(exp.data.system,'VAL-SOG');assert.equal(exp.data.offers.length,1);assert.equal(exp.data.producers.length,1)
   assert.equal((await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'trigo',volumeSc:10,deliveryMonth:'2026-11',referenceMode:'porto'})).status,400)
  }finally{server.close()}

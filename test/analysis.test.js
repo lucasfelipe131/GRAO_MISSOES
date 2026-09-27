@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {analyzeRequest,buildBrief,buildPortfolio,buildPriceYear,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
+import {analyzeRequest,buildAskingHistory,buildBrief,buildPortfolio,buildPriceYear,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
 
 const now=new Date('2026-09-23T12:00:00.000Z')
 const praca=loadPraca()
@@ -101,6 +101,7 @@ test('painel de preços do ano consolida séries, estatísticas, média mensal e
  assert.equal(imported.length,4);assert.equal(rejected.length,2);assert.equal(imported[0].observedAt,'2026-01-15T12:00:00.000Z');assert.equal(imported[2].price,135.5)
  const own={commodity:'soja',price:141,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga (C.Vale)',sourceId:'cvale',sourceName:'C.Vale',observedAt:'2026-09-23T10:00:00.000Z',status:'active'}
  const year=buildPriceYear({quotes:[...imported,own,port],praca},{now})
+ const sojaYear=year.find(c=>c.commodity==='soja');assert.ok(Array.isArray(sojaYear.sources)&&sojaYear.sources.length>=2);assert.ok(sojaYear.sources.some(s=>s.kind==='own'));assert.ok(sojaYear.sources.every(s=>s.points.length&&s.avg!=null&&s.label));assert.ok(sojaYear.seriesStats.own.avg>0)
  const soja=year.find(c=>c.commodity==='soja')
  assert.equal(soja.series.own.length,1);assert.equal(soja.series.competitors.length,4);assert.equal(soja.series.port.length,1)
  assert.equal(soja.stats.min,120);assert.equal(soja.stats.max,141);assert.equal(soja.stats.current,141);assert.equal(soja.stats.positionPercent,100)
@@ -110,4 +111,23 @@ test('painel de preços do ano consolida séries, estatísticas, média mensal e
  const milho=year.find(c=>c.commodity==='milho');assert.equal(milho.stats,null);assert.ok(milho.hints.some(h=>/importe um histórico/.test(h)));assert.equal(typeof milho.seasonal.next3Percent,'number');assert.ok(milho.hints.some(h=>/sazonal/.test(h)))
  assert.throws(()=>normalizeImportLines({commodity:'soja',sourceName:'X',lines:'nada'}),/Nenhuma linha válida/)
  const guide=loadStorageGuide();assert.deepEqual(Object.keys(guide.crops),['soja','milho','trigo','canola']);assert.ok(guide.general.fumigation.items.length>=4)
+})
+
+test('histórico de pedidas por produtor: ofertas e pedidos, prêmio sobre C.Vale e fechamento',()=>{
+ const now=new Date('2026-09-27T12:00:00Z')
+ const producers=[{id:'p1',name:'Ana'},{id:'p2',name:'Bento'}]
+ const quotes=[{id:'q1',sourceId:'cvale',sourceName:'C.Vale',commodity:'soja',price:140,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',observedAt:'2026-09-20T10:00:00Z'},{id:'q2',sourceId:'coopatrigo',sourceName:'Coopatrigo',commodity:'soja',price:142,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',observedAt:'2026-09-20T10:00:00Z'}]
+ const offers=[
+  {id:'o1',producerId:'p1',status:'aceita',closedPrice:146,createdAt:'2026-09-21T10:00:00Z',offer:{commodity:'soja',commodityLabel:'Soja',volumeSc:1000,askingPrice:150,offerPrice:145,asking:{gapSc:-5,status:'ajustavel'},comparison:{cvale:140,competitor:{price:142,sourceName:'Coopatrigo'}}}},
+  {id:'o2',producerId:'p1',status:'recusada',createdAt:'2026-09-25T10:00:00Z',offer:{commodity:'soja',commodityLabel:'Soja',volumeSc:500,askingPrice:154,offerPrice:147,asking:{gapSc:-7,status:'ajustavel'},comparison:{cvale:141,competitor:null}}},
+  {id:'o3',producerId:'p1',status:'rascunho',createdAt:'2026-09-26T10:00:00Z',offer:{commodity:'milho',commodityLabel:'Milho',volumeSc:200,askingPrice:null,offerPrice:60,asking:null,comparison:{}}}
+ ]
+ const requests=[{id:'r1',producerId:'p2',status:'closed',commodity:'soja',createdAt:'2026-09-22T10:00:00Z',request:'quer 148',closings:[{price:143,volumeSc:300}],analysis:{request:{targetPriceSc:148,volumeSc:300,commodityLabel:'Soja'},marketReading:{reference:{price:142}}}}]
+ const hist=buildAskingHistory({producers,offers,requests,quotes},{now})
+ assert.equal(hist.length,2)
+ const ana=hist.find(h=>h.producerId==='p1');assert.equal(ana.n,2);assert.equal(ana.entries[0].askingPrice,154)
+ const soja=ana.byCommodity.find(c=>c.commodity==='soja');assert.equal(soja.n,2);assert.equal(soja.avgAsking,152);assert.equal(soja.minAsking,150);assert.equal(soja.maxAsking,154);assert.equal(soja.trendSc,4);assert.equal(soja.avgGapSc,-6);assert.equal(soja.avgPremiumVsCvaleSc,11.5);assert.equal(soja.acceptedRate,50);assert.equal(soja.avgClosedVsAsking,-4)
+ assert.ok(ana.hints.some(h=>/acima do C.Vale/.test(h)))
+ const bento=hist.find(h=>h.producerId==='p2');assert.equal(bento.entries[0].kind,'pedido');assert.equal(bento.entries[0].askingPrice,148);assert.equal(bento.entries[0].cvaleOnDay,140);assert.equal(bento.entries[0].competitorOnDay,142);assert.equal(bento.entries[0].closedPrice,143);assert.equal(bento.entries[0].gapSc,-6)
+ assert.equal(buildAskingHistory({producers,offers:[],requests:[],quotes},{now}).length,0)
 })
