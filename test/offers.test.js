@@ -14,8 +14,10 @@ const quotes=[
 test('frete e projeção por vencimento',()=>{
  const f=freightCost({distanceKm:600,ratePerTKm:0.55,fixedPerT:15});assert.equal(f.perT,345);assert.equal(f.perSc,20.7)
  assert.deepEqual(freightCost({distanceKm:0,ratePerTKm:0.55,fixedPerT:15}),{perT:0,perSc:0})
- const proj=projectByMonth({referenceSc:163,seasonality:praca.seasonality.soja,now,months:9,storageCostScMonth:1.2})
- assert.equal(proj.length,10);assert.equal(proj[0].key,'2026-09');assert.equal(proj[0].projected,163);assert.equal(proj[4].key,'2027-01');assert.equal(proj[4].carry,4.8);assert.equal(proj[6].projected,Number((163*97/103).toFixed(2)))
+ const idx=[103,null,97,null,null,null,null,null,103,null,null,null]
+ const proj=projectByMonth({referenceSc:163,seasonality:idx,now,months:9,storageCostScMonth:1.2})
+ assert.equal(proj.length,10);assert.equal(proj[0].key,'2026-09');assert.equal(proj[0].projected,163);assert.equal(proj[0].seasonal,true);assert.equal(proj[4].key,'2027-01');assert.equal(proj[4].carry,4.8);assert.equal(proj[4].seasonal,true);assert.equal(proj[4].projected,163);assert.equal(proj[6].key,'2027-03');assert.equal(proj[6].projected,Number((163*97/103).toFixed(2)));assert.equal(proj[1].seasonal,false);assert.equal(proj[1].index,null);assert.equal(proj[1].projected,163)
+ const flat=projectByMonth({referenceSc:163,seasonality:null,now,months:2,storageCostScMonth:1.2});assert.ok(flat.every(p=>!p.seasonal&&p.projected===163))
 })
 
 test('oferta composta: referência automática de porto, ajuste sazonal, frete, margem e comparações',()=>{
@@ -23,7 +25,11 @@ test('oferta composta: referência automática de porto, ajuste sazonal, frete, 
  const offer=buildOffer({input,producer,quotes,praca,settings:defaultOfferSettings},{now})
  assert.equal(offer.reference.mode,'porto');assert.equal(offer.reference.price,163)
  assert.equal(offer.distanceKm,625);assert.equal(offer.freight.perT,Number((625*0.55+15).toFixed(2)))
- assert.equal(offer.projection.index,102);assert.equal(offer.referenceAtDelivery,Number((163*102/103).toFixed(2)))
+ assert.equal(offer.projection.seasonal,false);assert.equal(offer.projection.index,null);assert.equal(offer.referenceAtDelivery,163);assert.ok(offer.notes.some(n=>/Sem padrão sazonal observado/.test(n)))
+ const hist=[{id:'h1',commodity:'soja',price:130,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',sourceName:'Coopatrigo',observedAt:'2025-11-15T12:00:00.000Z',status:'active'},{id:'h2',commodity:'soja',price:120,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',sourceName:'Coopatrigo',observedAt:'2026-03-15T12:00:00.000Z',status:'active'}]
+ const seasonalOffer=buildOffer({input,producer,quotes:quotes.concat(hist),praca,settings:defaultOfferSettings},{now})
+ const mean=(130+120+141.5)/3;const idxNov=Math.round(130/mean*100),idxSep=Math.round(141.5/mean*100)
+ assert.equal(seasonalOffer.projection.seasonal,true);assert.equal(seasonalOffer.projection.index,idxNov);assert.equal(seasonalOffer.projection.baseIndex,idxSep);assert.equal(seasonalOffer.referenceAtDelivery,Number((163*idxNov/idxSep).toFixed(2)));assert.ok(!seasonalOffer.notes.some(n=>/Sem padrão sazonal/.test(n)))
  assert.equal(offer.offerPrice,Number((offer.referenceAtDelivery-offer.freight.perSc-2.5).toFixed(2)))
  assert.equal(offer.comparison.cvale,141);assert.equal(offer.comparison.competitor.sourceName,'Coopatrigo')
  assert.ok(offer.notes.some(n=>/Cobre o custo/.test(n)));assert.equal(offer.validUntil,'2026-09-29')
@@ -32,7 +38,7 @@ test('oferta composta: referência automática de porto, ajuste sazonal, frete, 
  const unit=buildOffer({input:normalizeOfferInput({producerId:'p1',commodity:'soja',volumeSc:100,deliveryMonth:'2026-10',destinationId:'cvale-slg',referenceMode:'cvale',marginPerSc:'1'}),producer,quotes,praca,settings:defaultOfferSettings},{now})
  assert.equal(unit.reference.mode,'cvale');assert.equal(unit.distanceKm,25);assert.ok(unit.warnings.some(w=>/abaixo do concorrente/.test(w)))
  const manual=buildOffer({input:normalizeOfferInput({producerId:'p1',commodity:'milho',volumeSc:100,deliveryMonth:'2027-02',referenceMode:'manual',manualReference:'65'}),producer,quotes:[],praca,settings:defaultOfferSettings},{now})
- assert.equal(manual.reference.mode,'manual');assert.equal(manual.projection.index,94)
+ assert.equal(manual.reference.mode,'manual');assert.equal(manual.projection.index,null);assert.equal(manual.projection.seasonal,false);assert.equal(manual.referenceAtDelivery,65)
  const none=buildOffer({input:normalizeOfferInput({producerId:'p1',commodity:'trigo',volumeSc:100,deliveryMonth:'2026-10'}),producer,quotes:[],praca,settings:defaultOfferSettings},{now})
  assert.equal(none.offerPrice,null);assert.ok(none.warnings.some(w=>/Sem referência/.test(w)))
  assert.throws(()=>normalizeOfferInput({producerId:'p1',commodity:'soja',volumeSc:10,deliveryMonth:'nov'}),/vencimento/i)

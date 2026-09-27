@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {analyzeRequest,buildAskingHistory,buildBrief,buildPortfolio,buildPriceYear,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
+import {analyzeRequest,buildAskingHistory,buildBrief,buildSeasonality,buildPortfolio,buildPriceYear,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
 
 const now=new Date('2026-09-23T12:00:00.000Z')
 const praca=loadPraca()
@@ -106,9 +106,9 @@ test('painel de preços do ano consolida séries, estatísticas, média mensal e
  assert.equal(soja.series.own.length,1);assert.equal(soja.series.competitors.length,4);assert.equal(soja.series.port.length,1)
  assert.equal(soja.stats.min,120);assert.equal(soja.stats.max,141);assert.equal(soja.stats.current,141);assert.equal(soja.stats.positionPercent,100)
  assert.equal(soja.monthly.find(m=>m.month===3).avg,120);assert.equal(soja.monthly.find(m=>m.month===9).n,2)
- assert.equal(soja.seasonal.currentMonth,9);assert.deepEqual(soja.seasonal.bestMonths.slice(0,1),[1])
+ assert.equal(soja.seasonal.currentMonth,9);assert.equal(soja.seasonal.source,'observado');assert.equal(soja.seasonal.observedMonths,4);assert.equal(soja.seasonal.index[1],null);assert.deepEqual(soja.seasonal.bestMonths.slice(0,1),[9]);assert.equal(soja.seasonal.next3Percent,null);assert.ok(soja.hints.some(h=>/não projeta o que não foi observado/.test(h)))
  assert.ok(soja.hints.some(h=>/acima da média/.test(h)))
- const milho=year.find(c=>c.commodity==='milho');assert.equal(milho.stats,null);assert.ok(milho.hints.some(h=>/importe um histórico/.test(h)));assert.equal(typeof milho.seasonal.next3Percent,'number');assert.ok(milho.hints.some(h=>/sazonal/.test(h)))
+ const milho=year.find(c=>c.commodity==='milho');assert.equal(milho.stats,null);assert.ok(milho.hints.some(h=>/importe um histórico/.test(h)));assert.equal(milho.seasonal.usable,false);assert.equal(milho.seasonal.next3Percent,null);assert.ok(milho.hints.some(h=>/padrão sazonal/.test(h)))
  assert.throws(()=>normalizeImportLines({commodity:'soja',sourceName:'X',lines:'nada'}),/Nenhuma linha válida/)
  const guide=loadStorageGuide();assert.deepEqual(Object.keys(guide.crops),['soja','milho','trigo','canola']);assert.ok(guide.general.fumigation.items.length>=4)
 })
@@ -130,4 +130,15 @@ test('histórico de pedidas por produtor: ofertas e pedidos, prêmio sobre C.Val
  assert.ok(ana.hints.some(h=>/acima do C.Vale/.test(h)))
  const bento=hist.find(h=>h.producerId==='p2');assert.equal(bento.entries[0].kind,'pedido');assert.equal(bento.entries[0].askingPrice,148);assert.equal(bento.entries[0].cvaleOnDay,140);assert.equal(bento.entries[0].competitorOnDay,142);assert.equal(bento.entries[0].closedPrice,143);assert.equal(bento.entries[0].gapSc,-6)
  assert.equal(buildAskingHistory({producers,offers:[],requests:[],quotes},{now}).length,0)
+})
+
+test('padrão sazonal só com cotações registradas: meses sem dado ficam vazios e nada é inventado',()=>{
+ const now=new Date('2026-09-27T12:00:00Z')
+ const q=(d,p,extra={})=>({commodity:'soja',price:p,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',sourceName:'Coopatrigo',observedAt:d+'T12:00:00.000Z',status:'active',...extra})
+ assert.equal(buildSeasonality({quotes:[],commodity:'soja'},{now}).usable,false)
+ assert.equal(buildSeasonality({quotes:[q('2026-01-10',130),q('2026-02-10',125)],commodity:'soja'},{now}).usable,false)
+ const s=buildSeasonality({quotes:[q('2026-01-10',130),q('2026-01-20',130),q('2026-05-10',120),q('2026-09-10',150),q('2026-09-11',150,{region:'Porto de Rio Grande'}),q('2025-09-10',150)],commodity:'soja'},{now})
+ assert.equal(s.usable,true);assert.equal(s.observedMonths,3);assert.equal(s.mean,Number(((130+120+150)/3).toFixed(2)))
+ assert.equal(s.index[0],Math.round(130/s.mean*100));assert.equal(s.index[4],Math.round(120/s.mean*100));assert.equal(s.index[8],Math.round(150/s.mean*100));assert.equal(s.index[1],null);assert.equal(s.index[11],null)
+ assert.deepEqual(s.months[8].years,['2025','2026']);assert.equal(s.months[8].days,2)
 })

@@ -188,7 +188,7 @@
  <section data-panel="ofertas" class="panel" hidden>
   <details class="guide"><summary>Guia: como compor uma oferta</summary><div class="guidegrid">
    <div><b>Referência</b><p>Automática: usa o porto mais recente (Rio Grande ou Paranaguá) ou, sem porto, o preço C.Vale. Pode forçar porto, C.Vale ou digitar uma referência manual da mesa.</p></div>
-   <div><b>Projeção por vencimento</b><p>A referência de hoje é ajustada pelo índice sazonal do mês de entrega e mostra o carrego (custo de armazenar até lá). Use o campo Ajuste para prêmio ou desconto do vencimento informado pela mesa.</p></div>
+   <div><b>Projeção por vencimento</b><p>A referência de hoje é ajustada pelo índice sazonal observado nas cotações registradas (quando o mês de entrega e o mês atual têm cotação) e mostra o carrego (custo de armazenar até lá). Sem padrão observado, a projeção usa a referência de hoje só com o carrego. Use o campo Ajuste para prêmio ou desconto do vencimento informado pela mesa.</p></div>
    <div><b>Frete</b><p>Distância × tarifa por tonelada-quilômetro + parcela fixa, convertido para saca. Entrega na unidade usa a distância da propriedade; porto soma a distância do cadastro do produtor à do destino.</p></div>
    <div><b>Margem</b><p>Margem que a C.Vale quer trabalhar por saca. Preço da oferta = referência no vencimento − frete − margem. O painel avisa se ficar abaixo do concorrente ou do custo do produtor.</p></div>
    <div><b>Registro</b><p>Cada oferta fica salva com situação (rascunho, enviada, aceita, recusada, expirada), preço fechado e observações. Exporte em JSON ou CSV para cruzar com a VAL.</p></div>
@@ -229,7 +229,7 @@
   <details class="guide"><summary>Guia: como usar o painel de preços na hora de vender</summary><div class="guidegrid">
    <div><b>Linha do ano</b><p>Cotações registradas nos últimos 12 meses: C.Vale, média dos concorrentes e porto. Quanto mais cotações diárias registradas, melhor a leitura.</p></div>
    <div><b>Posição no intervalo</b><p>Onde o preço de hoje está entre a mínima e a máxima do ano. Acima de 70% costuma ser janela de venda; abaixo de 30%, de espera, se o caixa permitir.</p></div>
-   <div><b>Padrão sazonal</b><p>Índice histórico regional (100 = média do ano), não previsão. Compare a alta esperada nos próximos meses com o custo de carregar o grão.</p></div>
+   <div><b>Padrão sazonal observado</b><p>Calculado só com as cotações registradas ou importadas: média de cada mês ÷ média dos meses observados × 100. Meses sem cotação aparecem vazios e não entram em projeção. Quanto mais histórico importado (CEPEA, Emater, cooperativa), mais fiel o padrão.</p></div>
    <div><b>Importar histórico</b><p>Cole linhas “data;preço” (ex.: 15/01/2026;138,50) de planilhas da cooperativa, CEPEA ou Emater para preencher o ano antes que o sistema acumule cotações.</p></div>
   </div></details>
   <div id="prices" class="prices"></div>

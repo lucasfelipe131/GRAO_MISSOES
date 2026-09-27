@@ -1,6 +1,6 @@
 {
   "id": "sao-luiz-gonzaga-rs",
-  "version": "praca-slg-v1",
+  "version": "praca-slg-v2",
   "label": "São Luiz Gonzaga/RS — Missões",
   "updatedAt": "2026-09-23",
   "aliases": [
@@ -270,7 +270,7 @@
       {
         "commodity": "soja",
         "label": "Cotrisal — região Noroeste/RS (disponível)",
-        "price": 140.0,
+        "price": 140,
         "priceUnit": "BRL/sc_60kg",
         "region": "Noroeste/RS",
         "source": "Cotrisal",
@@ -325,7 +325,7 @@
       {
         "commodity": "milho",
         "label": "Cotrisal — região Noroeste/RS (disponível)",
-        "price": 62.0,
+        "price": 62,
         "priceUnit": "BRL/sc_60kg",
         "region": "Noroeste/RS",
         "source": "Cotrisal",
@@ -347,7 +347,7 @@
       {
         "commodity": "trigo",
         "label": "Cotrisal — trigo pH 78 (disponível)",
-        "price": 75.0,
+        "price": 75,
         "priceUnit": "BRL/sc_60kg",
         "region": "Noroeste/RS",
         "source": "Cotrisal",
@@ -447,63 +447,5 @@
       }
     ]
   },
-  "seasonality": {
-    "note": "Índice sazonal indicativo (100 = média do ano) baseado no padrão histórico regional de preços ao produtor; não é preço nem previsão. Confirmar com as séries do CEPEA e da Emater/RS antes de usar em decisão.",
-    "soja": [
-      103,
-      101,
-      97,
-      95,
-      96,
-      98,
-      100,
-      102,
-      103,
-      103,
-      102,
-      101
-    ],
-    "milho": [
-      96,
-      94,
-      93,
-      95,
-      97,
-      100,
-      103,
-      105,
-      106,
-      105,
-      103,
-      100
-    ],
-    "trigo": [
-      102,
-      103,
-      104,
-      105,
-      104,
-      102,
-      100,
-      98,
-      96,
-      94,
-      94,
-      98
-    ],
-    "canola": [
-      100,
-      102,
-      103,
-      103,
-      102,
-      100,
-      99,
-      98,
-      96,
-      95,
-      98,
-      100
-    ]
-  }
+  "seasonalityNote": "O padrão sazonal não é mais um índice pré-definido: é calculado apenas a partir das cotações registradas ou importadas na praça (média mensal de cada mês observado ÷ média dos meses observados × 100). Meses sem cotação ficam vazios e não entram em projeção alguma."
 }
