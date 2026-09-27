@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v5",
+  "version": "fontes-v6",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -373,6 +373,75 @@
             "trigo em grão"
           ]
         }
+      }
+    },
+    {
+      "id": "agrolink-hist-rs-soja",
+      "name": "Agrolink — histórico RS soja",
+      "type": "market_feed",
+      "region": "Rio Grande do Sul (Agrolink histórico)",
+      "url": "https://www.agrolink.com.br/cotacoes/historico/rs/soja-em-grao-sc-60kg",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja"
+      ],
+      "paymentTerms": "",
+      "confidence": 70,
+      "cadence": "diária",
+      "howTo": "Página de histórico da média estadual do RS (soja, saca de 60 kg). O sistema lê toda a tabela de datas e preços e guarda cada dia como histórico, alimentando o padrão sazonal e o comparativo do ano. Se a página vier vazia, importe o histórico em Preços.",
+      "primary": false,
+      "history": true,
+      "fetch": {
+        "strategy": "table-latest",
+        "commodity": "soja",
+        "history": true
+      }
+    },
+    {
+      "id": "agrolink-hist-rs-milho",
+      "name": "Agrolink — histórico RS milho",
+      "type": "market_feed",
+      "region": "Rio Grande do Sul (Agrolink histórico)",
+      "url": "https://www.agrolink.com.br/cotacoes/historico/rs/milho-seco-sc-60kg",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "milho"
+      ],
+      "paymentTerms": "",
+      "confidence": 70,
+      "cadence": "diária",
+      "howTo": "Página de histórico da média estadual do RS (milho, saca de 60 kg). O sistema lê toda a tabela de datas e preços e guarda cada dia como histórico, alimentando o padrão sazonal e o comparativo do ano. Se a página vier vazia, importe o histórico em Preços.",
+      "primary": false,
+      "history": true,
+      "fetch": {
+        "strategy": "table-latest",
+        "commodity": "milho",
+        "history": true
+      }
+    },
+    {
+      "id": "agrolink-hist-rs-trigo",
+      "name": "Agrolink — histórico RS trigo",
+      "type": "market_feed",
+      "region": "Rio Grande do Sul (Agrolink histórico)",
+      "url": "https://www.agrolink.com.br/cotacoes/historico/rs/trigo-em-grao-sc-60kg",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "trigo"
+      ],
+      "paymentTerms": "",
+      "confidence": 70,
+      "cadence": "diária",
+      "howTo": "Página de histórico da média estadual do RS (trigo, saca de 60 kg). O sistema lê toda a tabela de datas e preços e guarda cada dia como histórico, alimentando o padrão sazonal e o comparativo do ano. Se a página vier vazia, importe o histórico em Preços.",
+      "primary": false,
+      "history": true,
+      "fetch": {
+        "strategy": "table-latest",
+        "commodity": "trigo",
+        "history": true
       }
     },
     {

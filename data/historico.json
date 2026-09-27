@@ -1,8 +1,28 @@
 {
-  "version": "historico-v2",
+  "version": "historico-v3",
   "updatedAt": "2026-09-27",
-  "note": "Pontos reais pesquisados em fontes públicas (CEPEA, Emater, Agrolink, Notícias Agrícolas, Grão Direto) para o comparativo do ano de 2026. Cada ponto traz fonte, data e observação; médias mensais são registradas no dia 15 e valores aproximados estão marcados na observação. Trechos que se mostraram de 2025 foram descartados.",
+  "note": "Pontos reais pesquisados em fontes públicas (CEPEA, Emater, Agrolink, Notícias Agrícolas, Grão Direto) para o comparativo do ano de 2026. Cada ponto traz fonte, data e observação; médias mensais são registradas no dia 15 e valores aproximados estão marcados na observação. Trechos que se mostraram de 2025 foram descartados. Versão 3: acrescenta médias mensais de 2024/2025 citadas pelo CEPEA (Paranaguá, trigo RS, milho); o histórico diário do RS passa a ser lido automaticamente das páginas de histórico do Agrolink.",
   "points": [
+    {
+      "commodity": "milho",
+      "date": "2025-02-28",
+      "price": 84.85,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Campinas (CEPEA)",
+      "sourceName": "CEPEA/ESALQ — Indicador do Milho",
+      "sourceUrl": "https://www.cepea.org.br/br/indicador/milho.aspx",
+      "notes": "Indicador fechou fevereiro/2025 em R$ 84,85/sc (+13,1% no mês)"
+    },
+    {
+      "commodity": "milho",
+      "date": "2025-07-15",
+      "price": 62.73,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Campinas (CEPEA)",
+      "sourceName": "CEPEA/ESALQ — Indicador do Milho",
+      "sourceUrl": "https://www.cepea.org.br/br/indicador/milho.aspx",
+      "notes": "Mínima anual de 2025 do Indicador (R$ 62,73/sc) registrada em julho"
+    },
     {
       "commodity": "milho",
       "date": "2026-03-19",
@@ -112,6 +132,36 @@
       "sourceName": "Cotrisal",
       "sourceUrl": "https://www.cotrisal.com.br/",
       "notes": "Cotação de 23/09/2026"
+    },
+    {
+      "commodity": "soja",
+      "date": "2024-12-15",
+      "price": 142,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Paranaguá (CEPEA)",
+      "sourceName": "CEPEA/ESALQ — Indicador Paranaguá (média mensal)",
+      "sourceUrl": "https://www.cepea.org.br/br/indicador/soja.aspx",
+      "notes": "Média de dezembro/2024 do Indicador Paranaguá citada pelo CEPEA na comparação com dezembro/2025 (R$ 142,0)"
+    },
+    {
+      "commodity": "soja",
+      "date": "2025-08-15",
+      "price": 140.5,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Paranaguá (CEPEA)",
+      "sourceName": "CEPEA/ESALQ — Indicador Paranaguá (média mensal)",
+      "sourceUrl": "https://www.cepea.org.br/br/indicador/soja.aspx",
+      "notes": "Preço médio de agosto/2025 (R$ 140,50/sc) segundo o CEPEA/Esalq"
+    },
+    {
+      "commodity": "soja",
+      "date": "2025-12-15",
+      "price": 142.1,
+      "priceUnit": "BRL/sc_60kg",
+      "region": "Paranaguá (CEPEA)",
+      "sourceName": "CEPEA/ESALQ — Indicador Paranaguá (média mensal)",
+      "sourceUrl": "https://www.cepea.org.br/br/indicador/soja.aspx",
+      "notes": "Média parcial de dezembro/2025 até o dia 26 (R$ 142,1/sc), maior valor do ano em dólar"
     },
     {
       "commodity": "soja",
@@ -292,6 +342,26 @@
       "sourceName": "Cotrisal",
       "sourceUrl": "https://www.cotrisal.com.br/",
       "notes": "Cotação de 23/09/2026 para a região Noroeste"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2025-01-15",
+      "price": 1270.02,
+      "priceUnit": "BRL/t",
+      "region": "Rio Grande do Sul (CEPEA)",
+      "sourceName": "CEPEA/ESALQ — Trigo RS (média mensal)",
+      "sourceUrl": "https://www.cepea.org.br/br/indicador/trigo.aspx",
+      "notes": "Média mensal de janeiro/2025 do trigo negociado no RS (R$ 1.270,02/t)"
+    },
+    {
+      "commodity": "trigo",
+      "date": "2025-10-15",
+      "price": 1138.41,
+      "priceUnit": "BRL/t",
+      "region": "Rio Grande do Sul (CEPEA)",
+      "sourceName": "CEPEA/ESALQ — Trigo RS (média mensal)",
+      "sourceUrl": "https://www.cepea.org.br/br/diarias-de-mercado/trigo-cepea-clima-favorece-lavouras-no-final-de-outubro-medias-tem-novas-quedas.aspx",
+      "notes": "Média de outubro/2025 do trigo no RS (R$ 1.138,41/t), colheita avançando"
     },
     {
       "commodity": "trigo",

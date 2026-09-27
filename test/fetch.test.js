@@ -114,3 +114,11 @@ test('histórico de datas é extraído das páginas de indicador e do trigo por 
  const porto=extractFromHtml(`<table><tr><th>Praça</th><th>Preço</th></tr><tr><td>Rio Grande/RS</td><td>162,00</td></tr><tr><td>Ijuí/RS</td><td>143,00</td></tr></table>`,sources.find(s=>s.id==='na-soja-porto-rio-grande'))
  assert.equal(porto.prices.soja.price,162)
 })
+
+test('página só de histórico (Agrolink RS) vira leitura ok com o último dia e todas as datas',()=>{
+ const html=`<h1>Histórico de cotações</h1><table><tr><th>Data</th><th>Preço</th><th>Variação</th></tr><tr><td>26/09/2026</td><td>R$ 143,42</td><td>0,5%</td></tr><tr><td>25/09/2026</td><td>R$ 142,70</td><td>0,0%</td></tr><tr><td>15/03/2026</td><td>R$ 121,10</td><td>-1,2%</td></tr><tr><td>15/11/2025</td><td>R$ 128,00</td><td>0,3%</td></tr></table>`
+ const src=sources.find(s=>s.id==='agrolink-hist-rs-soja');assert.ok(src&&src.fetch.history)
+ const r=extractFromHtml(html,src,new Date('2026-09-27T12:00:00Z'))
+ assert.equal(r.history.length,4);assert.equal(r.history[0].date,'2025-11-15');assert.equal(r.history[3].price,143.42)
+ assert.equal(r.prices.soja.price,143.42);assert.equal(r.prices.soja.observedDate,'2026-09-26');assert.equal(r.prices.soja.fromHistory,true);assert.match(r.debug.historico,/4 data/)
+})
