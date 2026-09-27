@@ -106,7 +106,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  app.listen(port,'0.0.0.0',()=>console.log(`Grãos Missões ouvindo em :${port}`))
  const hours=Number(process.env.AUTO_FETCH_HOURS||4)
  if(hours>0){
-  const run=()=>app.refreshComparison().then(result=>console.log(`Comparativo atualizado: ${result.okCount}/${result.total} fontes lidas`)).catch(error=>console.error('Comparativo falhou',error.message))
+  const run=()=>app.refreshComparison().then(result=>{console.log(`Comparativo atualizado: ${result.okCount}/${result.total} fontes lidas`);for(const r of result.results){const prices=Object.entries(r.prices||{}).map(([c,p])=>`${c}=${p.price}${p.priceUnit==='BRL/t'?'/t':''}`).join(' ');console.log(`  ${r.status.padEnd(7)} ${r.name}: ${prices||'-'}${r.pageDate?` (página ${r.pageDate})`:''}${r.error?` — ${r.error}`:''}${r.ms?` [${r.ms} ms]`:''}`)}}).catch(error=>console.error('Comparativo falhou',error.message))
   setTimeout(run,5000);setInterval(run,hours*3_600_000).unref()
  }
 }
