@@ -82,3 +82,9 @@ test('valores em ordem da página (Coopatrigo cotações completas) são pareado
  assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.trigo.price,74);assert.equal(coop.prices.milho.price,61);assert.equal(coop.prices.arroz.price,80);assert.equal(coop.prices.canola.price,214)
  assert.match(coop.prices.soja.snippet,/ordem da página/)
 })
+
+test('ordem da página aceita tabela de valores com linhas extras e pares parciais',()=>{
+ const html=`<div>Soja</div><div>Trigo</div><div>Milho</div><div>Arroz</div><div>Canola</div><div>Triguilho</div><div>Triticale</div><table>${['R$ 141,00','R$ 74,00','R$ 61,00','R$ 80,00','-','-','-','27/09/2026','26/09/2026'].map(v=>`<tr><td>${v}</td></tr>`).join('')}</table>`
+ const coop=extractFromHtml(html,sources.find(s=>s.id==='coopatrigo'))
+ assert.equal(coop.prices.soja.price,141);assert.equal(coop.prices.trigo.price,74);assert.equal(coop.prices.milho.price,61);assert.equal(coop.prices.arroz.price,80);assert.equal(coop.prices.canola,undefined)
+})
