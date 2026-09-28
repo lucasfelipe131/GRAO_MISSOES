@@ -139,6 +139,7 @@
     <p class="error" id="quoteError" role="alert" hidden></p>
     <div class="actions"><button class="primary" type="submit">Salvar cotação</button></div>
    </form>
+   <form id="quotesReportForm" class="card form reportcard"><div class="cardhead"><h2>Relatório de cotações e comparativo em PDF</h2><small>comparativo de compradores, estatísticas do período, padrão sazonal e cotações</small></div><div class="grid"><label>De<input name="from" type="date"></label><label>Até<input name="to" type="date"></label><label>Grão<select name="commodity"><option value="">Todos</option></select></label></div><p class="meta">Sem datas, o relatório usa os últimos 30 dias. O comparativo de compradores considera sempre a última cotação de cada fonte nos últimos 7 dias.</p><div class="actions"><button class="secondary" type="button" data-report="geral">Relatório geral (cotações + pedidos + ofertas + recebimentos)</button><button class="primary" type="submit">Exportar PDF</button></div></form>
    <div class="card"><div class="cardhead"><h2>Cotações registradas</h2><div class="row"><small id="quoteCount"></small><button class="mini" type="button" id="exportQuotes">Exportar CSV</button></div></div><div id="trend" class="trend"></div><div id="quotes" class="list"></div></div>
   </div>
  </section>

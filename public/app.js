@@ -129,6 +129,7 @@ function renderRequests(){
 $('#quoteForm select[name=sourceId]').addEventListener('change',e=>applySource(e.target.value))
 $('#quoteForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;$('#quoteError').hidden=true;try{const p=formData(f);p.observedAt=new Date(p.observedAt).toISOString();await api('/api/quotes',{method:'POST',body:JSON.stringify(p)});const keep=f.sourceId.value;f.reset();f.observedAt.value=localNow();f.sourceId.value=keep;applySource(keep);status('Cotação registrada.');await load()}catch(err){$('#quoteError').textContent=err.message;$('#quoteError').hidden=false}})
 function renderQuotes(){
+ {const cs=$('#quotesReportForm select[name=commodity]');if(cs&&cs.options.length<=1)cs.innerHTML='<option value="">Todos</option>'+state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')}
  const all=(state.quotes||[]).filter(q=>q.status!=='inactive');const list=all.slice(0,80);const auto=state.automation||{};$('#quoteCount').textContent=`${all.length} ativas • mostrando ${list.length}${auto.autoSave?` • abastecimento automático ligado${auto.lastRun?`, última leitura ${dt(auto.lastRun)}`:''}${auto.lastSummary?` (${auto.lastSummary.inserted} novas, ${auto.lastSummary.updated} atualizadas, ${auto.lastSummary.history} do histórico)`:''}`:' • abastecimento automático desligado'}`
  if(!list.length){$('#quotes').innerHTML='<div class="empty"><p>Nenhuma cotação registrada. Comece pela Coopatrigo, Cotrisal ou CEPEA.</p></div>';return}
  const label=v=>(state.catalog.commodities.find(c=>c.value===v)||{}).label||v
@@ -360,6 +361,7 @@ async function downloadPdf(kind,params){
 }
 $('#offersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('ofertas',formData(e.target))})
 $('#requestsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('pedidos',formData(e.target))})
+$('#quotesReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('cotacoes',formData(e.target))})
 $('#receiptsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('recebimentos',formData(e.target))})
 $$('[data-report=geral]').forEach(b=>b.addEventListener('click',()=>{const f=b.closest('form');const p=formData(f);downloadPdf('geral',{from:p.from,to:p.to})}))
 function resetUnitForm(){const f=$('#unitForm');f.reset();f.id.value='';$('#unitFormTitle').textContent='Cadastrar unidade de recebimento';$('#unitCancel').hidden=true}
