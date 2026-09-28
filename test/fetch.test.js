@@ -146,6 +146,11 @@ test('indicadores: dólar e Chicago exigem número decimal na linha do contrato 
  const widgetPage='<div>CHICAGO (CME)</div><ul><li>Soja</li><li>Prêmio</li><li>Milho</li><li>Trigo</li></ul><table><tr><td>NOV 2026</td><td>1.289,25</td><td>-29,75</td></tr></table><h1>Cotações Mercado Futuro do Trigo - Chicago</h1><table><tr><th>Contrato</th><th>Último</th><th>Var.</th></tr><tr><td>DEC 2026</td><td>782,50</td><td>+1,10%</td></tr></table>'
  const wt=extractIndicator(widgetPage,htmlToText(widgetPage),{range:[350,1300],rowKeys:['trigo ('],rowPattern:pattern,contextKey:'trigo'});assert.equal(wt.value,782.5)
  const ws=extractIndicator(widgetPage,htmlToText(widgetPage),{range:[700,2200],rowKeys:['soja ('],rowPattern:pattern,contextKey:'soja'});assert.equal(ws.value,1289.25)
+ const tabs='<div>CHICAGO (CME)</div><ul><li>Soja</li><li>Prêmio</li><li>Milho</li><li>Trigo</li></ul><table><tr><td>NOV 2026</td><td>1.290,50</td><td>-28,50</td></tr></table><table><tr><td>DEC 2026</td><td>522,75</td><td>-5,50</td></tr></table><table><tr><td>DEC 2026</td><td>781,25</td><td>+0,90</td></tr></table>'
+ const tabsText=htmlToText(tabs)
+ assert.equal(extractIndicator(tabs,tabsText,{range:[350,1300],rowPattern:pattern,contextKey:'trigo',months:['mar','mai','may','jul','set','sep','dez','dec'],typical:[400,1150]}).value,781.25)
+ assert.equal(extractIndicator(tabs,tabsText,{range:[250,900],rowPattern:pattern,contextKey:'milho',months:['mar','mai','may','jul','set','sep','dez','dec'],typical:[300,800]}).value,522.75)
+ assert.equal(extractIndicator(tabs,tabsText,{range:[700,2200],rowPattern:pattern,contextKey:'soja',months:['jan','mar','mai','may','jul','ago','aug','set','sep','nov'],typical:[850,1800]}).value,1290.5)
  const dolar='<p>Última atualização: 13:47 (28/09)</p><table><tr><th>Moeda</th><th>Compra</th><th>Venda</th><th>Var.</th></tr><tr><td>Dólar Comercial</td><td>5,3812</td><td>5,3820</td><td>-0,21%</td></tr></table>'
  const d=extractIndicator(dolar,htmlToText(dolar),{range:[3,9],rowKeys:['dolar comercial'],keywords:['dolar comercial']});assert.equal(d.value,5.3812);assert.equal(d.change,-0.21)
  assert.equal(extractIndicator('<p>Última atualização: 13:47 (28/09) valor 9</p>','Última atualização: 13:47 (28/09) valor 9',{range:[3,9],keywords:['atualiza']}),null)

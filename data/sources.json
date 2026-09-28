@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v12",
+  "version": "fontes-v13",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -715,7 +715,23 @@
           "soja ("
         ],
         "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$",
-        "contextKey": "soja"
+        "contextKey": "soja",
+        "months": [
+          "jan",
+          "mar",
+          "mai",
+          "may",
+          "jul",
+          "ago",
+          "aug",
+          "set",
+          "sep",
+          "nov"
+        ],
+        "typical": [
+          850,
+          1800
+        ]
       }
     },
     {
@@ -739,7 +755,21 @@
           "milho ("
         ],
         "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$",
-        "contextKey": "milho"
+        "contextKey": "milho",
+        "months": [
+          "mar",
+          "mai",
+          "may",
+          "jul",
+          "set",
+          "sep",
+          "dez",
+          "dec"
+        ],
+        "typical": [
+          300,
+          800
+        ]
       }
     },
     {
@@ -763,7 +793,21 @@
           "trigo ("
         ],
         "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$",
-        "contextKey": "trigo"
+        "contextKey": "trigo",
+        "months": [
+          "mar",
+          "mai",
+          "may",
+          "jul",
+          "set",
+          "sep",
+          "dez",
+          "dec"
+        ],
+        "typical": [
+          400,
+          1150
+        ]
       }
     }
   ]
