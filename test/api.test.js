@@ -277,3 +277,12 @@ test('rotas de relatório em PDF respondem application/pdf com filtros',async()=
   assert.equal((await fetch(base+'/api/reports/outro.pdf')).status,404)
  }finally{server.close()}
 })
+
+test('rota /api/market devolve o mercado agora com indicadores e automação',async()=>{
+ const {server,base}=await start()
+ try{
+  await call(base,'POST','/api/own-quotes',{soja:141});await call(base,'POST','/api/quotes',{commodity:'soja',price:143,region:'São Luiz Gonzaga',sourceName:'Coopatrigo'})
+  const r=await call(base,'GET','/api/market');assert.equal(r.status,200);const soja=r.data.market.commodities.find(c=>c.commodity==='soja');assert.equal(soja.own.price,141);assert.equal(soja.praca.best.price,143);assert.ok(Array.isArray(r.data.market.indicators));assert.ok(r.data.automation.hours>0)
+  const boot=await call(base,'GET','/api/bootstrap');assert.ok(boot.data.market.commodities.length>=4)
+ }finally{server.close()}
+})

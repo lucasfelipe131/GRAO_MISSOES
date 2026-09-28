@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {createServer} from 'node:http'
-import {extractFromHtml,extractKeyword,htmlToText,latestDate,runComparison} from '../lib/fetch.js'
+import {extractFromHtml,extractIndicator,extractKeyword,htmlToText,latestDate,runComparison,runIndicators} from '../lib/fetch.js'
 import {loadSources} from '../lib/analysis.js'
 
 const sources=loadSources().sources
@@ -131,4 +131,15 @@ test('histórico mensal Mês/Ano (Agrolink RS) vira um ponto por mês com a méd
  assert.deepEqual(r.history.map(h=>[h.date,h.price]),[['2024-01-15',130.1],['2025-12-15',121],['2026-08-15',127.36],['2026-09-15',138.67]])
  assert.match(r.history[0].snippet,/média mensal 1\/2024/);assert.equal(r.prices.soja.price,138.67);assert.equal(r.prices.soja.observedDate,'2026-09-15')
  const empty=extractFromHtml('<table><tr><th>Mês/Ano</th><th>Estadual</th><th>Nacional</th></tr></table>',sources.find(s=>s.id==='agrolink-hist-rs-trigo'),new Date('2026-09-27T12:00:00Z'));assert.equal(empty.history.length,0);assert.equal(Object.keys(empty.prices).length,0)
+})
+
+test('indicadores: dólar e Chicago são lidos de tabela ou texto com faixa de plausibilidade',async()=>{
+ const dolar='<table><tr><th>Moeda</th><th>Compra</th><th>Venda</th><th>Var.</th></tr><tr><td>Dólar Comercial</td><td>5,4310</td><td>5,4325</td><td>-0,35%</td></tr><tr><td>Dólar Turismo</td><td>5,60</td><td>5,80</td><td>0,10%</td></tr></table>'
+ const d=extractIndicator(dolar,htmlToText(dolar),{range:[3,9],rowKey:'comercial'});assert.equal(d.value,5.431);assert.equal(d.change,-0.35)
+ const cbot='<table><tr><th>Contrato</th><th>Último</th><th>Var.</th></tr><tr><td>nov/26</td><td>1.058,25</td><td>+0,45%</td></tr><tr><td>jan/27</td><td>1.070,00</td><td>+0,40%</td></tr></table>'
+ const c=extractIndicator(cbot,htmlToText(cbot),{range:[700,2200]});assert.equal(c.value,1058.25);assert.equal(c.change,0.45)
+ assert.equal(extractIndicator('<p>sem número</p>','sem número',{range:[3,9]}),null)
+ const t=extractIndicator('<p>Dólar comercial fechou a R$ 5,52 nesta sexta</p>','Dólar comercial fechou a R$ 5,52 nesta sexta',{range:[3,9],keywords:['dolar comercial']});assert.equal(t.value,5.52)
+ const server=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(req.url.includes('dolar')?dolar:'<html>vazio</html>')});await new Promise(r=>server.listen(0,r));const base='http://127.0.0.1:'+server.address().port
+ try{const out=await runIndicators([{key:'dolar',label:'Dólar',url:base+'/dolar',unit:'BRL/USD',format:'R$ {v}',decimals:4,fetch:{range:[3,9],rowKey:'comercial'}},{key:'x',label:'X',url:base+'/nada',fetch:{range:[1,2]}}],{now:new Date('2026-09-28T12:00:00Z')});assert.equal(out.okCount,1);assert.equal(out.results[0].display,'R$ 5,4310');assert.equal(out.results[1].status,'empty')}finally{server.close()}
 })

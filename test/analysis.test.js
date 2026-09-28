@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {analyzeRequest,buildAskingHistory,buildBrief,buildSeasonality,buildPortfolio,buildPriceYear,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
+import {analyzeRequest,buildAskingHistory,buildBrief,buildMarketNow,buildSeasonality,buildPortfolio,buildPriceYear,checkTargets,cropPosition,fixingPace,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest} from '../lib/analysis.js'
 
 const now=new Date('2026-09-23T12:00:00.000Z')
 const praca=loadPraca()
@@ -141,4 +141,16 @@ test('padrão sazonal só com cotações registradas: meses sem dado ficam vazio
  assert.equal(s.usable,true);assert.equal(s.observedMonths,3);assert.equal(s.mean,Number(((130+120+150)/3).toFixed(2)))
  assert.equal(s.index[0],Math.round(130/s.mean*100));assert.equal(s.index[4],Math.round(120/s.mean*100));assert.equal(s.index[8],Math.round(150/s.mean*100));assert.equal(s.index[1],null);assert.equal(s.index[11],null)
  assert.deepEqual(s.months[8].years,['2025','2026']);assert.equal(s.months[8].days,2)
+})
+
+test('mercado agora: C.Vale, melhor concorrente, portos, variação do dia e da semana, indicadores',()=>{
+ const now=new Date('2026-09-28T15:00:00Z');const praca=loadPraca()
+ const q=(d,src,price,extra={})=>({id:src+d,sourceId:src.toLowerCase(),sourceName:src,commodity:'soja',price,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',observedAt:d,status:'active',...extra})
+ const quotes=[q('2026-09-28T10:00:00Z','C.Vale',141,{sourceId:'cvale'}),q('2026-09-28T09:00:00Z','Coopatrigo',143,{automatic:true}),q('2026-09-27T09:00:00Z','Coopatrigo',142),q('2026-09-27T09:00:00Z','C.Vale',140,{sourceId:'cvale'}),q('2026-09-20T09:00:00Z','Coopatrigo',138),q('2026-09-25T09:00:00Z','Bunge',163,{region:'Porto de Rio Grande'}),q('2026-09-25T09:00:00Z','CEPEA',161,{region:'Paranaguá/PR'}),q('2026-09-28T09:00:00Z','Camera',158,{sourceId:'camera-slg',commodity:'canola'})]
+ const m=buildMarketNow({quotes,praca,indicators:{dolar:{label:'Dólar comercial',value:5.43,display:'R$ 5,4300',changePercent:-0.35,observedAt:'2026-09-28T12:00:00.000Z'}},automation:{lastRun:'2026-09-28T14:00:00Z'}},{now})
+ const soja=m.commodities.find(c=>c.commodity==='soja')
+ assert.equal(soja.own.price,141);assert.equal(soja.praca.best.sourceName,'Coopatrigo');assert.equal(soja.praca.avg,143);assert.equal(soja.port.rioGrande.price,163);assert.equal(soja.port.paranagua.price,161);assert.equal(soja.basisRg,-22)
+ assert.equal(soja.today.price,142);assert.equal(soja.dayChange,1);assert.equal(soja.weekChange,4);assert.ok(soja.notes.some(n=>/Coopatrigo paga/.test(n)))
+ const canola=m.commodities.find(c=>c.commodity==='canola');assert.equal(canola.praca.best.crusher,true)
+ assert.equal(m.indicators[0].key,'dolar');assert.equal(m.indicators[0].ageHours,3);assert.equal(m.lastRead,'2026-09-28T14:00:00Z');assert.ok(m.headlines.some(h=>/Soja: C\.Vale R\$.141,00/.test(h)))
 })

@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v8",
+  "version": "fontes-v9",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -660,6 +660,82 @@
       "name": "Emater/RS — Informativo Conjuntural",
       "url": "https://www.emater.tche.br/site/info-agro/informativo_conjuntural.php",
       "note": "Andamento de plantio, colheita e clima por região, toda semana."
+    }
+  ],
+  "indicators": [
+    {
+      "key": "dolar",
+      "label": "Dólar comercial",
+      "sourceName": "Notícias Agrícolas — Dólar",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/dolar",
+      "unit": "BRL/USD",
+      "format": "R$ {v}",
+      "decimals": 4,
+      "fetch": {
+        "range": [
+          3,
+          9
+        ],
+        "rowKey": "comercial",
+        "keywords": [
+          "dolar comercial",
+          "dólar comercial"
+        ]
+      }
+    },
+    {
+      "key": "cbot-soja",
+      "label": "Chicago soja (US¢/bu)",
+      "sourceName": "Notícias Agrícolas — CME soja",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-bolsa-de-chicago",
+      "unit": "USc/bu",
+      "format": "{v} ¢/bu",
+      "decimals": 2,
+      "fetch": {
+        "range": [
+          700,
+          2200
+        ],
+        "keywords": [
+          "soja"
+        ]
+      }
+    },
+    {
+      "key": "cbot-milho",
+      "label": "Chicago milho (US¢/bu)",
+      "sourceName": "Notícias Agrícolas — CME milho",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/milho/milho-bolsa-de-chicago",
+      "unit": "USc/bu",
+      "format": "{v} ¢/bu",
+      "decimals": 2,
+      "fetch": {
+        "range": [
+          250,
+          900
+        ],
+        "keywords": [
+          "milho"
+        ]
+      }
+    },
+    {
+      "key": "cbot-trigo",
+      "label": "Chicago trigo (US¢/bu)",
+      "sourceName": "Notícias Agrícolas — CME trigo",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/trigo/trigo-bolsa-de-chicago",
+      "unit": "USc/bu",
+      "format": "{v} ¢/bu",
+      "decimals": 2,
+      "fetch": {
+        "range": [
+          350,
+          1300
+        ],
+        "keywords": [
+          "trigo"
+        ]
+      }
     }
   ]
 }

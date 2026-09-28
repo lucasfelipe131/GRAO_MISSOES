@@ -70,7 +70,7 @@ function renderSourceBar(){
  $$('#sourcebar [data-source]').forEach(b=>b.addEventListener('click',()=>{const f=$('#quoteForm');f.sourceId.value=b.dataset.source;applySource(b.dataset.source,b.dataset.commodity);f.scrollIntoView({behavior:'smooth',block:'start'})}))
 }
 
-async function load(){try{const s=await api('/api/bootstrap');state={...state,...s};fillSelects();applyRole();renderAll();showLogin(false)}catch(e){status(e.message,6000)}}
+async function load(){try{const s=await api('/api/bootstrap');state={...state,...s};fillSelects();applyRole();renderAll();showLogin(false);if(!marketTimer)startMarketPolling()}catch(e){status(e.message,6000)}}
 function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderOffers();renderStorageOps();renderStorage();renderBrief();renderAdmin()}
 async function renderAdmin(){
  const s=state.session;if(!s?.role||!(s.write||[]).includes('usuarios')||!$('#users'))return
@@ -157,7 +157,22 @@ function renderBrief(){
  <div class="card"><h3>Referências de apoio</h3><ul class="reading">${(state.catalog.references||[]).map(r=>`<li><a href="${esc(r.url)}" target="_blank" rel="noreferrer">${esc(r.name)}</a> — ${esc(r.note)}</li>`).join('')}</ul></div><div class="card"><h3>Fontes do briefing</h3><div class="sources">${b.brief.sources.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.name)}</a>`).join('')}</div></div></div>`
 }
 function tile(label,value,detail,tone){return `<div class="tile ${tone||''}"><small>${esc(label)}</small><b>${value}</b><span>${esc(detail||'')}</span></div>`}
+const MARKET_POLL_MS=5*60*1000;let marketTimer=null
+function ago(iso){if(!iso)return '—';const m=Math.round((Date.now()-new Date(iso).getTime())/6e4);return m<1?'agora':m<60?`há ${m} min`:m<1440?`há ${Math.round(m/60)} h`:`há ${Math.round(m/1440)} d`}
+function renderMarket(){
+ const mk=state.market;const el=$('#marketGrid');if(!el||!mk)return
+ const chg=(v,p)=>v==null?'<small class="flat">sem comparação</small>':`<small class="${v>0?'up':v<0?'down':'flat'}">${v>0?'▲':v<0?'▼':'●'} ${money(Math.abs(v))}${p!=null?' ('+(p>=0?'+':'')+p.toFixed(1).replace('.',',')+'%)':''}</small>`
+ el.innerHTML=mk.commodities.map(c=>{const main=c.own?c.own.price:c.today?c.today.price:null;return `<article class="mkt"><header><b>${esc(c.label)}</b>${c.stage?`<span class="tag ${c.stage.key}">${esc(c.stage.label)}</span>`:''}</header><div class="price"><b>${main!=null?money(main):'—'}</b>${chg(c.dayChange,c.dayChangePercent)}</div><span class="src">${c.own?'C.Vale • '+dt(c.own.observedAt):c.today?'média da praça em '+dt(c.today.date):'sem cotação recente'}</span><dl>${c.praca.best?`<dt>Melhor concorrente</dt><dd>${esc(c.praca.best.sourceName.split(' — ')[0])} ${money(c.praca.best.price)}</dd>`:''}${c.praca.avg!=null?`<dt>Média praça (${c.praca.sources})</dt><dd>${money(c.praca.avg)}</dd>`:''}${c.port.rioGrande?`<dt>Rio Grande</dt><dd>${money(c.port.rioGrande.price)}</dd>`:''}${c.port.paranagua?`<dt>Paranaguá</dt><dd>${money(c.port.paranagua.price)}</dd>`:''}${c.basisRg!=null?`<dt>Base × RG</dt><dd>${money(c.basisRg)}</dd>`:''}${c.weekChange!=null?`<dt>7 dias</dt><dd class="${c.weekChange>0?'up':c.weekChange<0?'down':'flat'}">${c.weekChange>=0?'+':''}${money(c.weekChange)}</dd>`:''}</dl></article>`}).join('')
+ $('#marketInd').innerHTML=(mk.indicators||[]).filter(i=>i.value!=null).map(i=>`<div class="ind ${i.ageHours>30?'stale':''}" title="${esc(i.sourceName||'')} • ${dt(i.observedAt)}"><small>${esc(i.label)}</small><b>${esc(i.display||String(i.value))}</b><span>${i.changePercent!=null?(i.changePercent>=0?'+':'')+i.changePercent.toFixed(2).replace('.',',')+'% • ':''}${ago(i.observedAt)}</span></div>`).join('')
+ $('#marketHeadlines').innerHTML=(mk.headlines||[]).map(h=>`<li>${esc(h)}</li>`).join('')+((mk.brief?.risks||[]).slice(0,2).map(r=>`<li class="meta">Praça (${dt(mk.brief.observedAt)}): ${esc(r)}</li>`).join(''))
+ $('#marketWhen').innerHTML=`<span class="pulse"></span>Última leitura das fontes ${mk.lastRead?ago(mk.lastRead)+' ('+dt(mk.lastRead)+')':'ainda não feita'} • cotação mais recente ${mk.lastObserved?dt(mk.lastObserved):'—'}`
+ $('#marketAuto').textContent=`atualiza sozinho a cada ${MARKET_POLL_MS/6e4} min • fontes lidas a cada ${state.automation?.hours||4} h`
+}
+async function loadMarket(){try{const r=await api('/api/market');state.market=r.market;state.automation={...(state.automation||{}),...(r.automation||{})};renderMarket()}catch(e){}}
+function startMarketPolling(){if(marketTimer)clearInterval(marketTimer);marketTimer=setInterval(loadMarket,MARKET_POLL_MS);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadMarket()})}
+$('#marketRefresh').addEventListener('click',async()=>{const b=$('#marketRefresh');b.disabled=true;b.textContent='lendo…';try{await api('/api/comparison/refresh',{method:'POST'});await load();status('Fontes lidas.')}catch(e){status(e.message,6000)}finally{b.disabled=false;b.textContent='Ler fontes agora'}})
 function renderDashboard(){
+ renderMarket()
  const pf=state.portfolio;if(!pf)return
  const k=pf.kpis
  $('#kpis').innerHTML=tile('Produtores',int(k.producers),'cadastrados')+tile('Pedidos abertos',int(k.openRequests),`${int(k.openVolumeSc)} sc em acompanhamento`)+tile('Alvos atingidos',int((state.targetHits||[]).length),'por cotação registrada',(state.targetHits||[]).length?'good':'')+tile('Cotações de hoje',int(k.quotesToday),k.sourcesMissing?`${k.sourcesMissing} fonte(s) principal(is) sem registro`:'fontes principais em dia',k.sourcesMissing?'warn':'good')+tile('Abaixo do ritmo',int(k.behindPace),'produtor × grão a proteger',k.behindPace?'warn':'')+tile('Volume fechado',int(k.closedVolumeSc)+' sc','registrado nos pedidos')
