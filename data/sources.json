@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v13",
+  "version": "fontes-v14",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -738,9 +738,9 @@
       "key": "cbot-milho",
       "label": "Chicago milho (US¢/bu)",
       "sourceName": "Notícias Agrícolas — CME milho",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes/milho/milho-bolsa-de-chicago-cme-group",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/milho",
       "urls": [
-        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/milho",
+        "https://www.noticiasagricolas.com.br/cotacoes/milho/milho-bolsa-de-chicago-cme-group",
         "https://www.noticiasagricolas.com.br/cotacoes/"
       ],
       "unit": "USc/bu",
@@ -776,9 +776,9 @@
       "key": "cbot-trigo",
       "label": "Chicago trigo (US¢/bu)",
       "sourceName": "Notícias Agrícolas — CME trigo",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes/trigo/trigo-bolsa-de-chicago-cme-group",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/trigo",
       "urls": [
-        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/trigo",
+        "https://www.noticiasagricolas.com.br/cotacoes/trigo/trigo-bolsa-de-chicago-cme-group",
         "https://www.noticiasagricolas.com.br/cotacoes/"
       ],
       "unit": "USc/bu",
