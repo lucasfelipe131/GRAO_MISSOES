@@ -133,13 +133,17 @@ test('histórico mensal Mês/Ano (Agrolink RS) vira um ponto por mês com a méd
  const empty=extractFromHtml('<table><tr><th>Mês/Ano</th><th>Estadual</th><th>Nacional</th></tr></table>',sources.find(s=>s.id==='agrolink-hist-rs-trigo'),new Date('2026-09-27T12:00:00Z'));assert.equal(empty.history.length,0);assert.equal(Object.keys(empty.prices).length,0)
 })
 
-test('indicadores: dólar e Chicago são lidos de tabela ou texto com faixa de plausibilidade',async()=>{
- const dolar='<table><tr><th>Moeda</th><th>Compra</th><th>Venda</th><th>Var.</th></tr><tr><td>Dólar Comercial</td><td>5,4310</td><td>5,4325</td><td>-0,35%</td></tr><tr><td>Dólar Turismo</td><td>5,60</td><td>5,80</td><td>0,10%</td></tr></table>'
- const d=extractIndicator(dolar,htmlToText(dolar),{range:[3,9],rowKey:'comercial'});assert.equal(d.value,5.431);assert.equal(d.change,-0.35)
- const cbot='<table><tr><th>Contrato</th><th>Último</th><th>Var.</th></tr><tr><td>nov/26</td><td>1.058,25</td><td>+0,45%</td></tr><tr><td>jan/27</td><td>1.070,00</td><td>+0,40%</td></tr></table>'
- const c=extractIndicator(cbot,htmlToText(cbot),{range:[700,2200]});assert.equal(c.value,1058.25);assert.equal(c.change,0.45)
- assert.equal(extractIndicator('<p>sem número</p>','sem número',{range:[3,9]}),null)
- const t=extractIndicator('<p>Dólar comercial fechou a R$ 5,52 nesta sexta</p>','Dólar comercial fechou a R$ 5,52 nesta sexta',{range:[3,9],keywords:['dolar comercial']});assert.equal(t.value,5.52)
+test('indicadores: dólar e Chicago exigem número decimal na linha do contrato ou do grão, ignorando anos, horas e outras commodities',async()=>{
+ const pattern='^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$'
+ const page='<table><tr><th>Contrato</th><th>Último</th><th>Var.</th></tr><tr><td>NOV 2026</td><td>1.288,00</td><td>-31,00</td></tr><tr><td>JAN 2027</td><td>1.301,25</td><td>-30,00</td></tr></table><p>Última atualização: 13:47 (28/09)</p><table><tr><td>Café (Dec26)</td><td>288,95</td><td>3,72 %</td></tr><tr><td>Milho (Dec26)</td><td>528,50</td><td>-0,52 %</td></tr><tr><td>Soja (Nov26)</td><td>1.288,00</td><td>-2,35 %</td></tr></table>'
+ const text=htmlToText(page)
+ const soja=extractIndicator(page,text,{range:[700,2200],rowKeys:['soja ('],rowPattern:pattern});assert.equal(soja.value,1288);assert.equal(soja.change,-2.35)
+ const milho=extractIndicator(page,text,{range:[250,900],rowKeys:['milho ('],rowPattern:pattern});assert.equal(milho.value,528.5);assert.equal(milho.change,-0.52)
+ const trigo=extractIndicator(page,text,{range:[350,1300],rowKeys:['trigo ('],rowPattern:pattern});assert.equal(trigo.value,1288);assert.equal(trigo.change,null)
+ const dolar='<p>Última atualização: 13:47 (28/09)</p><table><tr><th>Moeda</th><th>Compra</th><th>Venda</th><th>Var.</th></tr><tr><td>Dólar Comercial</td><td>5,3812</td><td>5,3820</td><td>-0,21%</td></tr></table>'
+ const d=extractIndicator(dolar,htmlToText(dolar),{range:[3,9],rowKeys:['dolar comercial'],keywords:['dolar comercial']});assert.equal(d.value,5.3812);assert.equal(d.change,-0.21)
+ assert.equal(extractIndicator('<p>Última atualização: 13:47 (28/09) valor 9</p>','Última atualização: 13:47 (28/09) valor 9',{range:[3,9],keywords:['atualiza']}),null)
+ const txt='Dólar comercial fechou a R$ 5,52 nesta sexta';assert.equal(extractIndicator('<p>'+txt+'</p>',txt,{range:[3,9],keywords:['dolar comercial']}).value,5.52)
  const server=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(req.url.includes('dolar')?dolar:'<html>vazio</html>')});await new Promise(r=>server.listen(0,r));const base='http://127.0.0.1:'+server.address().port
- try{const out=await runIndicators([{key:'dolar',label:'Dólar',url:base+'/dolar',unit:'BRL/USD',format:'R$ {v}',decimals:4,fetch:{range:[3,9],rowKey:'comercial'}},{key:'x',label:'X',url:base+'/nada',fetch:{range:[1,2]}}],{now:new Date('2026-09-28T12:00:00Z')});assert.equal(out.okCount,1);assert.equal(out.results[0].display,'R$ 5,4310');assert.equal(out.results[1].status,'empty')}finally{server.close()}
+ try{const out=await runIndicators([{key:'dolar',label:'Dólar',url:base+'/nada',urls:[base+'/dolar'],unit:'BRL/USD',format:'R$ {v}',decimals:4,fetch:{range:[3,9],rowKeys:['dolar comercial']}},{key:'x',label:'X',url:base+'/nada',fetch:{range:[1,2]}}],{now:new Date('2026-09-28T12:00:00Z')});assert.equal(out.okCount,1);assert.equal(out.results[0].display,'R$ 5,3812');assert.equal(out.results[0].attempts.length,2);assert.equal(out.results[1].status,'empty')}finally{server.close()}
 })

@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v10",
+  "version": "fontes-v11",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -669,8 +669,8 @@
       "sourceName": "Notícias Agrícolas — Dólar",
       "url": "https://www.noticiasagricolas.com.br/cotacao-do-dolar/",
       "urls": [
-        "https://www.noticiasagricolas.com.br/cotacoes/mercado-financeiro/dolar-b3",
-        "https://www.noticiasagricolas.com.br/cotacoes/mercado-financeiro/cambio-ptax"
+        "https://www.noticiasagricolas.com.br/cotacoes/mercado-financeiro/cambio-ptax",
+        "https://www.noticiasagricolas.com.br/cotacoes/"
       ],
       "unit": "BRL/USD",
       "format": "R$ {v}",
@@ -680,13 +680,17 @@
           3,
           9
         ],
-        "keywords": [
+        "rowKeys": [
           "dolar comercial",
           "dólar comercial",
-          "dolar",
-          "dólar",
-          "compra",
-          "venda"
+          "dolar (",
+          "comercial",
+          "ptax",
+          "dolar"
+        ],
+        "keywords": [
+          "dolar comercial",
+          "dólar comercial"
         ]
       }
     },
@@ -696,7 +700,8 @@
       "sourceName": "Notícias Agrícolas — CME soja",
       "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-bolsa-de-chicago-cme-group",
       "urls": [
-        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja"
+        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja",
+        "https://www.noticiasagricolas.com.br/cotacoes/"
       ],
       "unit": "USc/bu",
       "format": "{v} ¢/bu",
@@ -706,9 +711,10 @@
           700,
           2200
         ],
-        "keywords": [
-          "soja"
-        ]
+        "rowKeys": [
+          "soja ("
+        ],
+        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$"
       }
     },
     {
@@ -717,7 +723,8 @@
       "sourceName": "Notícias Agrícolas — CME milho",
       "url": "https://www.noticiasagricolas.com.br/cotacoes/milho/milho-bolsa-de-chicago-cme-group",
       "urls": [
-        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/milho"
+        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/milho",
+        "https://www.noticiasagricolas.com.br/cotacoes/"
       ],
       "unit": "USc/bu",
       "format": "{v} ¢/bu",
@@ -727,9 +734,10 @@
           250,
           900
         ],
-        "keywords": [
-          "milho"
-        ]
+        "rowKeys": [
+          "milho ("
+        ],
+        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$"
       }
     },
     {
@@ -738,7 +746,8 @@
       "sourceName": "Notícias Agrícolas — CME trigo",
       "url": "https://www.noticiasagricolas.com.br/cotacoes/trigo/trigo-bolsa-de-chicago-cme-group",
       "urls": [
-        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/trigo"
+        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/trigo",
+        "https://www.noticiasagricolas.com.br/cotacoes/"
       ],
       "unit": "USc/bu",
       "format": "{v} ¢/bu",
@@ -748,9 +757,10 @@
           350,
           1300
         ],
-        "keywords": [
-          "trigo"
-        ]
+        "rowKeys": [
+          "trigo ("
+        ],
+        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$"
       }
     }
   ]
