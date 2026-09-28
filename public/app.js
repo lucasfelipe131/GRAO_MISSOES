@@ -24,7 +24,7 @@ $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const fd=
 $('#codeForm').addEventListener('submit',async e=>{e.preventDefault();const c=new FormData(e.target).get('code');try{const s=await api('/api/login',{method:'POST',headers:{'x-access-code':'','Authorization':''},body:JSON.stringify({code:c})});await finishLogin(s)}catch(err){$('#loginError').textContent=err.message;$('#loginError').hidden=false}})
 $('#logout').addEventListener('click',async()=>{try{await api('/api/logout',{method:'POST'})}catch{}code='';token='';try{localStorage.removeItem('gm.code');localStorage.removeItem('gm.token')}catch{}state.session=null;applyRole();showLogin(true)})
 $('#myPassword').addEventListener('click',async()=>{const cur=prompt('Senha atual:');if(cur==null)return;const next=prompt('Nova senha (mínimo 8 caracteres):');if(next==null)return;try{await api('/api/me/password',{method:'POST',body:JSON.stringify({currentPassword:cur,password:next})});status('Senha alterada.')}catch(e){status(e.message,6000)}})
-const COMMODITY_COLORS={soja:'#0758B6',milho:'#D28A00',trigo:'#8C7A00',canola:'#1E9E6A',arroz:'#5B6B7C',sorgo:'#B3457A',aveia:'#7A5AF8'}
+const COMMODITY_COLORS={soja:'#3A7D34',milho:'#D28A00',trigo:'#8C7A00',canola:'#1E9E6A',arroz:'#5B6B7C',sorgo:'#B3457A',aveia:'#7A5AF8'}
 function applyRole(){
  const s=state.session;const tabs=s?.tabs||[];const write=s?.write||[]
  $('#who').hidden=!s?.role;if(s?.role){$('#roleBadge').textContent=s.roleLabel;const name=s.user?.name||s.user?.username||(s.via==='codigo'?'Código da equipe':'Equipe');$('#userName').textContent=name;$('#userAvatar').textContent=name.split(/\s+/).slice(0,2).map(p=>p[0]||'').join('').toUpperCase()||'VS';$('#myPassword').hidden=!s.user}
@@ -231,7 +231,7 @@ const MONTHS=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov',
 const PALETTE=['#1E9E6A','#B3457A','#7A5AF8','#C1521B','#2A9DB5','#8C7A00','#3C6E9B','#A83B3B']
 const chartState={sel:{},data:{}}
 function seriesFor(c){
- const base=[{key:'own',label:'C.Vale',points:c.series.own,color:'#0758B6',stats:c.seriesStats?.own||null},{key:'comp',label:'Média concorrentes',points:c.series.competitors,color:'#D28A00',stats:c.seriesStats?.competitors||null},{key:'port',label:'Porto (média)',points:c.series.port,color:'#5B6B7C',stats:c.seriesStats?.port||null}]
+ const base=[{key:'own',label:'C.Vale',points:c.series.own,color:'#3A7D34',stats:c.seriesStats?.own||null},{key:'comp',label:'Média concorrentes',points:c.series.competitors,color:'#D28A00',stats:c.seriesStats?.competitors||null},{key:'port',label:'Porto (média)',points:c.series.port,color:'#5B6B7C',stats:c.seriesStats?.port||null}]
  const extra=(c.sources||[]).filter(s=>s.kind!=='own').map((s,i)=>({key:'src:'+s.key,label:s.label+(s.kind==='port'&&!/porto/i.test(s.label)?' (porto)':''),points:s.points,color:PALETTE[i%PALETTE.length],stats:{avg:s.avg,min:s.min,max:s.max,days:s.days,last:s.last,lastDate:s.lastDate},source:true,kind:s.kind,region:s.region}))
  return base.concat(extra)
 }
@@ -339,6 +339,7 @@ function renderStorageOps(){
  const unitOpts='<option value="">Selecione</option>'+units.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')
  for(const id of ['readingForm','receiptForm']){const sel=$(`#${id} select[name=unitId]`);const v=sel.value;sel.innerHTML=unitOpts;if(v)sel.value=v;const cs=$(`#${id} select[name=commodity]`);if(!cs.options.length)cs.innerHTML=state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')}
  const ps=$('#receiptForm select[name=producerId]');const pv=ps.value;ps.innerHTML='<option value="">—</option>'+(state.producers||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');if(pv)ps.value=pv
+ {const us=$('#receiptsReportForm select[name=unitId]');const uv=us.value;us.innerHTML='<option value="">Todas</option>'+units.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('');if(uv)us.value=uv;const cs=$('#receiptsReportForm select[name=commodity]');if(cs.options.length<=1)cs.innerHTML='<option value="">Todos</option>'+state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')}
  if(!$('#unitGoals').children.length)$('#unitGoals').innerHTML=state.catalog.commodities.map(c=>`<label>${esc(c.label)} (t)<input name="goal_${c.value}" type="number" min="0" step="1"></label>`).join('')
  // standards
  const std=st.standards;const labels=st.parameterLabels||{}
@@ -351,6 +352,14 @@ function renderStorageOps(){
  $$('#stReceipts [data-del-receipt]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover este recebimento?'))return;try{await api('/api/storage/receipts/'+b.dataset.delReceipt,{method:'DELETE'});await load()}catch(e){status(e.message,6000)}}))
  $$('#stReadings [data-del-reading]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover esta leitura?'))return;try{await api('/api/storage/readings/'+b.dataset.delReading,{method:'DELETE'});await load()}catch(e){status(e.message,6000)}}))
 }
+async function downloadPdf(kind,params){
+ const qs=new URLSearchParams(Object.entries(params).filter(([,v])=>v));status('Gerando PDF…',0)
+ try{const r=await fetch(`/api/reports/${kind}.pdf?${qs}`,{headers:authHeaders()});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||'Falha ao gerar o relatório.')}const blob=await r.blob();const name=(r.headers.get('Content-Disposition')||'').match(/filename="([^"]+)"/)?.[1]||`${kind}.pdf`;const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);status(`PDF gerado (${r.headers.get('X-Report-Count')||0} registro(s)).`)}
+ catch(e){status(e.message,6000)}
+}
+$('#offersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('ofertas',formData(e.target))})
+$('#receiptsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('recebimentos',formData(e.target))})
+$$('[data-report=geral]').forEach(b=>b.addEventListener('click',()=>{const f=b.closest('form');const p=formData(f);downloadPdf('geral',{from:p.from,to:p.to})}))
 function resetUnitForm(){const f=$('#unitForm');f.reset();f.id.value='';$('#unitFormTitle').textContent='Cadastrar unidade de recebimento';$('#unitCancel').hidden=true}
 $('#unitCancel').addEventListener('click',resetUnitForm)
 $('#unitForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;$('#unitError').hidden=true;try{const p=formData(f);const id=p.id;delete p.id;await api(id?'/api/storage/units/'+id:'/api/storage/units',{method:id?'PUT':'POST',body:JSON.stringify(p)});status(id?'Unidade atualizada.':'Unidade cadastrada.');resetUnitForm();await load()}catch(err){$('#unitError').textContent=err.message;$('#unitError').hidden=false}})
@@ -413,6 +422,7 @@ $('#addDestination').addEventListener('click',()=>renderDestinations(readDestina
 $('#settingsForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;try{const p=formData(f);delete p.dname;delete p.dkm;delete p.dkind;delete p.did;p.destinations=readDestinations();await api('/api/offer-settings',{method:'PUT',body:JSON.stringify(p)});status('Parâmetros salvos.');await load()}catch(err){status(err.message,6000)}})
 function renderOffers(){
  renderAskingHistory()
+ {const ps=$('#offersReportForm select[name=producerId]');const pv=ps.value;ps.innerHTML='<option value="">Todos</option>'+(state.producers||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');if(pv)ps.value=pv}
  const st=state.offerSettings;const f=$('#settingsForm');if(st&&f&&!f.dataset.filled){for(const k of ['freightRatePerTKm','freightFixedPerT','defaultMarginPerSc','storageCostScMonth','validityDays'])f[k].value=st[k]??'';renderDestinations(st.destinations||[]);f.dataset.filled='1'}
  const list=state.offers||[];$('#offerCount').textContent=`${list.length} registradas • ${list.filter(o=>o.status==='aceita').length} aceitas`
  $('#offers').innerHTML=list.length?list.map(o=>{const x=o.offer;return `<article class="item offerrow" data-id="${o.id}"><header><div><b>${esc(o.producerName)}</b> <span class="tag ${o.status}">${o.status}</span><div class="meta">${esc(x.commodityLabel)} • ${int(x.volumeSc)} sc • venc. ${esc(x.deliveryLabel)} • ${esc(x.destination.name)} • ${dt(o.createdAt)}</div></div><div><b>${x.offerPrice!=null?money(x.offerPrice)+'/sc':'—'}</b>${x.asking?`<div class="meta">pedida ${money(x.asking.price)}${x.asking.gapSc!=null?' ('+(x.asking.gapSc>=0?'+':'')+money(x.asking.gapSc)+')':''}</div>`:''}${o.closedPrice?`<div class="meta">fechado a ${money(o.closedPrice)}</div>`:''}</div></header><div class="meta">ref. ${x.reference?money(x.reference.price)+' ('+esc(x.reference.label)+')':'—'} → venc. ${x.referenceAtDelivery!=null?money(x.referenceAtDelivery):'—'} − frete ${money(x.freight.perSc)} − margem ${money(x.margin.perSc)}${x.paymentTerms?' • '+esc(x.paymentTerms):''} • válida até ${dt(x.validUntil)}</div>${o.notes?`<div class="meta">“${esc(o.notes)}”</div>`:''}<div class="row statusbtns">${(state.offerStatuses||[]).filter(s=>s!==o.status).map(s=>`<button data-st="${s}">${s}</button>`).join('')}<button data-show>ver</button></div><form class="closing" data-note="${o.id}"><label>Preço fechado (R$/sc)<input name="closedPrice" type="number" step="0.01" min="0"></label><label class="wide">Observação<input name="notes" placeholder="registro da conversa, condição, próximo passo"></label><button class="primary" type="submit">Salvar</button></form><div class="detail" hidden></div></article>`}).join(''):'<div class="empty"><p>Nenhuma oferta registrada.</p></div>'

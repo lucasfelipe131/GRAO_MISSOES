@@ -259,3 +259,16 @@ test('sem códigos, o primeiro usuário criado passa a proteger o sistema',async
   const r=await fetch(base+'/api/bootstrap',{headers:{Authorization:'Bearer '+login.data.token}});assert.equal(r.status,200)
  }finally{server.close()}
 })
+
+test('rotas de relatório em PDF respondem application/pdf com filtros',async()=>{
+ const {server,base}=await start()
+ try{
+  const producer=(await call(base,'POST','/api/producers',{name:'Ana'})).data.producer
+  await call(base,'POST','/api/own-quotes',{soja:141});await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'soja',volumeSc:100,deliveryMonth:'2026-11',referenceMode:'cvale',askingPrice:'145'})
+  const unit=(await call(base,'POST','/api/storage/units',{name:'U1',capacityT:1000})).data.unit
+  await call(base,'POST','/api/storage/receipts',{unitId:unit.id,commodity:'soja',quantityT:'50',date:'2026-09-20'})
+  for(const kind of ['ofertas','recebimentos','geral']){const r=await fetch(base+'/api/reports/'+kind+'.pdf?from=2026-01-01');assert.equal(r.status,200,kind);assert.equal(r.headers.get('content-type'),'application/pdf');assert.match(r.headers.get('content-disposition'),/attachment; filename="/);const buf=Buffer.from(await r.arrayBuffer());assert.equal(buf.slice(0,5).toString(),'%PDF-');assert.ok(Number(r.headers.get('x-report-count'))>=1,kind)}
+  const bad=await fetch(base+'/api/reports/ofertas.pdf?from=2026-09-30&to=2026-09-01');assert.equal(bad.status,400)
+  assert.equal((await fetch(base+'/api/reports/outro.pdf')).status,404)
+ }finally{server.close()}
+})

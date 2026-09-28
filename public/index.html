@@ -12,7 +12,7 @@
 <body>
 <a class="skip" href="#main">Pular para o conteúdo</a>
 <aside class="sidebar">
- <div class="brand" role="img" aria-label="VAL-SOG — Sistema de Operações de Grãos"><div class="brand-row"><img class="val-mark" src="val-mark.svg" alt=""><img class="val-word" src="val-word.svg" alt="VAL"><b class="brand-sog">SOG</b></div><small>Sistema de Operações de Grãos • Missões</small></div>
+ <div class="brand" role="img" aria-label="VAL-SOG — Sistema de Operações de Grãos"><div class="brand-row"><img class="val-mark" src="val-mark.svg" alt=""><img class="val-word" src="val-word.svg" alt="VAL"><b class="brand-sog">SOG</b></div><span class="brand-tag">Inteligência que gera valor</span><small>Sistema de Operações de Grãos • Missões</small></div>
  <nav class="tabs" role="tablist" aria-label="Seções">
   <button role="tab" data-tab="painel" aria-selected="true">Painel</button>
   <button role="tab" data-tab="pedidos" aria-selected="false">Pedidos</button>
@@ -30,7 +30,7 @@
 <main id="main" class="main">
  <section id="login" class="login" hidden>
   <div class="card logincard">
-   <div class="loginbrand"><img src="val-mark.svg" alt="" width="54" height="54"><div><b>VAL<span>-SOG</span></b><small>Sistema de Operações de Grãos • Missões</small></div></div>
+   <div class="loginbrand"><img src="val-mark.svg" alt="" width="54" height="54"><div><img src="val-word-dark.svg" alt="VAL" width="96" height="28" style="display:block"><b style="font-size:14px;letter-spacing:.12em;color:#3A7D34">SOG</b><small>Inteligência que gera valor • Sistema de Operações de Grãos • Missões</small></div></div>
    <h1>Entrar</h1>
    <p>Use o seu usuário e senha. O nível de acesso (gerencial, operador de compra de grãos ou encarregado de armazém) é definido no cadastro feito pela gerência.</p>
    <form id="loginForm"><label>Usuário<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="nome.sobrenome"></label><label>Senha<input name="password" type="password" autocomplete="current-password"></label><button class="primary" type="submit">Entrar</button></form>
@@ -226,7 +226,8 @@
   </div>
   <div class="split wide2">
    <form id="settingsForm" class="card form" data-write="parametros"><h2>Parâmetros de frete e margem</h2><div class="grid"><label>Tarifa (R$/t/km)<input name="freightRatePerTKm" type="number" min="0" step="0.01"></label><label>Fixo (R$/t)<input name="freightFixedPerT" type="number" min="0" step="0.01"></label><label>Margem padrão (R$/sc)<input name="defaultMarginPerSc" type="number" min="0" step="0.01"></label><label>Carrego (R$/sc/mês)<input name="storageCostScMonth" type="number" min="0" step="0.01"></label><label>Validade padrão (dias)<input name="validityDays" type="number" min="0" step="1"></label></div><p class="muted">Destinos e distâncias</p><div id="destinations" class="destlist"></div><div class="actions"><button class="mini" type="button" id="addDestination">+ destino</button><button class="primary" type="submit">Salvar parâmetros</button></div></form>
-   <div class="card"><div class="cardhead"><h2>Ofertas registradas</h2><div class="row"><small id="offerCount"></small><button class="mini" type="button" id="exportOffersCsv">CSV</button><button class="mini" type="button" id="exportOffersJson">JSON para a VAL</button></div></div><div id="offers" class="list"></div></div>
+   <div class="stack"><div class="card"><div class="cardhead"><h2>Ofertas registradas</h2><div class="row"><small id="offerCount"></small><button class="mini" type="button" id="exportOffersCsv">CSV</button><button class="mini" type="button" id="exportOffersJson">JSON para a VAL</button></div></div><div id="offers" class="list"></div></div>
+   <form id="offersReportForm" class="card form reportcard"><div class="cardhead"><h2>Relatório de ofertas em PDF</h2><small>cabeçalho VAL-SOG, resumo, tabela e observações</small></div><div class="grid"><label>De<input name="from" type="date"></label><label>Até<input name="to" type="date"></label><label>Situação<select name="status"><option value="">Todas</option><option value="rascunho">Rascunho</option><option value="enviada">Enviada</option><option value="aceita">Aceita</option><option value="recusada">Recusada</option><option value="expirada">Expirada</option><option value="cancelada">Cancelada</option></select></label><label>Produtor<select name="producerId"><option value="">Todos</option></select></label></div><div class="actions"><button class="secondary" type="button" data-report="geral">Relatório geral (ofertas + recebimentos)</button><button class="primary" type="submit">Exportar PDF</button></div></form></div>
   </div>
  </section>
  <section data-panel="precos" class="panel" hidden>
@@ -317,7 +318,8 @@
    </div>
    <div class="split wide2">
     <div class="card"><div class="cardhead"><h2>Padrões por grão</h2><div class="row"><button class="mini" type="button" id="standardsReset" data-write="armazem">restaurar referência</button></div></div><p class="muted">Limites usados para avaliar cada leitura. Referência: IN MAPA 11/2007 (soja), 60/2011 (milho), 38/2010 (trigo); canola e arroz conforme prática das esmagadoras e engenhos. Ajuste ao padrão da sua unidade.</p><form id="standardsForm"><div id="standardsBody"></div><p class="error" id="standardsError" role="alert" hidden></p><div class="actions" data-write="armazem"><button class="primary" type="submit">Salvar padrões</button></div></form></div>
-    <div class="card"><div class="cardhead"><h2>Recebimentos e leituras recentes</h2><div class="row"><button class="mini" type="button" id="exportStorageJson">JSON</button><button class="mini" type="button" id="exportReceiptsCsv">CSV recebimentos</button></div></div><div id="stReceipts" class="tablewrap"></div><div id="stReadings" class="tablewrap"></div></div>
+    <div class="stack"><div class="card"><div class="cardhead"><h2>Recebimentos e leituras recentes</h2><div class="row"><button class="mini" type="button" id="exportStorageJson">JSON</button><button class="mini" type="button" id="exportReceiptsCsv">CSV recebimentos</button></div></div><div id="stReceipts" class="tablewrap"></div><div id="stReadings" class="tablewrap"></div></div>
+    <form id="receiptsReportForm" class="card form reportcard"><div class="cardhead"><h2>Relatório de recebimentos em PDF</h2><small>metas da safra, recebimentos do período e totais por unidade e grão</small></div><div class="grid"><label>De<input name="from" type="date"></label><label>Até<input name="to" type="date"></label><label>Unidade<select name="unitId"><option value="">Todas</option></select></label><label>Grão<select name="commodity"><option value="">Todos</option></select></label></div><div class="actions"><button class="secondary" type="button" data-report="geral">Relatório geral (ofertas + recebimentos)</button><button class="primary" type="submit">Exportar PDF</button></div></form></div>
    </div>
   </div>
   <div id="storage" class="storage"></div>

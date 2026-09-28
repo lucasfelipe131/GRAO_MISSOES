@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
 import {hashPassword,makeToken,normalizeUserInput,publicUser,verifyPassword,verifyToken} from './lib/auth.js'
+import {generalReport,normalizeReportFilters,offersReport,receiptsReport} from './lib/reports.js'
 import {buildStorageSummary,defaultStandards,normalizeReading,normalizeReceipt,normalizeStandards,normalizeUnit} from './lib/storage.js'
 import {analyzeRequest,buildAskingHistory,buildBrief,buildPortfolio,buildPriceYear,checkTargets,commodityLabels,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
 import {runComparison} from './lib/fetch.js'
@@ -99,6 +100,13 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   }
   const role=roleOf(request);if(!role)return json(response,401,{error:'Código de acesso inválido.'})
   if(path==='/api/logout'&&request.method==='POST')return json(response,200,{ok:true})
+  const reportMatch=path.match(/^\/api\/reports\/(ofertas|recebimentos|geral)\.pdf$/)
+  if(reportMatch&&request.method==='GET'){
+   const filters=normalizeReportFilters(Object.fromEntries(url.searchParams.entries()));const data=store.read();const id=identify(request);const user=id?.user?.name||id?.user?.username||(id?.via==='codigo'?'código da equipe':'')
+   const args={offers:(data.offers||[]).map(o=>({...o,producerName:o.producerName||producerOf(data,o.producerId)?.name||'Produtor'})),producers:data.producers,units:data.storageUnits||[],readings:data.storageReadings||[],receipts:data.storageReceipts||[],standards:{...defaultStandards,...(data.storageStandards||{})},filters,now:new Date(),user}
+   const out=reportMatch[1]==='ofertas'?offersReport(args):reportMatch[1]==='recebimentos'?receiptsReport(args):generalReport(args)
+   response.writeHead(200,{...headers,'Content-Type':'application/pdf','Content-Disposition':`${url.searchParams.get('inline')?'inline':'attachment'}; filename="${out.filename}"`,'Content-Length':out.buffer.length,'Cache-Control':'no-store','X-Report-Count':String(out.count)});response.end(out.buffer);return true
+  }
   if(path==='/api/me/password'&&request.method==='POST'){const id=identify(request);if(!id?.user)return json(response,400,{error:'Troca de senha só para login com usuário e senha.'});const payload=await body(request);if(!verifyPassword(String(payload.currentPassword??''),id.user.passwordHash))return json(response,401,{error:'Senha atual incorreta.'});const next=String(payload.password??'');if(next.length<8)return json(response,400,{error:'A nova senha precisa ter pelo menos 8 caracteres.'});store.update(d=>{const u=d.users.find(x=>x.id===id.user.id);u.passwordHash=hashPassword(next);u.updatedAt=new Date().toISOString()});return json(response,200,{ok:true})}
   if(path==='/api/users'&&request.method==='GET'){if(!roles[role].write.includes('usuarios'))return json(response,403,{error:'Somente o nível gerencial vê os usuários.'});return json(response,200,{users:(store.read().users||[]).map(publicUser)})}
   const area=areaOf(path,request.method);if(area&&!roles[role].write.includes(area))return json(response,403,{error:`Seu nível de acesso (${roles[role].label}) não permite esta operação${area==='armazem'?' de armazenagem':area==='parametros'?' nos parâmetros':area==='cotacoes'?' em cotações':' comercial'}.`})

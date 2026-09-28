@@ -1,1 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#073B78"/><path d="M32 10c8 6 12 14 12 24s-4 16-12 20c-8-4-12-10-12-20s4-18 12-24z" fill="#8CC4FF"/><path d="M32 18v32" stroke="#073B78" stroke-width="3" stroke-linecap="round"/><path d="M32 28c-4 0-7 3-8 6 4 1 7-1 8-6zm0 8c4 0 7 3 8 6-4 1-7-1-8-6z" fill="#073B78"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse"><stop stop-color="#14301F"/><stop offset="1" stop-color="#0A1B12"/></linearGradient>
+    <linearGradient id="stone" x1="14" y1="8" x2="34" y2="58" gradientUnits="userSpaceOnUse"><stop stop-color="#EEEBE2"/><stop offset="1" stop-color="#C4C0B3"/></linearGradient>
+    <linearGradient id="leaf" x1="36" y1="56" x2="60" y2="6" gradientUnits="userSpaceOnUse"><stop stop-color="#4C7A28"/><stop offset=".55" stop-color="#7DAA3A"/><stop offset="1" stop-color="#B5D95A"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#bg)"/>
+  <g transform="translate(6 6) scale(.81)">
+    <path d="M10 8h15l14.5 36.5-6.5 13.5L10 8Z" fill="url(#stone)"/>
+    <path d="M32.5 58c-4.5-9.5-2.5-25 7.5-37C46.5 12.5 53 8 61 5c-1.5 12-5 24-12.5 34.5C43.5 46 38.5 52 32.5 58Z" fill="url(#leaf)"/>
+    <path d="M34 55.5C39 42 45.5 30 54 19.5" stroke="#F1F6E3" stroke-opacity=".55" stroke-width="1.1" stroke-linecap="round"/>
+  </g>
+</svg>
