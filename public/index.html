@@ -188,6 +188,7 @@
     <p class="error" id="producerError" role="alert" hidden></p>
     <div class="actions"><button class="secondary" type="button" id="producerReset">Limpar</button><button class="primary" type="submit">Salvar produtor</button></div>
    </form>
+   <form id="producersReportForm" class="card form reportcard"><div class="cardhead"><h2>Relatório de produtores e carteira em PDF</h2><small>carteira por grão, tabela de produtores e uma ficha por produtor</small></div><div class="grid"><label>Produtor<select name="producerId"><option value="">Todos</option></select></label><label>Grão<select name="commodity"><option value="">Todos</option></select></label><label>Conteúdo<select name="detail"><option value="1">Carteira + ficha de cada produtor</option><option value="0">Só carteira e tabela</option></select></label></div><div class="actions"><button class="secondary" type="button" data-report="geral">Relatório geral</button><button class="primary" type="submit">Exportar PDF</button></div></form>
    <div class="card"><div class="cardhead"><h2>Produtores</h2><div class="row"><small id="producerCount"></small><button class="mini" type="button" id="exportProducers">Exportar CSV</button></div></div><div id="producers" class="list"></div></div>
   </div>
  </section>

@@ -1,8 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {createPdf,drawTable,textWidth,toWinAnsi} from '../lib/pdf.js'
-import {generalReport,normalizeReportFilters,offersReport,quotesReport,receiptsReport,requestReport,requestsReport} from '../lib/reports.js'
-import {loadPraca} from '../lib/analysis.js'
+import {generalReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport} from '../lib/reports.js'
+import {buildAskingHistory,buildPortfolio,loadPraca,loadSources,normalizeProducer,producerOptions} from '../lib/analysis.js'
 
 const parse=buf=>{const s=buf.toString('latin1');const sx=Number(s.slice(s.lastIndexOf('startxref')+9).trim().split(/\s/)[0]);const lines=s.slice(sx).split('\n');assert.equal(lines[0],'xref');const count=Number(lines[1].split(' ')[1]);for(let i=1;i<count;i++){const off=Number(lines[2+i].slice(0,10));assert.equal(s.slice(off,off+`${i} 0 obj`.length),`${i} 0 obj`,'offset do objeto '+i)}return {text:s,objects:count-1}}
 
@@ -53,4 +53,19 @@ test('relatório de cotações e comparativo: compradores, estatísticas, sazona
  assert.match(txt,/Relat\u00f3rio de cota\u00e7\u00f5es e comparativo/);assert.match(txt,/Comparativo de compradores/);assert.match(txt,/melhor concorrente Coopatrigo/);assert.match(txt,/Estat\u00edsticas do per\u00edodo/);assert.match(txt,/Padr\u00e3o sazonal observado/);assert.match(txt,/Cota\u00e7\u00f5es registradas no per\u00edodo/);assert.match(txt,/\\\(esmagadora\\\)/);assert.match(txt,/1\.400,00\/t/)
  const only=quotesReport({quotes,praca,filters:normalizeReportFilters({from:'2026-08-01',to:'2026-08-31',commodity:'soja'}),now});assert.equal(only.count,1);assert.match(only.buffer.toString('latin1'),/hist\u00f3rico/)
  const g=generalReport({quotes,praca,requests:[],offers:[],units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.equal(g.count,7);parse(g.buffer)
+})
+
+test('relatório de produtores e carteira: carteira por grão, tabela e ficha por produtor',()=>{
+ const now=new Date('2026-09-28T12:00:00Z');const praca=loadPraca();const sources=loadSources().sources
+ const p1={...normalizeProducer({name:'João da Silva',municipality:'São Luiz Gonzaga',distanceKm:25,storageT:1200,cost_soja:120,area_soja:200,yield_soja:60,fixed_soja:10,riskTolerance:'media',sellingStyle:'escalona',cashMonths:['10'],usualBuyers:'Coopatrigo',notes:'Prefere visita.'}),id:'p1',createdAt:'2026-08-01T10:00:00Z'}
+ const p2={...normalizeProducer({name:'Ana Ünica',municipality:'Bossoroca',area_milho:50,yield_milho:120,fixed_milho:80}),id:'p2',createdAt:'2026-08-02T10:00:00Z'}
+ const quotes=[{id:'q1',sourceId:'cvale',sourceName:'C.Vale',commodity:'soja',price:141,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',observedAt:'2026-09-27T10:00:00Z',status:'active'}]
+ const offers=[{id:'o1',producerId:'p1',status:'aceita',closedPrice:146,createdAt:'2026-09-21T10:00:00Z',offer:{commodity:'soja',commodityLabel:'Soja',volumeSc:1000,askingPrice:150,offerPrice:145,asking:{gapSc:-5,status:'ajustavel'},comparison:{cvale:141}}}]
+ const requests=[{id:'r1',producerId:'p1',producerName:'João da Silva',commodity:'soja',volume:500,status:'open',createdAt:'2026-09-22T10:00:00Z',closings:[],analysis:{request:{commodityLabel:'Soja',volumeSc:500,targetPriceSc:148},marketReading:{reference:{price:141}}}}]
+ const producers=[p1,p2];const portfolio=buildPortfolio({producers,requests,quotes,praca,sources},{now});const askingHistory=buildAskingHistory({producers,offers,requests,quotes},{now})
+ const all=producersReport({producers,portfolio,askingHistory,requests,offers,producerOptions,filters:normalizeReportFilters({}),now,user:'Chefe'})
+ assert.equal(all.count,2);const p=parse(all.buffer);assert.match(p.text,/Relat\u00f3rio de produtores e carteira/);assert.match(p.text,/Carteira por gr\u00e3o/);assert.match(p.text,/Ficha do produtor \u0097 Jo\u00e3o da Silva/);assert.match(p.text,/Hist\u00f3rico de pedidas/);assert.match(p.text,/Prefere visita/);assert.ok((p.text.match(/\/Type \/Page\b/g)||[]).length>=3)
+ const soja=producersReport({producers,portfolio,askingHistory,requests,offers,producerOptions,filters:normalizeReportFilters({commodity:'soja'}),now,detail:false});assert.equal(soja.count,1);assert.equal((soja.buffer.toString('latin1').match(/\/Type \/Page\b/g)||[]).length,1)
+ const one=producerReport({producer:p2,portfolio,askingHistory,requests,offers,producerOptions,now});assert.equal(one.count,1);parse(one.buffer);assert.equal(one.filename,'ficha-ana-unica.pdf');assert.match(one.buffer.toString('latin1'),/Milho/)
+ const g=generalReport({producers,portfolio,askingHistory,producerOptions,quotes,praca,requests,offers,units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=4);parse(g.buffer)
 })
