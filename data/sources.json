@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v11",
+  "version": "fontes-v12",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -714,7 +714,8 @@
         "rowKeys": [
           "soja ("
         ],
-        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$"
+        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$",
+        "contextKey": "soja"
       }
     },
     {
@@ -737,7 +738,8 @@
         "rowKeys": [
           "milho ("
         ],
-        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$"
+        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$",
+        "contextKey": "milho"
       }
     },
     {
@@ -760,7 +762,8 @@
         "rowKeys": [
           "trigo ("
         ],
-        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$"
+        "rowPattern": "^(jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[a-z]*\\.?\\s*/?\\s*(20)?\\d{2}$",
+        "contextKey": "trigo"
       }
     }
   ]

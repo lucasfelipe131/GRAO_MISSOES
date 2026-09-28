@@ -140,6 +140,9 @@ test('indicadores: dólar e Chicago exigem número decimal na linha do contrato 
  const soja=extractIndicator(page,text,{range:[700,2200],rowKeys:['soja ('],rowPattern:pattern});assert.equal(soja.value,1288);assert.equal(soja.change,-2.35)
  const milho=extractIndicator(page,text,{range:[250,900],rowKeys:['milho ('],rowPattern:pattern});assert.equal(milho.value,528.5);assert.equal(milho.change,-0.52)
  const trigo=extractIndicator(page,text,{range:[350,1300],rowKeys:['trigo ('],rowPattern:pattern});assert.equal(trigo.value,1288);assert.equal(trigo.change,null)
+ const wheatPage='<h2>Soja - Bolsa de Chicago</h2><table><tr><th>Contrato</th><th>Último</th></tr><tr><td>NOV 2026</td><td>1.288,00</td></tr></table><h2>Trigo - Bolsa de Chicago (CME Group)</h2><table><tr><th>Contrato</th><th>Último</th><th>Var.</th></tr><tr><td>DEC 2026</td><td>782,50</td><td>+1,10%</td></tr></table>'
+ const w=extractIndicator(wheatPage,htmlToText(wheatPage),{range:[350,1300],rowKeys:['trigo ('],rowPattern:pattern,contextKey:'trigo'});assert.equal(w.value,782.5);assert.equal(w.change,1.1);assert.match(w.context,/Trigo/)
+ const sj=extractIndicator(wheatPage,htmlToText(wheatPage),{range:[700,2200],rowKeys:['soja ('],rowPattern:pattern,contextKey:'soja'});assert.equal(sj.value,1288)
  const dolar='<p>Última atualização: 13:47 (28/09)</p><table><tr><th>Moeda</th><th>Compra</th><th>Venda</th><th>Var.</th></tr><tr><td>Dólar Comercial</td><td>5,3812</td><td>5,3820</td><td>-0,21%</td></tr></table>'
  const d=extractIndicator(dolar,htmlToText(dolar),{range:[3,9],rowKeys:['dolar comercial'],keywords:['dolar comercial']});assert.equal(d.value,5.3812);assert.equal(d.change,-0.21)
  assert.equal(extractIndicator('<p>Última atualização: 13:47 (28/09) valor 9</p>','Última atualização: 13:47 (28/09) valor 9',{range:[3,9],keywords:['atualiza']}),null)
