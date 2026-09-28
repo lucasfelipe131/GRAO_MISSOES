@@ -37,7 +37,7 @@ const localNow=()=>{const d=new Date(Date.now()-new Date().getTimezoneOffset()*6
 const formData=f=>{const fd=new FormData(f);const o=Object.fromEntries(fd.entries());if(fd.getAll('cashMonths').length||f.querySelector('[name=cashMonths]'))o.cashMonths=fd.getAll('cashMonths');return o}
 function fillSelects(){
  const comm=state.catalog.commodities.map(c=>`<option value="${c.value}">${c.label}</option>`).join('')
- $$('select[name=commodity]').forEach(s=>{const v=s.value;s.innerHTML=comm;if(v)s.value=v})
+ $('select[name=commodity]').forEach(s=>{if(s.closest('.reportcard'))return;const v=s.value;s.innerHTML=comm;if(v)s.value=v})
  $('select[name=objective]').innerHTML=state.catalog.objectives.map(o=>`<option value="${o.value}">${esc(o.label)}</option>`).join('')
  const ps=$('#requestForm select[name=producerId]');const v=ps.value;ps.innerHTML='<option value="">Selecione</option>'+state.producers.map(p=>`<option value="${p.id}">${esc(p.name)} • ${esc(p.municipality)}</option>`).join('');if(v)ps.value=v
  if(!$('#quoteForm input[name=observedAt]').value)$('#quoteForm input[name=observedAt]').value=localNow()
@@ -343,7 +343,7 @@ function renderStorageOps(){
  const unitOpts='<option value="">Selecione</option>'+units.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')
  for(const id of ['readingForm','receiptForm']){const sel=$(`#${id} select[name=unitId]`);const v=sel.value;sel.innerHTML=unitOpts;if(v)sel.value=v;const cs=$(`#${id} select[name=commodity]`);if(!cs.options.length)cs.innerHTML=state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')}
  const ps=$('#receiptForm select[name=producerId]');const pv=ps.value;ps.innerHTML='<option value="">—</option>'+(state.producers||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');if(pv)ps.value=pv
- {const us=$('#receiptsReportForm select[name=unitId]');const uv=us.value;us.innerHTML='<option value="">Todas</option>'+units.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('');if(uv)us.value=uv;const cs=$('#receiptsReportForm select[name=commodity]');if(cs.options.length<=1)cs.innerHTML='<option value="">Todos</option>'+state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')}
+ for(const fid of ['receiptsReportForm','storageReportForm']){const us=$(`#${fid} select[name=unitId]`);const uv=us.value;us.innerHTML='<option value="">Todas</option>'+units.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('');if(uv)us.value=uv;const cs=$(`#${fid} select[name=commodity]`);if(cs.options.length<=1)cs.innerHTML='<option value="">Todos</option>'+state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')}
  if(!$('#unitGoals').children.length)$('#unitGoals').innerHTML=state.catalog.commodities.map(c=>`<label>${esc(c.label)} (t)<input name="goal_${c.value}" type="number" min="0" step="1"></label>`).join('')
  // standards
  const std=st.standards;const labels=st.parameterLabels||{}
@@ -365,6 +365,7 @@ $('#offersReportForm').addEventListener('submit',e=>{e.preventDefault();download
 $('#requestsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('pedidos',formData(e.target))})
 $('#quotesReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('cotacoes',formData(e.target))})
 $('#producersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('produtores',formData(e.target))})
+$('#storageReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('armazenagem',formData(e.target))})
 $('#receiptsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('recebimentos',formData(e.target))})
 $$('[data-report=geral]').forEach(b=>b.addEventListener('click',()=>{const f=b.closest('form');const p=formData(f);downloadPdf('geral',{from:p.from,to:p.to})}))
 function resetUnitForm(){const f=$('#unitForm');f.reset();f.id.value='';$('#unitFormTitle').textContent='Cadastrar unidade de recebimento';$('#unitCancel').hidden=true}

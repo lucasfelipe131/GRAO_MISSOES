@@ -272,7 +272,7 @@ test('rotas de relatório em PDF respondem application/pdf com filtros',async()=
   assert.equal((await fetch(base+'/api/reports/pedido/00000000-0000-0000-0000-000000000000.pdf')).status,404)
   const sheet=await fetch(base+'/api/reports/produtor/'+producer.id+'.pdf');assert.equal(sheet.status,200);assert.equal(sheet.headers.get('content-type'),'application/pdf');assert.match(sheet.headers.get('content-disposition'),/ficha-ana/)
   assert.equal((await fetch(base+'/api/reports/produtor/00000000-0000-0000-0000-000000000000.pdf')).status,404)
-  for(const kind of ['ofertas','recebimentos','pedidos','cotacoes','produtores','geral']){const r=await fetch(base+'/api/reports/'+kind+'.pdf?from=2026-01-01');assert.equal(r.status,200,kind);assert.equal(r.headers.get('content-type'),'application/pdf');assert.match(r.headers.get('content-disposition'),/attachment; filename="/);const buf=Buffer.from(await r.arrayBuffer());assert.equal(buf.slice(0,5).toString(),'%PDF-');assert.ok(Number(r.headers.get('x-report-count'))>=1,kind)}
+  for(const kind of ['ofertas','recebimentos','pedidos','cotacoes','produtores','armazenagem','geral']){const r=await fetch(base+'/api/reports/'+kind+'.pdf?from=2026-01-01');assert.equal(r.status,200,kind);assert.equal(r.headers.get('content-type'),'application/pdf');assert.match(r.headers.get('content-disposition'),/attachment; filename="/);const buf=Buffer.from(await r.arrayBuffer());assert.equal(buf.slice(0,5).toString(),'%PDF-');assert.ok(Number(r.headers.get('x-report-count'))>=1,kind)}
   const bad=await fetch(base+'/api/reports/ofertas.pdf?from=2026-09-30&to=2026-09-01');assert.equal(bad.status,400)
   assert.equal((await fetch(base+'/api/reports/outro.pdf')).status,404)
  }finally{server.close()}

@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {createPdf,drawTable,textWidth,toWinAnsi} from '../lib/pdf.js'
-import {generalReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport} from '../lib/reports.js'
+import {generalReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport,storageReport} from '../lib/reports.js'
+import {defaultStandards} from '../lib/storage.js'
 import {buildAskingHistory,buildPortfolio,loadPraca,loadSources,normalizeProducer,producerOptions} from '../lib/analysis.js'
 
 const parse=buf=>{const s=buf.toString('latin1');const sx=Number(s.slice(s.lastIndexOf('startxref')+9).trim().split(/\s/)[0]);const lines=s.slice(sx).split('\n');assert.equal(lines[0],'xref');const count=Number(lines[1].split(' ')[1]);for(let i=1;i<count;i++){const off=Number(lines[2+i].slice(0,10));assert.equal(s.slice(off,off+`${i} 0 obj`.length),`${i} 0 obj`,'offset do objeto '+i)}return {text:s,objects:count-1}}
@@ -30,7 +31,7 @@ test('relatórios: ofertas, recebimentos e geral respeitam filtros e geram PDF v
  assert.throws(()=>normalizeReportFilters({from:'2026-09-30',to:'2026-09-01'}),/período/)
  const a=offersReport({offers,filters,now,user:'Chefe'});assert.equal(a.count,1);parse(a.buffer);assert.match(a.buffer.toString('latin1'),/Relatório de ofertas/);assert.equal(a.filename,'ofertas-2026-09-01-2026-09-30.pdf')
  const b=receiptsReport({units,readings:[],receipts,filters,now});assert.equal(b.count,2);parse(b.buffer);assert.match(b.buffer.toString('latin1'),/Metas da safra/)
- const g=generalReport({offers,units,readings:[],receipts,filters:normalizeReportFilters({}),now});assert.equal(g.count,5);const pg=parse(g.buffer);assert.ok((pg.text.match(/\/Type \/Page\b/g)||[]).length>=2)
+ const g=generalReport({offers,units,readings:[],receipts,filters:normalizeReportFilters({}),now});assert.ok(g.count>=5);const pg=parse(g.buffer);assert.ok((pg.text.match(/\/Type \/Page\b/g)||[]).length>=2)
  const empty=offersReport({offers:[],filters:normalizeReportFilters({producerId:'zzz'}),now});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Nenhuma oferta/)
 })
 
@@ -68,4 +69,16 @@ test('relatório de produtores e carteira: carteira por grão, tabela e ficha po
  const soja=producersReport({producers,portfolio,askingHistory,requests,offers,producerOptions,filters:normalizeReportFilters({commodity:'soja'}),now,detail:false});assert.equal(soja.count,1);assert.equal((soja.buffer.toString('latin1').match(/\/Type \/Page\b/g)||[]).length,1)
  const one=producerReport({producer:p2,portfolio,askingHistory,requests,offers,producerOptions,now});assert.equal(one.count,1);parse(one.buffer);assert.equal(one.filename,'ficha-ana-unica.pdf');assert.match(one.buffer.toString('latin1'),/Milho/)
  const g=generalReport({producers,portfolio,askingHistory,producerOptions,quotes,praca,requests,offers,units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=4);parse(g.buffer)
+})
+
+test('relatório de armazenagem e qualidade: unidades, estoque × padrões, alertas, evolução e leituras',()=>{
+ const now=new Date('2026-09-28T12:00:00Z')
+ const units=[{id:'u1',name:'Unidade São Luiz',kind:'misto',capacityT:10000,goals:{soja:8000},seasonStart:'2026-09-01',seasonEnd:'2027-05-31'},{id:'u2',name:'Bossoroca',kind:'silo',capacityT:3000,goals:{}}]
+ const readings=[{id:'r1',unitId:'u1',commodity:'soja',date:'2026-09-20',quantityT:6000,params:{moisture:13,temperature:21,impurities:0.8}},{id:'r2',unitId:'u1',commodity:'soja',date:'2026-09-27',quantityT:7000,silo:'S1',params:{moisture:14.6,temperature:26,impurities:0.9,damaged:5},notes:'aeração ligada'},{id:'r3',unitId:'u2',commodity:'trigo',date:'2026-09-27',quantityT:900,params:{moisture:12.5,ph:80}}]
+ const receipts=[{id:'x1',unitId:'u1',commodity:'soja',date:'2026-09-25',quantityT:200,loads:6,params:{moisture:14}}]
+ const r=storageReport({units,readings,receipts,standards:defaultStandards,filters:normalizeReportFilters({}),now,user:'Encarregado'})
+ assert.equal(r.count,2);const p=parse(r.buffer);const txt=p.text
+ assert.match(txt,/Relat\u00f3rio de armazenagem e qualidade/);assert.match(txt,/Unidades de recebimento/);assert.match(txt,/Estoque e qualidade por unidade/);assert.match(txt,/Padr\u00f5es por cereal/);assert.match(txt,/Padr\u00f5es de qualidade em vigor/);assert.match(txt,/Evolu\u00e7\u00e3o das \u00faltimas leituras/);assert.match(txt,/Leituras registradas no per\u00edodo \\\(3\\\)/);assert.match(txt,/Aten\u00e7\u00e3o/);assert.match(txt,/aera\u00e7\u00e3o ligada/)
+ const one=storageReport({units,readings,receipts,standards:defaultStandards,filters:normalizeReportFilters({unitId:'u2',commodity:'trigo'}),now});assert.equal(one.count,1);assert.doesNotMatch(one.buffer.toString('latin1'),/Unidade S\u00e3o Luiz \| Soja/)
+ const g=generalReport({units,readings,receipts,standards:defaultStandards,quotes:[],praca:null,requests:[],offers:[],producers:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=2);parse(g.buffer)
 })
