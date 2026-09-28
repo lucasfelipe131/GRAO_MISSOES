@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
 import {hashPassword,makeToken,normalizeUserInput,publicUser,verifyPassword,verifyToken} from './lib/auth.js'
-import {generalReport,normalizeReportFilters,offersReport,receiptsReport} from './lib/reports.js'
+import {generalReport,normalizeReportFilters,offersReport,receiptsReport,requestReport,requestsReport} from './lib/reports.js'
 import {buildStorageSummary,defaultStandards,normalizeReading,normalizeReceipt,normalizeStandards,normalizeUnit} from './lib/storage.js'
 import {analyzeRequest,buildAskingHistory,buildBrief,buildPortfolio,buildPriceYear,checkTargets,commodityLabels,loadPraca,loadSources,loadStorageGuide,normalizeImportLines,normalizeProducer,normalizeQuote,normalizeRequest,objectives,producerOptions,text} from './lib/analysis.js'
 import {runComparison} from './lib/fetch.js'
@@ -100,11 +100,13 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   }
   const role=roleOf(request);if(!role)return json(response,401,{error:'Código de acesso inválido.'})
   if(path==='/api/logout'&&request.method==='POST')return json(response,200,{ok:true})
-  const reportMatch=path.match(/^\/api\/reports\/(ofertas|recebimentos|geral)\.pdf$/)
+  const singleRequest=path.match(/^\/api\/reports\/pedido\/([0-9a-f-]{36})\.pdf$/i)
+  if(singleRequest&&request.method==='GET'){const data=store.read();const item=data.requests.find(r=>r.id===singleRequest[1]);if(!item)return json(response,404,{error:'Pedido não encontrado.'});const id=identify(request);const user=id?.user?.name||id?.user?.username||(id?.via==='codigo'?'código da equipe':'');const out=requestReport({request:{...item,producerName:producerOf(data,item.producerId)?.name||'Produtor'},now:new Date(),user});response.writeHead(200,{...headers,'Content-Type':'application/pdf','Content-Disposition':`${url.searchParams.get('inline')?'inline':'attachment'}; filename="${out.filename}"`,'Content-Length':out.buffer.length,'Cache-Control':'no-store','X-Report-Count':'1'});response.end(out.buffer);return true}
+  const reportMatch=path.match(/^\/api\/reports\/(ofertas|recebimentos|pedidos|geral)\.pdf$/)
   if(reportMatch&&request.method==='GET'){
    const filters=normalizeReportFilters(Object.fromEntries(url.searchParams.entries()));const data=store.read();const id=identify(request);const user=id?.user?.name||id?.user?.username||(id?.via==='codigo'?'código da equipe':'')
-   const args={offers:(data.offers||[]).map(o=>({...o,producerName:o.producerName||producerOf(data,o.producerId)?.name||'Produtor'})),producers:data.producers,units:data.storageUnits||[],readings:data.storageReadings||[],receipts:data.storageReceipts||[],standards:{...defaultStandards,...(data.storageStandards||{})},filters,now:new Date(),user}
-   const out=reportMatch[1]==='ofertas'?offersReport(args):reportMatch[1]==='recebimentos'?receiptsReport(args):generalReport(args)
+   const args={requests:data.requests.map(r=>({...r,producerName:producerOf(data,r.producerId)?.name||'Produtor'})),offers:(data.offers||[]).map(o=>({...o,producerName:o.producerName||producerOf(data,o.producerId)?.name||'Produtor'})),producers:data.producers,units:data.storageUnits||[],readings:data.storageReadings||[],receipts:data.storageReceipts||[],standards:{...defaultStandards,...(data.storageStandards||{})},filters,now:new Date(),user}
+   const out=reportMatch[1]==='ofertas'?offersReport(args):reportMatch[1]==='recebimentos'?receiptsReport(args):reportMatch[1]==='pedidos'?requestsReport({...args,detail:url.searchParams.get('detail')!=='0'}):generalReport(args)
    response.writeHead(200,{...headers,'Content-Type':'application/pdf','Content-Disposition':`${url.searchParams.get('inline')?'inline':'attachment'}; filename="${out.filename}"`,'Content-Length':out.buffer.length,'Cache-Control':'no-store','X-Report-Count':String(out.count)});response.end(out.buffer);return true
   }
   if(path==='/api/me/password'&&request.method==='POST'){const id=identify(request);if(!id?.user)return json(response,400,{error:'Troca de senha só para login com usuário e senha.'});const payload=await body(request);if(!verifyPassword(String(payload.currentPassword??''),id.user.passwordHash))return json(response,401,{error:'Senha atual incorreta.'});const next=String(payload.password??'');if(next.length<8)return json(response,400,{error:'A nova senha precisa ter pelo menos 8 caracteres.'});store.update(d=>{const u=d.users.find(x=>x.id===id.user.id);u.passwordHash=hashPassword(next);u.updatedAt=new Date().toISOString()});return json(response,200,{ok:true})}

@@ -267,7 +267,10 @@ test('rotas de relatório em PDF respondem application/pdf com filtros',async()=
   await call(base,'POST','/api/own-quotes',{soja:141});await call(base,'POST','/api/offers',{producerId:producer.id,commodity:'soja',volumeSc:100,deliveryMonth:'2026-11',referenceMode:'cvale',askingPrice:'145'})
   const unit=(await call(base,'POST','/api/storage/units',{name:'U1',capacityT:1000})).data.unit
   await call(base,'POST','/api/storage/receipts',{unitId:unit.id,commodity:'soja',quantityT:'50',date:'2026-09-20'})
-  for(const kind of ['ofertas','recebimentos','geral']){const r=await fetch(base+'/api/reports/'+kind+'.pdf?from=2026-01-01');assert.equal(r.status,200,kind);assert.equal(r.headers.get('content-type'),'application/pdf');assert.match(r.headers.get('content-disposition'),/attachment; filename="/);const buf=Buffer.from(await r.arrayBuffer());assert.equal(buf.slice(0,5).toString(),'%PDF-');assert.ok(Number(r.headers.get('x-report-count'))>=1,kind)}
+  const req=await call(base,'POST','/api/requests',{producerId:producer.id,commodity:'soja',volume:500,targetPrice:148,objective:'equilibrio',direction:'sell',request:'quer 148'});assert.equal(req.status,201)
+  const single=await fetch(base+'/api/reports/pedido/'+req.data.request.id+'.pdf');assert.equal(single.status,200);assert.equal(single.headers.get('content-type'),'application/pdf');assert.match(single.headers.get('content-disposition'),/analise-ana-/)
+  assert.equal((await fetch(base+'/api/reports/pedido/00000000-0000-0000-0000-000000000000.pdf')).status,404)
+  for(const kind of ['ofertas','recebimentos','pedidos','geral']){const r=await fetch(base+'/api/reports/'+kind+'.pdf?from=2026-01-01');assert.equal(r.status,200,kind);assert.equal(r.headers.get('content-type'),'application/pdf');assert.match(r.headers.get('content-disposition'),/attachment; filename="/);const buf=Buffer.from(await r.arrayBuffer());assert.equal(buf.slice(0,5).toString(),'%PDF-');assert.ok(Number(r.headers.get('x-report-count'))>=1,kind)}
   const bad=await fetch(base+'/api/reports/ofertas.pdf?from=2026-09-30&to=2026-09-01');assert.equal(bad.status,400)
   assert.equal((await fetch(base+'/api/reports/outro.pdf')).status,404)
  }finally{server.close()}
