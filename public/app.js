@@ -37,7 +37,7 @@ const localNow=()=>{const d=new Date(Date.now()-new Date().getTimezoneOffset()*6
 const formData=f=>{const fd=new FormData(f);const o=Object.fromEntries(fd.entries());if(fd.getAll('cashMonths').length||f.querySelector('[name=cashMonths]'))o.cashMonths=fd.getAll('cashMonths');return o}
 function fillSelects(){
  const comm=state.catalog.commodities.map(c=>`<option value="${c.value}">${c.label}</option>`).join('')
- $('select[name=commodity]').forEach(s=>{if(s.closest('.reportcard'))return;const v=s.value;s.innerHTML=comm;if(v)s.value=v})
+ $$('select[name=commodity]').forEach(s=>{if(s.closest('.reportcard'))return;const v=s.value;s.innerHTML=comm;if(v)s.value=v})
  $('select[name=objective]').innerHTML=state.catalog.objectives.map(o=>`<option value="${o.value}">${esc(o.label)}</option>`).join('')
  const ps=$('#requestForm select[name=producerId]');const v=ps.value;ps.innerHTML='<option value="">Selecione</option>'+state.producers.map(p=>`<option value="${p.id}">${esc(p.name)} • ${esc(p.municipality)}</option>`).join('');if(v)ps.value=v
  if(!$('#quoteForm input[name=observedAt]').value)$('#quoteForm input[name=observedAt]').value=localNow()
