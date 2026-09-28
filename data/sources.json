@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v9",
+  "version": "fontes-v10",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -643,12 +643,12 @@
   "references": [
     {
       "name": "Chicago (CME) — soja, milho e trigo em US$/bushel",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-bolsa-de-chicago-cme-group",
       "note": "Não é cotação em reais; use só para entender a direção do dia. O sistema não aceita US$/bu como cotação registrada."
     },
     {
       "name": "Dólar comercial",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes/dolar",
+      "url": "https://www.noticiasagricolas.com.br/cotacao-do-dolar/",
       "note": "Câmbio mais alto sustenta o preço interno da soja e do trigo."
     },
     {
@@ -667,7 +667,11 @@
       "key": "dolar",
       "label": "Dólar comercial",
       "sourceName": "Notícias Agrícolas — Dólar",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes/dolar",
+      "url": "https://www.noticiasagricolas.com.br/cotacao-do-dolar/",
+      "urls": [
+        "https://www.noticiasagricolas.com.br/cotacoes/mercado-financeiro/dolar-b3",
+        "https://www.noticiasagricolas.com.br/cotacoes/mercado-financeiro/cambio-ptax"
+      ],
       "unit": "BRL/USD",
       "format": "R$ {v}",
       "decimals": 4,
@@ -676,10 +680,13 @@
           3,
           9
         ],
-        "rowKey": "comercial",
         "keywords": [
           "dolar comercial",
-          "dólar comercial"
+          "dólar comercial",
+          "dolar",
+          "dólar",
+          "compra",
+          "venda"
         ]
       }
     },
@@ -687,7 +694,10 @@
       "key": "cbot-soja",
       "label": "Chicago soja (US¢/bu)",
       "sourceName": "Notícias Agrícolas — CME soja",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-bolsa-de-chicago",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-bolsa-de-chicago-cme-group",
+      "urls": [
+        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/soja"
+      ],
       "unit": "USc/bu",
       "format": "{v} ¢/bu",
       "decimals": 2,
@@ -705,7 +715,10 @@
       "key": "cbot-milho",
       "label": "Chicago milho (US¢/bu)",
       "sourceName": "Notícias Agrícolas — CME milho",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes/milho/milho-bolsa-de-chicago",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/milho/milho-bolsa-de-chicago-cme-group",
+      "urls": [
+        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/milho"
+      ],
       "unit": "USc/bu",
       "format": "{v} ¢/bu",
       "decimals": 2,
@@ -723,7 +736,10 @@
       "key": "cbot-trigo",
       "label": "Chicago trigo (US¢/bu)",
       "sourceName": "Notícias Agrícolas — CME trigo",
-      "url": "https://www.noticiasagricolas.com.br/cotacoes/trigo/trigo-bolsa-de-chicago",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/trigo/trigo-bolsa-de-chicago-cme-group",
+      "urls": [
+        "https://www.noticiasagricolas.com.br/cotacoes-mercado-futuro/trigo"
+      ],
       "unit": "USc/bu",
       "format": "{v} ¢/bu",
       "decimals": 2,
