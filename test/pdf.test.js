@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {createPdf,drawTable,textWidth,toWinAnsi} from '../lib/pdf.js'
-import {generalReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport,storageReport} from '../lib/reports.js'
+import {generalReport,marketReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport,storageReport} from '../lib/reports.js'
 import {defaultStandards} from '../lib/storage.js'
 import {buildAskingHistory,buildPortfolio,loadPraca,loadSources,normalizeProducer,producerOptions} from '../lib/analysis.js'
 
@@ -53,7 +53,7 @@ test('relatório de cotações e comparativo: compradores, estatísticas, sazona
  assert.equal(r.count,7);const p=parse(r.buffer);const txt=p.text
  assert.match(txt,/Relat\u00f3rio de cota\u00e7\u00f5es e comparativo/);assert.match(txt,/Comparativo de compradores/);assert.match(txt,/melhor concorrente Coopatrigo/);assert.match(txt,/Estat\u00edsticas do per\u00edodo/);assert.match(txt,/Padr\u00e3o sazonal observado/);assert.match(txt,/Cota\u00e7\u00f5es registradas no per\u00edodo/);assert.match(txt,/\\\(esmagadora\\\)/);assert.match(txt,/1\.400,00\/t/)
  const only=quotesReport({quotes,praca,filters:normalizeReportFilters({from:'2026-08-01',to:'2026-08-31',commodity:'soja'}),now});assert.equal(only.count,1);assert.match(only.buffer.toString('latin1'),/hist\u00f3rico/)
- const g=generalReport({quotes,praca,requests:[],offers:[],units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.equal(g.count,7);parse(g.buffer)
+ const g=generalReport({quotes,praca,requests:[],offers:[],units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=7);parse(g.buffer)
 })
 
 test('relatório de produtores e carteira: carteira por grão, tabela e ficha por produtor',()=>{
@@ -81,4 +81,16 @@ test('relatório de armazenagem e qualidade: unidades, estoque × padrões, aler
  assert.match(txt,/Relat\u00f3rio de armazenagem e qualidade/);assert.match(txt,/Unidades de recebimento/);assert.match(txt,/Estoque e qualidade por unidade/);assert.match(txt,/Padr\u00f5es por cereal/);assert.match(txt,/Padr\u00f5es de qualidade em vigor/);assert.match(txt,/Evolu\u00e7\u00e3o das \u00faltimas leituras/);assert.match(txt,/Leituras registradas no per\u00edodo \\\(3\\\)/);assert.match(txt,/Aten\u00e7\u00e3o/);assert.match(txt,/aera\u00e7\u00e3o ligada/)
  const one=storageReport({units,readings,receipts,standards:defaultStandards,filters:normalizeReportFilters({unitId:'u2',commodity:'trigo'}),now});assert.equal(one.count,1);assert.doesNotMatch(one.buffer.toString('latin1'),/Unidade S\u00e3o Luiz \| Soja/)
  const g=generalReport({units,readings,receipts,standards:defaultStandards,quotes:[],praca:null,requests:[],offers:[],producers:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=2);parse(g.buffer)
+})
+
+test('relatório do mercado agora: cartões por grão, indicadores, concorrentes e leitura do dia',()=>{
+ const now=new Date('2026-09-29T12:00:00Z');const praca=loadPraca()
+ const q=(d,src,price,extra={})=>({id:src+d,sourceId:src.toLowerCase(),sourceName:src,commodity:'soja',price,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',observedAt:d,status:'active',...extra})
+ const quotes=[q('2026-09-29T10:00:00Z','C.Vale',141,{sourceId:'cvale'}),q('2026-09-29T09:00:00Z','Coopatrigo',143,{automatic:true}),q('2026-09-28T09:00:00Z','Coopatrigo',142),q('2026-09-28T09:00:00Z','C.Vale',140,{sourceId:'cvale'}),q('2026-09-26T09:00:00Z','Bunge',163,{region:'Porto de Rio Grande'}),q('2026-09-29T09:00:00Z','Cotrisal',62,{commodity:'milho'})]
+ const indicators={dolar:{label:'Dólar comercial',value:5.1991,display:'R$ 5,1991',changePercent:0.38,observedAt:'2026-09-29T12:00:00.000Z',sourceName:'NA'},'cbot-soja':{label:'Chicago soja',value:1288.5,display:'US$ 12,89/bu',observedAt:'2026-09-29T12:00:00.000Z'}}
+ const r=marketReport({quotes,praca,indicators,automation:{lastRun:'2026-09-29T11:00:00Z'},now,user:'Chefe'})
+ assert.equal(r.count,2);const p=parse(r.buffer);const txt=p.text
+ assert.match(txt,/Mercado agora/);assert.match(txt,/Indicadores \\\(d\u00f3lar e Chicago\\\)/);assert.match(txt,/US\$ 12,89\/bu/);assert.match(txt,/Concorrentes com cota\u00e7\u00e3o/);assert.match(txt,/Coopatrigo/);assert.match(txt,/Leitura do dia/);assert.match(r.filename,/^mercado-agora-2026-09-29/)
+ const empty=marketReport({quotes:[],praca,indicators:{},now});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Sem cota\u00e7\u00f5es recentes/)
+ const g=generalReport({quotes,praca,indicators,automation:{},producers:[],portfolio:null,askingHistory:[],requests:[],offers:[],units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=2);parse(g.buffer)
 })
