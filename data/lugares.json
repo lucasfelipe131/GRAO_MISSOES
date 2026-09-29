@@ -3,166 +3,1156 @@
  "note": "Coordenadas aproximadas (sede do município, ±3 km) usadas para localizar praças de preço e estimar distâncias. Praças (kind=praca) são as que costumam aparecer nas tabelas públicas de mercado físico; municípios (kind=municipio) servem para produtores e unidades. Fator rodoviário padrão 1,3 sobre a linha reta.",
  "roadFactor": 1.3,
  "places": [
-  {"name":"São Luiz Gonzaga","uf":"RS","lat":-28.408,"lon":-54.961,"kind":"praca","home":true},
-  {"name":"Santo Ângelo","uf":"RS","lat":-28.299,"lon":-54.263,"kind":"praca"},
-  {"name":"Cruz Alta","uf":"RS","lat":-28.639,"lon":-53.606,"kind":"praca"},
-  {"name":"Ijuí","uf":"RS","lat":-28.388,"lon":-53.915,"kind":"praca"},
-  {"name":"Santa Rosa","uf":"RS","lat":-27.871,"lon":-54.481,"kind":"praca"},
-  {"name":"Giruá","uf":"RS","lat":-28.028,"lon":-54.350,"kind":"praca"},
-  {"name":"Panambi","uf":"RS","lat":-28.293,"lon":-53.502,"kind":"praca"},
-  {"name":"Palmeira das Missões","uf":"RS","lat":-27.899,"lon":-53.314,"kind":"praca"},
-  {"name":"Três de Maio","uf":"RS","lat":-27.780,"lon":-54.240,"kind":"praca"},
-  {"name":"Santa Bárbara do Sul","uf":"RS","lat":-28.364,"lon":-53.251,"kind":"praca"},
-  {"name":"Passo Fundo","uf":"RS","lat":-28.263,"lon":-52.407,"kind":"praca"},
-  {"name":"Carazinho","uf":"RS","lat":-28.284,"lon":-52.786,"kind":"praca"},
-  {"name":"Não-Me-Toque","uf":"RS","lat":-28.459,"lon":-52.821,"kind":"praca","aliases":["Nao Me Toque"]},
-  {"name":"Ibirubá","uf":"RS","lat":-28.628,"lon":-53.090,"kind":"praca"},
-  {"name":"Tapera","uf":"RS","lat":-28.628,"lon":-52.861,"kind":"praca"},
-  {"name":"Espumoso","uf":"RS","lat":-28.725,"lon":-52.849,"kind":"praca"},
-  {"name":"Soledade","uf":"RS","lat":-28.818,"lon":-52.510,"kind":"praca"},
-  {"name":"Sarandi","uf":"RS","lat":-27.944,"lon":-52.923,"kind":"praca"},
-  {"name":"Marau","uf":"RS","lat":-28.449,"lon":-52.200,"kind":"praca"},
-  {"name":"Erechim","uf":"RS","lat":-27.634,"lon":-52.274,"kind":"praca"},
-  {"name":"Nonoai","uf":"RS","lat":-27.362,"lon":-52.771,"kind":"praca"},
-  {"name":"Frederico Westphalen","uf":"RS","lat":-27.359,"lon":-53.394,"kind":"praca"},
-  {"name":"Tupanciretã","uf":"RS","lat":-29.081,"lon":-53.836,"kind":"praca"},
-  {"name":"Júlio de Castilhos","uf":"RS","lat":-29.227,"lon":-53.682,"kind":"praca"},
-  {"name":"Santa Maria","uf":"RS","lat":-29.684,"lon":-53.807,"kind":"praca"},
-  {"name":"Santiago","uf":"RS","lat":-29.192,"lon":-54.867,"kind":"praca"},
-  {"name":"São Borja","uf":"RS","lat":-28.661,"lon":-56.004,"kind":"praca"},
-  {"name":"Uruguaiana","uf":"RS","lat":-29.755,"lon":-57.088,"kind":"praca"},
-  {"name":"Bagé","uf":"RS","lat":-31.331,"lon":-54.107,"kind":"praca"},
-  {"name":"Cachoeira do Sul","uf":"RS","lat":-30.039,"lon":-52.894,"kind":"praca"},
-  {"name":"Vacaria","uf":"RS","lat":-28.512,"lon":-50.934,"kind":"praca"},
-  {"name":"Lagoa Vermelha","uf":"RS","lat":-28.209,"lon":-51.526,"kind":"praca"},
-  {"name":"Pelotas","uf":"RS","lat":-31.772,"lon":-52.342,"kind":"praca"},
-  {"name":"Rio Grande","uf":"RS","lat":-32.035,"lon":-52.099,"kind":"praca","port":true},
-  {"name":"Porto Alegre","uf":"RS","lat":-30.033,"lon":-51.230,"kind":"praca"},
-  {"name":"Cerro Largo","uf":"RS","lat":-28.149,"lon":-54.738,"kind":"municipio"},
-  {"name":"Bossoroca","uf":"RS","lat":-28.729,"lon":-54.904,"kind":"municipio"},
-  {"name":"São Miguel das Missões","uf":"RS","lat":-28.556,"lon":-54.556,"kind":"municipio"},
-  {"name":"Entre-Ijuís","uf":"RS","lat":-28.371,"lon":-54.267,"kind":"municipio","aliases":["Entre Ijuis"]},
-  {"name":"Santo Antônio das Missões","uf":"RS","lat":-28.513,"lon":-55.226,"kind":"municipio"},
-  {"name":"Caibaté","uf":"RS","lat":-28.291,"lon":-54.645,"kind":"municipio"},
-  {"name":"Roque Gonzales","uf":"RS","lat":-28.129,"lon":-55.026,"kind":"municipio"},
-  {"name":"São Nicolau","uf":"RS","lat":-28.183,"lon":-55.264,"kind":"municipio"},
-  {"name":"Dezesseis de Novembro","uf":"RS","lat":-28.216,"lon":-55.063,"kind":"municipio"},
-  {"name":"Pirapó","uf":"RS","lat":-28.045,"lon":-55.202,"kind":"municipio"},
-  {"name":"Rolador","uf":"RS","lat":-28.260,"lon":-54.818,"kind":"municipio"},
-  {"name":"Mato Queimado","uf":"RS","lat":-28.250,"lon":-54.617,"kind":"municipio"},
-  {"name":"Garruchos","uf":"RS","lat":-28.184,"lon":-55.638,"kind":"municipio"},
-  {"name":"Vitória das Missões","uf":"RS","lat":-28.351,"lon":-54.504,"kind":"municipio"},
-  {"name":"Eugênio de Castro","uf":"RS","lat":-28.532,"lon":-54.150,"kind":"municipio"},
-  {"name":"Catuípe","uf":"RS","lat":-28.256,"lon":-54.013,"kind":"municipio"},
-  {"name":"Guarani das Missões","uf":"RS","lat":-28.146,"lon":-54.562,"kind":"municipio"},
-  {"name":"Sete de Setembro","uf":"RS","lat":-28.140,"lon":-54.463,"kind":"municipio"},
-  {"name":"Salvador das Missões","uf":"RS","lat":-28.124,"lon":-54.837,"kind":"municipio"},
-  {"name":"São Pedro do Butiá","uf":"RS","lat":-28.123,"lon":-54.892,"kind":"municipio"},
-  {"name":"Porto Xavier","uf":"RS","lat":-27.908,"lon":-55.138,"kind":"municipio"},
-  {"name":"Porto Lucena","uf":"RS","lat":-27.857,"lon":-55.018,"kind":"municipio"},
-  {"name":"Campina das Missões","uf":"RS","lat":-27.989,"lon":-54.840,"kind":"municipio"},
-  {"name":"Cândido Godói","uf":"RS","lat":-27.951,"lon":-54.752,"kind":"municipio"},
-  {"name":"Ubiretama","uf":"RS","lat":-28.043,"lon":-54.684,"kind":"municipio"},
-  {"name":"Senador Salgado Filho","uf":"RS","lat":-28.028,"lon":-54.542,"kind":"municipio"},
-  {"name":"Itacurubi","uf":"RS","lat":-28.790,"lon":-55.240,"kind":"municipio"},
-  {"name":"Unistalda","uf":"RS","lat":-29.043,"lon":-55.152,"kind":"municipio"},
-  {"name":"Capão do Cipó","uf":"RS","lat":-28.938,"lon":-54.557,"kind":"municipio"},
-  {"name":"Jóia","uf":"RS","lat":-28.646,"lon":-54.117,"kind":"municipio"},
-  {"name":"Augusto Pestana","uf":"RS","lat":-28.517,"lon":-53.991,"kind":"municipio"},
-  {"name":"Ajuricaba","uf":"RS","lat":-28.234,"lon":-53.776,"kind":"municipio"},
-  {"name":"Chiapetta","uf":"RS","lat":-27.923,"lon":-53.942,"kind":"municipio"},
-  {"name":"Santo Augusto","uf":"RS","lat":-27.851,"lon":-53.777,"kind":"municipio"},
-  {"name":"Tuparendi","uf":"RS","lat":-27.761,"lon":-54.480,"kind":"municipio"},
-  {"name":"Horizontina","uf":"RS","lat":-27.626,"lon":-54.308,"kind":"municipio"},
-  {"name":"Três Passos","uf":"RS","lat":-27.456,"lon":-53.932,"kind":"municipio"},
-  {"name":"Tenente Portela","uf":"RS","lat":-27.371,"lon":-53.758,"kind":"municipio"},
-  {"name":"Chapecó","uf":"SC","lat":-27.096,"lon":-52.618,"kind":"praca"},
-  {"name":"Palma Sola","uf":"SC","lat":-26.347,"lon":-53.278,"kind":"praca"},
-  {"name":"Xanxerê","uf":"SC","lat":-26.877,"lon":-52.404,"kind":"praca"},
-  {"name":"Campos Novos","uf":"SC","lat":-27.402,"lon":-51.225,"kind":"praca"},
-  {"name":"Canoinhas","uf":"SC","lat":-26.177,"lon":-50.390,"kind":"praca"},
-  {"name":"Lages","uf":"SC","lat":-27.816,"lon":-50.326,"kind":"praca"},
-  {"name":"Cascavel","uf":"PR","lat":-24.956,"lon":-53.459,"kind":"praca"},
-  {"name":"Ponta Grossa","uf":"PR","lat":-25.095,"lon":-50.162,"kind":"praca"},
-  {"name":"Londrina","uf":"PR","lat":-23.310,"lon":-51.163,"kind":"praca"},
-  {"name":"Maringá","uf":"PR","lat":-23.421,"lon":-51.933,"kind":"praca"},
-  {"name":"Castro","uf":"PR","lat":-24.791,"lon":-50.012,"kind":"praca"},
-  {"name":"Ubiratã","uf":"PR","lat":-24.540,"lon":-52.986,"kind":"praca"},
-  {"name":"Marechal Cândido Rondon","uf":"PR","lat":-24.556,"lon":-54.057,"kind":"praca"},
-  {"name":"Pato Branco","uf":"PR","lat":-26.229,"lon":-52.671,"kind":"praca"},
-  {"name":"Toledo","uf":"PR","lat":-24.714,"lon":-53.743,"kind":"praca"},
-  {"name":"Campo Mourão","uf":"PR","lat":-24.046,"lon":-52.378,"kind":"praca"},
-  {"name":"Guarapuava","uf":"PR","lat":-25.395,"lon":-51.458,"kind":"praca"},
-  {"name":"Francisco Beltrão","uf":"PR","lat":-26.081,"lon":-53.055,"kind":"praca"},
-  {"name":"Cornélio Procópio","uf":"PR","lat":-23.181,"lon":-50.647,"kind":"praca"},
-  {"name":"Palotina","uf":"PR","lat":-24.284,"lon":-53.840,"kind":"praca"},
-  {"name":"Assis Chateaubriand","uf":"PR","lat":-24.418,"lon":-53.521,"kind":"praca"},
-  {"name":"Umuarama","uf":"PR","lat":-23.766,"lon":-53.325,"kind":"praca"},
-  {"name":"Cianorte","uf":"PR","lat":-23.663,"lon":-52.605,"kind":"praca"},
-  {"name":"Paranaguá","uf":"PR","lat":-25.520,"lon":-48.509,"kind":"praca","port":true},
-  {"name":"Sorriso","uf":"MT","lat":-12.545,"lon":-55.721,"kind":"praca"},
-  {"name":"Rondonópolis","uf":"MT","lat":-16.471,"lon":-54.636,"kind":"praca"},
-  {"name":"Lucas do Rio Verde","uf":"MT","lat":-13.050,"lon":-55.911,"kind":"praca"},
-  {"name":"Sinop","uf":"MT","lat":-11.861,"lon":-55.503,"kind":"praca"},
-  {"name":"Primavera do Leste","uf":"MT","lat":-15.556,"lon":-54.297,"kind":"praca"},
-  {"name":"Campo Verde","uf":"MT","lat":-15.545,"lon":-55.163,"kind":"praca"},
-  {"name":"Nova Mutum","uf":"MT","lat":-13.828,"lon":-56.086,"kind":"praca"},
-  {"name":"Sapezal","uf":"MT","lat":-13.542,"lon":-58.815,"kind":"praca"},
-  {"name":"Campo Novo do Parecis","uf":"MT","lat":-13.675,"lon":-57.892,"kind":"praca"},
-  {"name":"Diamantino","uf":"MT","lat":-14.409,"lon":-56.446,"kind":"praca"},
-  {"name":"Canarana","uf":"MT","lat":-13.551,"lon":-52.271,"kind":"praca"},
-  {"name":"Querência","uf":"MT","lat":-12.609,"lon":-52.181,"kind":"praca"},
-  {"name":"Alto Garças","uf":"MT","lat":-16.945,"lon":-53.528,"kind":"praca"},
-  {"name":"Cuiabá","uf":"MT","lat":-15.601,"lon":-56.098,"kind":"praca"},
-  {"name":"Dourados","uf":"MS","lat":-22.221,"lon":-54.806,"kind":"praca"},
-  {"name":"Campo Grande","uf":"MS","lat":-20.463,"lon":-54.616,"kind":"praca"},
-  {"name":"Maracaju","uf":"MS","lat":-21.614,"lon":-55.168,"kind":"praca"},
-  {"name":"Chapadão do Sul","uf":"MS","lat":-18.788,"lon":-52.626,"kind":"praca"},
-  {"name":"Ponta Porã","uf":"MS","lat":-22.536,"lon":-55.726,"kind":"praca"},
-  {"name":"São Gabriel do Oeste","uf":"MS","lat":-19.394,"lon":-54.565,"kind":"praca"},
-  {"name":"Sidrolândia","uf":"MS","lat":-20.932,"lon":-54.961,"kind":"praca"},
-  {"name":"Naviraí","uf":"MS","lat":-23.065,"lon":-54.191,"kind":"praca"},
-  {"name":"Rio Verde","uf":"GO","lat":-17.798,"lon":-50.926,"kind":"praca"},
-  {"name":"Jataí","uf":"GO","lat":-17.881,"lon":-51.721,"kind":"praca"},
-  {"name":"Cristalina","uf":"GO","lat":-16.769,"lon":-47.613,"kind":"praca"},
-  {"name":"Goiânia","uf":"GO","lat":-16.686,"lon":-49.264,"kind":"praca"},
-  {"name":"Mineiros","uf":"GO","lat":-17.569,"lon":-52.551,"kind":"praca"},
-  {"name":"Catalão","uf":"GO","lat":-18.166,"lon":-47.946,"kind":"praca"},
-  {"name":"Chapadão do Céu","uf":"GO","lat":-18.403,"lon":-52.542,"kind":"praca"},
-  {"name":"Santa Helena de Goiás","uf":"GO","lat":-17.814,"lon":-50.597,"kind":"praca"},
-  {"name":"Formosa","uf":"GO","lat":-15.537,"lon":-47.334,"kind":"praca"},
-  {"name":"Luziânia","uf":"GO","lat":-16.253,"lon":-47.950,"kind":"praca"},
-  {"name":"Brasília","uf":"DF","lat":-15.794,"lon":-47.883,"kind":"praca"},
-  {"name":"Uberlândia","uf":"MG","lat":-18.919,"lon":-48.277,"kind":"praca"},
-  {"name":"Uberaba","uf":"MG","lat":-19.748,"lon":-47.932,"kind":"praca"},
-  {"name":"Unaí","uf":"MG","lat":-16.358,"lon":-46.906,"kind":"praca"},
-  {"name":"Paracatu","uf":"MG","lat":-17.222,"lon":-46.875,"kind":"praca"},
-  {"name":"Patos de Minas","uf":"MG","lat":-18.579,"lon":-46.518,"kind":"praca"},
-  {"name":"Araxá","uf":"MG","lat":-19.593,"lon":-46.941,"kind":"praca"},
-  {"name":"Campinas","uf":"SP","lat":-22.906,"lon":-47.061,"kind":"praca"},
-  {"name":"Ribeirão Preto","uf":"SP","lat":-21.178,"lon":-47.807,"kind":"praca"},
-  {"name":"Assis","uf":"SP","lat":-22.662,"lon":-50.412,"kind":"praca"},
-  {"name":"Ourinhos","uf":"SP","lat":-22.979,"lon":-49.870,"kind":"praca"},
-  {"name":"Presidente Prudente","uf":"SP","lat":-22.126,"lon":-51.389,"kind":"praca"},
-  {"name":"Itapeva","uf":"SP","lat":-23.982,"lon":-48.876,"kind":"praca"},
-  {"name":"Orlândia","uf":"SP","lat":-20.720,"lon":-47.887,"kind":"praca"},
-  {"name":"Santos","uf":"SP","lat":-23.961,"lon":-46.334,"kind":"praca","port":true},
-  {"name":"Barreiras","uf":"BA","lat":-12.153,"lon":-44.990,"kind":"praca"},
-  {"name":"Luís Eduardo Magalhães","uf":"BA","lat":-12.092,"lon":-45.800,"kind":"praca"},
-  {"name":"São Desidério","uf":"BA","lat":-12.363,"lon":-44.973,"kind":"praca"},
-  {"name":"Correntina","uf":"BA","lat":-13.343,"lon":-44.636,"kind":"praca"},
-  {"name":"Balsas","uf":"MA","lat":-7.532,"lon":-46.036,"kind":"praca"},
-  {"name":"Imperatriz","uf":"MA","lat":-5.526,"lon":-47.482,"kind":"praca"},
-  {"name":"Uruçuí","uf":"PI","lat":-7.230,"lon":-44.557,"kind":"praca"},
-  {"name":"Bom Jesus","uf":"PI","lat":-9.075,"lon":-44.359,"kind":"praca"},
-  {"name":"Porto Nacional","uf":"TO","lat":-10.708,"lon":-48.417,"kind":"praca"},
-  {"name":"Gurupi","uf":"TO","lat":-11.729,"lon":-49.069,"kind":"praca"},
-  {"name":"Pedro Afonso","uf":"TO","lat":-8.968,"lon":-48.175,"kind":"praca"},
-  {"name":"Paraíso do Tocantins","uf":"TO","lat":-10.175,"lon":-48.882,"kind":"praca"},
-  {"name":"Paragominas","uf":"PA","lat":-2.997,"lon":-47.353,"kind":"praca"},
-  {"name":"Santarém","uf":"PA","lat":-2.443,"lon":-54.708,"kind":"praca"},
-  {"name":"Redenção","uf":"PA","lat":-8.028,"lon":-50.032,"kind":"praca"},
-  {"name":"Vilhena","uf":"RO","lat":-12.740,"lon":-60.146,"kind":"praca"},
-  {"name":"Ji-Paraná","uf":"RO","lat":-10.885,"lon":-61.952,"kind":"praca"}
+  {
+   "name": "São Luiz Gonzaga",
+   "uf": "RS",
+   "lat": -28.408,
+   "lon": -54.961,
+   "kind": "praca",
+   "home": true
+  },
+  {
+   "name": "Santo Ângelo",
+   "uf": "RS",
+   "lat": -28.299,
+   "lon": -54.263,
+   "kind": "praca"
+  },
+  {
+   "name": "Cruz Alta",
+   "uf": "RS",
+   "lat": -28.639,
+   "lon": -53.606,
+   "kind": "praca"
+  },
+  {
+   "name": "Ijuí",
+   "uf": "RS",
+   "lat": -28.388,
+   "lon": -53.915,
+   "kind": "praca"
+  },
+  {
+   "name": "Santa Rosa",
+   "uf": "RS",
+   "lat": -27.871,
+   "lon": -54.481,
+   "kind": "praca"
+  },
+  {
+   "name": "Giruá",
+   "uf": "RS",
+   "lat": -28.028,
+   "lon": -54.35,
+   "kind": "praca"
+  },
+  {
+   "name": "Panambi",
+   "uf": "RS",
+   "lat": -28.293,
+   "lon": -53.502,
+   "kind": "praca"
+  },
+  {
+   "name": "Palmeira das Missões",
+   "uf": "RS",
+   "lat": -27.899,
+   "lon": -53.314,
+   "kind": "praca"
+  },
+  {
+   "name": "Três de Maio",
+   "uf": "RS",
+   "lat": -27.78,
+   "lon": -54.24,
+   "kind": "praca"
+  },
+  {
+   "name": "Santa Bárbara do Sul",
+   "uf": "RS",
+   "lat": -28.364,
+   "lon": -53.251,
+   "kind": "praca"
+  },
+  {
+   "name": "Passo Fundo",
+   "uf": "RS",
+   "lat": -28.263,
+   "lon": -52.407,
+   "kind": "praca"
+  },
+  {
+   "name": "Carazinho",
+   "uf": "RS",
+   "lat": -28.284,
+   "lon": -52.786,
+   "kind": "praca"
+  },
+  {
+   "name": "Não-Me-Toque",
+   "uf": "RS",
+   "lat": -28.459,
+   "lon": -52.821,
+   "kind": "praca",
+   "aliases": [
+    "Nao Me Toque"
+   ]
+  },
+  {
+   "name": "Ibirubá",
+   "uf": "RS",
+   "lat": -28.628,
+   "lon": -53.09,
+   "kind": "praca"
+  },
+  {
+   "name": "Tapera",
+   "uf": "RS",
+   "lat": -28.628,
+   "lon": -52.861,
+   "kind": "praca"
+  },
+  {
+   "name": "Espumoso",
+   "uf": "RS",
+   "lat": -28.725,
+   "lon": -52.849,
+   "kind": "praca"
+  },
+  {
+   "name": "Soledade",
+   "uf": "RS",
+   "lat": -28.818,
+   "lon": -52.51,
+   "kind": "praca"
+  },
+  {
+   "name": "Sarandi",
+   "uf": "RS",
+   "lat": -27.944,
+   "lon": -52.923,
+   "kind": "praca"
+  },
+  {
+   "name": "Marau",
+   "uf": "RS",
+   "lat": -28.449,
+   "lon": -52.2,
+   "kind": "praca"
+  },
+  {
+   "name": "Erechim",
+   "uf": "RS",
+   "lat": -27.634,
+   "lon": -52.274,
+   "kind": "praca"
+  },
+  {
+   "name": "Nonoai",
+   "uf": "RS",
+   "lat": -27.362,
+   "lon": -52.771,
+   "kind": "praca"
+  },
+  {
+   "name": "Frederico Westphalen",
+   "uf": "RS",
+   "lat": -27.359,
+   "lon": -53.394,
+   "kind": "praca"
+  },
+  {
+   "name": "Tupanciretã",
+   "uf": "RS",
+   "lat": -29.081,
+   "lon": -53.836,
+   "kind": "praca"
+  },
+  {
+   "name": "Júlio de Castilhos",
+   "uf": "RS",
+   "lat": -29.227,
+   "lon": -53.682,
+   "kind": "praca"
+  },
+  {
+   "name": "Santa Maria",
+   "uf": "RS",
+   "lat": -29.684,
+   "lon": -53.807,
+   "kind": "praca"
+  },
+  {
+   "name": "Santiago",
+   "uf": "RS",
+   "lat": -29.192,
+   "lon": -54.867,
+   "kind": "praca"
+  },
+  {
+   "name": "São Borja",
+   "uf": "RS",
+   "lat": -28.661,
+   "lon": -56.004,
+   "kind": "praca"
+  },
+  {
+   "name": "Uruguaiana",
+   "uf": "RS",
+   "lat": -29.755,
+   "lon": -57.088,
+   "kind": "praca"
+  },
+  {
+   "name": "Bagé",
+   "uf": "RS",
+   "lat": -31.331,
+   "lon": -54.107,
+   "kind": "praca"
+  },
+  {
+   "name": "Cachoeira do Sul",
+   "uf": "RS",
+   "lat": -30.039,
+   "lon": -52.894,
+   "kind": "praca"
+  },
+  {
+   "name": "Vacaria",
+   "uf": "RS",
+   "lat": -28.512,
+   "lon": -50.934,
+   "kind": "praca"
+  },
+  {
+   "name": "Lagoa Vermelha",
+   "uf": "RS",
+   "lat": -28.209,
+   "lon": -51.526,
+   "kind": "praca"
+  },
+  {
+   "name": "Pelotas",
+   "uf": "RS",
+   "lat": -31.772,
+   "lon": -52.342,
+   "kind": "praca"
+  },
+  {
+   "name": "Rio Grande",
+   "uf": "RS",
+   "lat": -32.035,
+   "lon": -52.099,
+   "kind": "praca",
+   "port": true,
+   "aliases": [
+    "Porto Rio Grande",
+    "Porto de Rio Grande",
+    "Rio Grande disponivel"
+   ]
+  },
+  {
+   "name": "Porto Alegre",
+   "uf": "RS",
+   "lat": -30.033,
+   "lon": -51.23,
+   "kind": "praca"
+  },
+  {
+   "name": "Cerro Largo",
+   "uf": "RS",
+   "lat": -28.149,
+   "lon": -54.738,
+   "kind": "municipio"
+  },
+  {
+   "name": "Bossoroca",
+   "uf": "RS",
+   "lat": -28.729,
+   "lon": -54.904,
+   "kind": "municipio"
+  },
+  {
+   "name": "São Miguel das Missões",
+   "uf": "RS",
+   "lat": -28.556,
+   "lon": -54.556,
+   "kind": "municipio"
+  },
+  {
+   "name": "Entre-Ijuís",
+   "uf": "RS",
+   "lat": -28.371,
+   "lon": -54.267,
+   "kind": "municipio",
+   "aliases": [
+    "Entre Ijuis"
+   ]
+  },
+  {
+   "name": "Santo Antônio das Missões",
+   "uf": "RS",
+   "lat": -28.513,
+   "lon": -55.226,
+   "kind": "municipio"
+  },
+  {
+   "name": "Caibaté",
+   "uf": "RS",
+   "lat": -28.291,
+   "lon": -54.645,
+   "kind": "municipio"
+  },
+  {
+   "name": "Roque Gonzales",
+   "uf": "RS",
+   "lat": -28.129,
+   "lon": -55.026,
+   "kind": "municipio"
+  },
+  {
+   "name": "São Nicolau",
+   "uf": "RS",
+   "lat": -28.183,
+   "lon": -55.264,
+   "kind": "municipio"
+  },
+  {
+   "name": "Dezesseis de Novembro",
+   "uf": "RS",
+   "lat": -28.216,
+   "lon": -55.063,
+   "kind": "municipio"
+  },
+  {
+   "name": "Pirapó",
+   "uf": "RS",
+   "lat": -28.045,
+   "lon": -55.202,
+   "kind": "municipio"
+  },
+  {
+   "name": "Rolador",
+   "uf": "RS",
+   "lat": -28.26,
+   "lon": -54.818,
+   "kind": "municipio"
+  },
+  {
+   "name": "Mato Queimado",
+   "uf": "RS",
+   "lat": -28.25,
+   "lon": -54.617,
+   "kind": "municipio"
+  },
+  {
+   "name": "Garruchos",
+   "uf": "RS",
+   "lat": -28.184,
+   "lon": -55.638,
+   "kind": "municipio"
+  },
+  {
+   "name": "Vitória das Missões",
+   "uf": "RS",
+   "lat": -28.351,
+   "lon": -54.504,
+   "kind": "municipio"
+  },
+  {
+   "name": "Eugênio de Castro",
+   "uf": "RS",
+   "lat": -28.532,
+   "lon": -54.15,
+   "kind": "municipio"
+  },
+  {
+   "name": "Catuípe",
+   "uf": "RS",
+   "lat": -28.256,
+   "lon": -54.013,
+   "kind": "municipio"
+  },
+  {
+   "name": "Guarani das Missões",
+   "uf": "RS",
+   "lat": -28.146,
+   "lon": -54.562,
+   "kind": "municipio"
+  },
+  {
+   "name": "Sete de Setembro",
+   "uf": "RS",
+   "lat": -28.14,
+   "lon": -54.463,
+   "kind": "municipio"
+  },
+  {
+   "name": "Salvador das Missões",
+   "uf": "RS",
+   "lat": -28.124,
+   "lon": -54.837,
+   "kind": "municipio"
+  },
+  {
+   "name": "São Pedro do Butiá",
+   "uf": "RS",
+   "lat": -28.123,
+   "lon": -54.892,
+   "kind": "municipio"
+  },
+  {
+   "name": "Porto Xavier",
+   "uf": "RS",
+   "lat": -27.908,
+   "lon": -55.138,
+   "kind": "municipio"
+  },
+  {
+   "name": "Porto Lucena",
+   "uf": "RS",
+   "lat": -27.857,
+   "lon": -55.018,
+   "kind": "municipio"
+  },
+  {
+   "name": "Campina das Missões",
+   "uf": "RS",
+   "lat": -27.989,
+   "lon": -54.84,
+   "kind": "municipio"
+  },
+  {
+   "name": "Cândido Godói",
+   "uf": "RS",
+   "lat": -27.951,
+   "lon": -54.752,
+   "kind": "municipio"
+  },
+  {
+   "name": "Ubiretama",
+   "uf": "RS",
+   "lat": -28.043,
+   "lon": -54.684,
+   "kind": "municipio"
+  },
+  {
+   "name": "Senador Salgado Filho",
+   "uf": "RS",
+   "lat": -28.028,
+   "lon": -54.542,
+   "kind": "municipio"
+  },
+  {
+   "name": "Itacurubi",
+   "uf": "RS",
+   "lat": -28.79,
+   "lon": -55.24,
+   "kind": "municipio"
+  },
+  {
+   "name": "Unistalda",
+   "uf": "RS",
+   "lat": -29.043,
+   "lon": -55.152,
+   "kind": "municipio"
+  },
+  {
+   "name": "Capão do Cipó",
+   "uf": "RS",
+   "lat": -28.938,
+   "lon": -54.557,
+   "kind": "municipio"
+  },
+  {
+   "name": "Jóia",
+   "uf": "RS",
+   "lat": -28.646,
+   "lon": -54.117,
+   "kind": "municipio"
+  },
+  {
+   "name": "Augusto Pestana",
+   "uf": "RS",
+   "lat": -28.517,
+   "lon": -53.991,
+   "kind": "municipio"
+  },
+  {
+   "name": "Ajuricaba",
+   "uf": "RS",
+   "lat": -28.234,
+   "lon": -53.776,
+   "kind": "municipio"
+  },
+  {
+   "name": "Chiapetta",
+   "uf": "RS",
+   "lat": -27.923,
+   "lon": -53.942,
+   "kind": "municipio"
+  },
+  {
+   "name": "Santo Augusto",
+   "uf": "RS",
+   "lat": -27.851,
+   "lon": -53.777,
+   "kind": "municipio"
+  },
+  {
+   "name": "Tuparendi",
+   "uf": "RS",
+   "lat": -27.761,
+   "lon": -54.48,
+   "kind": "municipio"
+  },
+  {
+   "name": "Horizontina",
+   "uf": "RS",
+   "lat": -27.626,
+   "lon": -54.308,
+   "kind": "municipio"
+  },
+  {
+   "name": "Três Passos",
+   "uf": "RS",
+   "lat": -27.456,
+   "lon": -53.932,
+   "kind": "municipio"
+  },
+  {
+   "name": "Tenente Portela",
+   "uf": "RS",
+   "lat": -27.371,
+   "lon": -53.758,
+   "kind": "municipio"
+  },
+  {
+   "name": "Chapecó",
+   "uf": "SC",
+   "lat": -27.096,
+   "lon": -52.618,
+   "kind": "praca"
+  },
+  {
+   "name": "Palma Sola",
+   "uf": "SC",
+   "lat": -26.347,
+   "lon": -53.278,
+   "kind": "praca"
+  },
+  {
+   "name": "Xanxerê",
+   "uf": "SC",
+   "lat": -26.877,
+   "lon": -52.404,
+   "kind": "praca"
+  },
+  {
+   "name": "Campos Novos",
+   "uf": "SC",
+   "lat": -27.402,
+   "lon": -51.225,
+   "kind": "praca"
+  },
+  {
+   "name": "Canoinhas",
+   "uf": "SC",
+   "lat": -26.177,
+   "lon": -50.39,
+   "kind": "praca"
+  },
+  {
+   "name": "Lages",
+   "uf": "SC",
+   "lat": -27.816,
+   "lon": -50.326,
+   "kind": "praca"
+  },
+  {
+   "name": "Cascavel",
+   "uf": "PR",
+   "lat": -24.956,
+   "lon": -53.459,
+   "kind": "praca"
+  },
+  {
+   "name": "Ponta Grossa",
+   "uf": "PR",
+   "lat": -25.095,
+   "lon": -50.162,
+   "kind": "praca"
+  },
+  {
+   "name": "Londrina",
+   "uf": "PR",
+   "lat": -23.31,
+   "lon": -51.163,
+   "kind": "praca"
+  },
+  {
+   "name": "Maringá",
+   "uf": "PR",
+   "lat": -23.421,
+   "lon": -51.933,
+   "kind": "praca"
+  },
+  {
+   "name": "Castro",
+   "uf": "PR",
+   "lat": -24.791,
+   "lon": -50.012,
+   "kind": "praca"
+  },
+  {
+   "name": "Ubiratã",
+   "uf": "PR",
+   "lat": -24.54,
+   "lon": -52.986,
+   "kind": "praca"
+  },
+  {
+   "name": "Marechal Cândido Rondon",
+   "uf": "PR",
+   "lat": -24.556,
+   "lon": -54.057,
+   "kind": "praca"
+  },
+  {
+   "name": "Pato Branco",
+   "uf": "PR",
+   "lat": -26.229,
+   "lon": -52.671,
+   "kind": "praca"
+  },
+  {
+   "name": "Toledo",
+   "uf": "PR",
+   "lat": -24.714,
+   "lon": -53.743,
+   "kind": "praca"
+  },
+  {
+   "name": "Campo Mourão",
+   "uf": "PR",
+   "lat": -24.046,
+   "lon": -52.378,
+   "kind": "praca"
+  },
+  {
+   "name": "Guarapuava",
+   "uf": "PR",
+   "lat": -25.395,
+   "lon": -51.458,
+   "kind": "praca"
+  },
+  {
+   "name": "Francisco Beltrão",
+   "uf": "PR",
+   "lat": -26.081,
+   "lon": -53.055,
+   "kind": "praca"
+  },
+  {
+   "name": "Cornélio Procópio",
+   "uf": "PR",
+   "lat": -23.181,
+   "lon": -50.647,
+   "kind": "praca"
+  },
+  {
+   "name": "Palotina",
+   "uf": "PR",
+   "lat": -24.284,
+   "lon": -53.84,
+   "kind": "praca"
+  },
+  {
+   "name": "Assis Chateaubriand",
+   "uf": "PR",
+   "lat": -24.418,
+   "lon": -53.521,
+   "kind": "praca"
+  },
+  {
+   "name": "Umuarama",
+   "uf": "PR",
+   "lat": -23.766,
+   "lon": -53.325,
+   "kind": "praca"
+  },
+  {
+   "name": "Cianorte",
+   "uf": "PR",
+   "lat": -23.663,
+   "lon": -52.605,
+   "kind": "praca"
+  },
+  {
+   "name": "Paranaguá",
+   "uf": "PR",
+   "lat": -25.52,
+   "lon": -48.509,
+   "kind": "praca",
+   "port": true,
+   "aliases": [
+    "Porto Paranagua",
+    "Porto de Paranagua",
+    "Paranagua disponivel"
+   ]
+  },
+  {
+   "name": "Sorriso",
+   "uf": "MT",
+   "lat": -12.545,
+   "lon": -55.721,
+   "kind": "praca"
+  },
+  {
+   "name": "Rondonópolis",
+   "uf": "MT",
+   "lat": -16.471,
+   "lon": -54.636,
+   "kind": "praca"
+  },
+  {
+   "name": "Lucas do Rio Verde",
+   "uf": "MT",
+   "lat": -13.05,
+   "lon": -55.911,
+   "kind": "praca"
+  },
+  {
+   "name": "Sinop",
+   "uf": "MT",
+   "lat": -11.861,
+   "lon": -55.503,
+   "kind": "praca"
+  },
+  {
+   "name": "Primavera do Leste",
+   "uf": "MT",
+   "lat": -15.556,
+   "lon": -54.297,
+   "kind": "praca"
+  },
+  {
+   "name": "Campo Verde",
+   "uf": "MT",
+   "lat": -15.545,
+   "lon": -55.163,
+   "kind": "praca"
+  },
+  {
+   "name": "Nova Mutum",
+   "uf": "MT",
+   "lat": -13.828,
+   "lon": -56.086,
+   "kind": "praca"
+  },
+  {
+   "name": "Sapezal",
+   "uf": "MT",
+   "lat": -13.542,
+   "lon": -58.815,
+   "kind": "praca"
+  },
+  {
+   "name": "Campo Novo do Parecis",
+   "uf": "MT",
+   "lat": -13.675,
+   "lon": -57.892,
+   "kind": "praca"
+  },
+  {
+   "name": "Diamantino",
+   "uf": "MT",
+   "lat": -14.409,
+   "lon": -56.446,
+   "kind": "praca"
+  },
+  {
+   "name": "Canarana",
+   "uf": "MT",
+   "lat": -13.551,
+   "lon": -52.271,
+   "kind": "praca"
+  },
+  {
+   "name": "Querência",
+   "uf": "MT",
+   "lat": -12.609,
+   "lon": -52.181,
+   "kind": "praca"
+  },
+  {
+   "name": "Alto Garças",
+   "uf": "MT",
+   "lat": -16.945,
+   "lon": -53.528,
+   "kind": "praca"
+  },
+  {
+   "name": "Cuiabá",
+   "uf": "MT",
+   "lat": -15.601,
+   "lon": -56.098,
+   "kind": "praca"
+  },
+  {
+   "name": "Dourados",
+   "uf": "MS",
+   "lat": -22.221,
+   "lon": -54.806,
+   "kind": "praca"
+  },
+  {
+   "name": "Campo Grande",
+   "uf": "MS",
+   "lat": -20.463,
+   "lon": -54.616,
+   "kind": "praca"
+  },
+  {
+   "name": "Maracaju",
+   "uf": "MS",
+   "lat": -21.614,
+   "lon": -55.168,
+   "kind": "praca"
+  },
+  {
+   "name": "Chapadão do Sul",
+   "uf": "MS",
+   "lat": -18.788,
+   "lon": -52.626,
+   "kind": "praca"
+  },
+  {
+   "name": "Ponta Porã",
+   "uf": "MS",
+   "lat": -22.536,
+   "lon": -55.726,
+   "kind": "praca"
+  },
+  {
+   "name": "São Gabriel do Oeste",
+   "uf": "MS",
+   "lat": -19.394,
+   "lon": -54.565,
+   "kind": "praca"
+  },
+  {
+   "name": "Sidrolândia",
+   "uf": "MS",
+   "lat": -20.932,
+   "lon": -54.961,
+   "kind": "praca"
+  },
+  {
+   "name": "Naviraí",
+   "uf": "MS",
+   "lat": -23.065,
+   "lon": -54.191,
+   "kind": "praca"
+  },
+  {
+   "name": "Rio Verde",
+   "uf": "GO",
+   "lat": -17.798,
+   "lon": -50.926,
+   "kind": "praca"
+  },
+  {
+   "name": "Jataí",
+   "uf": "GO",
+   "lat": -17.881,
+   "lon": -51.721,
+   "kind": "praca"
+  },
+  {
+   "name": "Cristalina",
+   "uf": "GO",
+   "lat": -16.769,
+   "lon": -47.613,
+   "kind": "praca"
+  },
+  {
+   "name": "Goiânia",
+   "uf": "GO",
+   "lat": -16.686,
+   "lon": -49.264,
+   "kind": "praca"
+  },
+  {
+   "name": "Mineiros",
+   "uf": "GO",
+   "lat": -17.569,
+   "lon": -52.551,
+   "kind": "praca"
+  },
+  {
+   "name": "Catalão",
+   "uf": "GO",
+   "lat": -18.166,
+   "lon": -47.946,
+   "kind": "praca"
+  },
+  {
+   "name": "Chapadão do Céu",
+   "uf": "GO",
+   "lat": -18.403,
+   "lon": -52.542,
+   "kind": "praca"
+  },
+  {
+   "name": "Santa Helena de Goiás",
+   "uf": "GO",
+   "lat": -17.814,
+   "lon": -50.597,
+   "kind": "praca"
+  },
+  {
+   "name": "Formosa",
+   "uf": "GO",
+   "lat": -15.537,
+   "lon": -47.334,
+   "kind": "praca"
+  },
+  {
+   "name": "Luziânia",
+   "uf": "GO",
+   "lat": -16.253,
+   "lon": -47.95,
+   "kind": "praca"
+  },
+  {
+   "name": "Brasília",
+   "uf": "DF",
+   "lat": -15.794,
+   "lon": -47.883,
+   "kind": "praca"
+  },
+  {
+   "name": "Uberlândia",
+   "uf": "MG",
+   "lat": -18.919,
+   "lon": -48.277,
+   "kind": "praca"
+  },
+  {
+   "name": "Uberaba",
+   "uf": "MG",
+   "lat": -19.748,
+   "lon": -47.932,
+   "kind": "praca"
+  },
+  {
+   "name": "Unaí",
+   "uf": "MG",
+   "lat": -16.358,
+   "lon": -46.906,
+   "kind": "praca"
+  },
+  {
+   "name": "Paracatu",
+   "uf": "MG",
+   "lat": -17.222,
+   "lon": -46.875,
+   "kind": "praca"
+  },
+  {
+   "name": "Patos de Minas",
+   "uf": "MG",
+   "lat": -18.579,
+   "lon": -46.518,
+   "kind": "praca"
+  },
+  {
+   "name": "Araxá",
+   "uf": "MG",
+   "lat": -19.593,
+   "lon": -46.941,
+   "kind": "praca"
+  },
+  {
+   "name": "Campinas",
+   "uf": "SP",
+   "lat": -22.906,
+   "lon": -47.061,
+   "kind": "praca"
+  },
+  {
+   "name": "Ribeirão Preto",
+   "uf": "SP",
+   "lat": -21.178,
+   "lon": -47.807,
+   "kind": "praca"
+  },
+  {
+   "name": "Assis",
+   "uf": "SP",
+   "lat": -22.662,
+   "lon": -50.412,
+   "kind": "praca"
+  },
+  {
+   "name": "Ourinhos",
+   "uf": "SP",
+   "lat": -22.979,
+   "lon": -49.87,
+   "kind": "praca"
+  },
+  {
+   "name": "Presidente Prudente",
+   "uf": "SP",
+   "lat": -22.126,
+   "lon": -51.389,
+   "kind": "praca"
+  },
+  {
+   "name": "Itapeva",
+   "uf": "SP",
+   "lat": -23.982,
+   "lon": -48.876,
+   "kind": "praca"
+  },
+  {
+   "name": "Orlândia",
+   "uf": "SP",
+   "lat": -20.72,
+   "lon": -47.887,
+   "kind": "praca"
+  },
+  {
+   "name": "Santos",
+   "uf": "SP",
+   "lat": -23.961,
+   "lon": -46.334,
+   "kind": "praca",
+   "port": true,
+   "aliases": [
+    "Porto de Santos",
+    "Porto Santos"
+   ]
+  },
+  {
+   "name": "Barreiras",
+   "uf": "BA",
+   "lat": -12.153,
+   "lon": -44.99,
+   "kind": "praca"
+  },
+  {
+   "name": "Luís Eduardo Magalhães",
+   "uf": "BA",
+   "lat": -12.092,
+   "lon": -45.8,
+   "kind": "praca"
+  },
+  {
+   "name": "São Desidério",
+   "uf": "BA",
+   "lat": -12.363,
+   "lon": -44.973,
+   "kind": "praca"
+  },
+  {
+   "name": "Correntina",
+   "uf": "BA",
+   "lat": -13.343,
+   "lon": -44.636,
+   "kind": "praca"
+  },
+  {
+   "name": "Balsas",
+   "uf": "MA",
+   "lat": -7.532,
+   "lon": -46.036,
+   "kind": "praca"
+  },
+  {
+   "name": "Imperatriz",
+   "uf": "MA",
+   "lat": -5.526,
+   "lon": -47.482,
+   "kind": "praca"
+  },
+  {
+   "name": "Uruçuí",
+   "uf": "PI",
+   "lat": -7.23,
+   "lon": -44.557,
+   "kind": "praca"
+  },
+  {
+   "name": "Bom Jesus",
+   "uf": "PI",
+   "lat": -9.075,
+   "lon": -44.359,
+   "kind": "praca"
+  },
+  {
+   "name": "Porto Nacional",
+   "uf": "TO",
+   "lat": -10.708,
+   "lon": -48.417,
+   "kind": "praca"
+  },
+  {
+   "name": "Gurupi",
+   "uf": "TO",
+   "lat": -11.729,
+   "lon": -49.069,
+   "kind": "praca"
+  },
+  {
+   "name": "Pedro Afonso",
+   "uf": "TO",
+   "lat": -8.968,
+   "lon": -48.175,
+   "kind": "praca"
+  },
+  {
+   "name": "Paraíso do Tocantins",
+   "uf": "TO",
+   "lat": -10.175,
+   "lon": -48.882,
+   "kind": "praca"
+  },
+  {
+   "name": "Paragominas",
+   "uf": "PA",
+   "lat": -2.997,
+   "lon": -47.353,
+   "kind": "praca"
+  },
+  {
+   "name": "Santarém",
+   "uf": "PA",
+   "lat": -2.443,
+   "lon": -54.708,
+   "kind": "praca"
+  },
+  {
+   "name": "Redenção",
+   "uf": "PA",
+   "lat": -8.028,
+   "lon": -50.032,
+   "kind": "praca"
+  },
+  {
+   "name": "Vilhena",
+   "uf": "RO",
+   "lat": -12.74,
+   "lon": -60.146,
+   "kind": "praca"
+  },
+  {
+   "name": "Ji-Paraná",
+   "uf": "RO",
+   "lat": -10.885,
+   "lon": -61.952,
+   "kind": "praca"
+  }
  ]
 }

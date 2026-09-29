@@ -23,7 +23,7 @@ test('distâncias, catálogo, busca e coordenadas',()=>{
 })
 
 test('leitura das tabelas de mercado físico por praça ignora médias, contratos e datas',()=>{
- assert.deepEqual(parsePlaceCell('Cascavel/PR'),{name:'Cascavel',uf:'PR'});assert.deepEqual(parsePlaceCell('Rio Grande (RS)'),{name:'Rio Grande',uf:'RS'});assert.equal(parsePlaceCell('DEZ/26'),null);assert.equal(parsePlaceCell('Média/PR'),null);assert.equal(parsePlaceCell('Soja'),null)
+ assert.deepEqual(parsePlaceCell('Cascavel/PR'),{name:'Cascavel',uf:'PR',buyer:''});assert.deepEqual(parsePlaceCell('Rio Grande (RS)'),{name:'Rio Grande',uf:'RS',buyer:''});assert.deepEqual(parsePlaceCell('Não-Me-Toque/RS (Cotrijal)'),{name:'Não-Me-Toque',uf:'RS',buyer:'Cotrijal'});assert.deepEqual(parsePlaceCell('Porto Rio Grande (disponível) (Insoy Commodities)'),{name:'Rio Grande',uf:'RS',buyer:'Insoy Commodities'});assert.equal(parsePlaceCell('DEZ/26'),null);assert.equal(parsePlaceCell('Média/PR'),null);assert.equal(parsePlaceCell('Soja'),null)
  assert.deepEqual(priceFromCells(['29/09/2026','0,72%','R$ 141,50'],'soja'),{price:141.5,priceUnit:'BRL/sc_60kg',cell:'R$ 141,50'})
  assert.equal(priceFromCells(['2026','1.288,50'],'trigo').priceUnit,'BRL/t');assert.equal(priceFromCells(['abc','12'],'soja'),null)
  const {rows,pageDate}=extractPlaceRows(html,{commodity:'soja',now:new Date('2026-09-29T12:00:00Z')})
