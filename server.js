@@ -16,7 +16,7 @@ import {readFileSync as readFile} from 'node:fs'
 const root=dirname(fileURLToPath(import.meta.url))
 const publicDir=join(root,'public')
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8','.png':'image/png','.webmanifest':'application/manifest+json','.woff2':'font/woff2'}
-const headers={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; connect-src 'self'; frame-ancestors 'none'"}
+const headers={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com https://services.arcgisonline.com; connect-src 'self'; frame-ancestors 'none'"}
 
 const queryNumber=(url,key)=>{const v=url.searchParams.get(key);if(v==null||v==='')return null;const n=Number(String(v).replace(',','.'));return Number.isFinite(n)?n:null}
 const splitCodes=v=>String(v||'').split(',').map(x=>x.trim()).filter(Boolean)
