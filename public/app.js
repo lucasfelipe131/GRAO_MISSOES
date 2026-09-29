@@ -102,7 +102,7 @@ function renderSourceBar(){
 }
 
 async function load(){try{const s=await api('/api/bootstrap');state={...state,...s};fillSelects();applyRole();renderAll();showLogin(false);if(!marketTimer){startMarketPolling();initRegion()}else loadRegion(regionSel,{silent:true})}catch(e){status(e.message,6000)}}
-function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderOffers();renderStorageOps();renderStorage();renderBrief();renderAdmin();renderMapPanel();updateBadges();buildSubnavs()}
+function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderOffers();renderStorageOps();renderStorage();renderBrief();renderAdmin();renderMapPanel();if(currentTab==='produtores')drawFormMap();updateBadges();buildSubnavs()}
 async function renderAdmin(){
  const s=state.session;if(!s?.role||!(s.write||[]).includes('usuarios')||!$('#users'))return
  const rolesDef=s.roles||{};$('#roleHelp').innerHTML=Object.entries(rolesDef).map(([k,v])=>`<li><b>${esc(v.label)}</b>: abas ${v.tabs.join(', ')}; escrita em ${v.write.length?v.write.join(', '):'nada'}.${v.configured?' Há código de equipe configurado para este nível.':''}</li>`).join('')
@@ -186,13 +186,13 @@ $('#quoteFilters')?.addEventListener('input',e=>{const f=e.currentTarget;quoteFi
 $('#quoteFilters')?.addEventListener('submit',e=>e.preventDefault())
 $('#quotesMoreBtn')?.addEventListener('click',()=>{quotePage++;renderQuotes()})
 $('#producerForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;$('#producerError').hidden=true;try{const p=formData(f);const id=p.id;delete p.id;await api(id?`/api/producers/${id}`:'/api/producers',{method:id?'PUT':'POST',body:JSON.stringify(p)});f.reset();f.id.value='';f.municipality.value='São Luiz Gonzaga';$('#cropgrid').dispatchEvent(new Event('input'));$('#producerFormTitle').textContent='Cadastrar produtor';status('Produtor salvo.');await load()}catch(err){$('#producerError').textContent=err.message;$('#producerError').hidden=false}})
-$('#producerReset').addEventListener('click',()=>{const f=$('#producerForm');f.reset();f.id.value='';f.municipality.value='São Luiz Gonzaga';$('#producerFormTitle').textContent='Cadastrar produtor'})
+$('#producerReset').addEventListener('click',()=>{const f=$('#producerForm');f.reset();f.id.value='';f.municipality.value='São Luiz Gonzaga';requestAnimationFrame(()=>focusFormMap());$('#producerFormTitle').textContent='Cadastrar produtor'})
 function renderProducers(){
  {const f=$('#producersReportForm');if(f){const ps=f.querySelector('select[name=producerId]');const pv=ps.value;ps.innerHTML='<option value="">Todos</option>'+(state.producers||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');if(pv)ps.value=pv;const cs=f.querySelector('select[name=commodity]');if(cs.options.length<=1)cs.innerHTML='<option value="">Todos</option>'+state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')}}
  const list=state.producers||[];$('#producerCount').textContent=`${list.length} cadastrados`
  if(!list.length){$('#producers').innerHTML='<div class="empty"><p>Cadastre o primeiro produtor para registrar pedidos.</p></div>';return}
  $('#producers').innerHTML=list.map(p=>`<article class="item" data-id="${p.id}"><header><div><b>${esc(p.name)}</b><div class="meta">${esc(p.municipality)}${p.deliveryLocation?' • entrega: '+esc(p.deliveryLocation):''}${p.storageT?' • '+int(p.storageT)+' t de armazenagem':''}${p.phone?' • '+esc(p.phone):''}</div></div><div class="row">${Object.entries(p.crops||{}).filter(([k,c])=>c.areaHa>0).map(([k,c])=>`<span class="tag">${esc(k)} ${int(c.areaHa)} ha • ${c.fixedPercent||0}% fixado</span>`).join('')}${p.riskTolerance?`<span class="tag">risco ${esc(p.riskTolerance)}</span>`:''}<button data-ficha class="primary">Ficha</button><button data-edit>Editar</button></div></header>${p.notes?`<div class="meta">${esc(p.notes)}</div>`:''}</article>`).join('')
- $$('#producers [data-edit]').forEach(b=>b.addEventListener('click',()=>{const p=list.find(x=>x.id===b.closest('.item').dataset.id);const f=$('#producerForm');f.id.value=p.id;for(const k of ['name','municipality','phone','deliveryLocation','storageT','storageCostScMonth','distanceKm','lat','lon','locality','logistics','notes','decisionMaker','riskTolerance','sellingStyle','proofPreference','paymentPreference','contactChannel','bestContact'])if(f[k])f[k].value=p[k]??'';f.usualBuyers.value=(p.usualBuyers||[]).join(', ');for(const k of ['soja','milho','trigo','canola']){f[`cost_${k}`].value=p.costs?.[k]??'';f[`area_${k}`].value=p.crops?.[k]?.areaHa||'';f[`yield_${k}`].value=p.crops?.[k]?.yieldScHa||'';f[`fixed_${k}`].value=p.crops?.[k]?.fixedPercent??''}$$('#cashMonths input').forEach(i=>{i.checked=(p.cashMonths||[]).includes(Number(i.value))});$('#cropgrid').dispatchEvent(new Event('input'));$('#producerFormTitle').textContent='Editar produtor';goTab('produtores');f.scrollIntoView({behavior:'smooth'})}))
+ $$('#producers [data-edit]').forEach(b=>b.addEventListener('click',()=>{const p=list.find(x=>x.id===b.closest('.item').dataset.id);const f=$('#producerForm');f.id.value=p.id;for(const k of ['name','municipality','phone','deliveryLocation','storageT','storageCostScMonth','distanceKm','lat','lon','locality','logistics','notes','decisionMaker','riskTolerance','sellingStyle','proofPreference','paymentPreference','contactChannel','bestContact'])if(f[k])f[k].value=p[k]??'';f.usualBuyers.value=(p.usualBuyers||[]).join(', ');for(const k of ['soja','milho','trigo','canola']){f[`cost_${k}`].value=p.costs?.[k]??'';f[`area_${k}`].value=p.crops?.[k]?.areaHa||'';f[`yield_${k}`].value=p.crops?.[k]?.yieldScHa||'';f[`fixed_${k}`].value=p.crops?.[k]?.fixedPercent??''}$$('#cashMonths input').forEach(i=>{i.checked=(p.cashMonths||[]).includes(Number(i.value))});$('#cropgrid').dispatchEvent(new Event('input'));$('#producerFormTitle').textContent='Editar produtor';goTab('produtores');f.scrollIntoView({behavior:'smooth'});requestAnimationFrame(()=>focusFormMap())}))
  $$('#producers [data-ficha]').forEach(b=>b.addEventListener('click',()=>openDrawer(b.closest('.item').dataset.id)))
 }
 function renderBrief(){
@@ -209,7 +209,7 @@ function ago(iso){if(!iso)return '—';const m=Math.round((Date.now()-new Date(i
 function renderMarket(){
  const mk=state.market;const el=$('#marketGrid');if(!el||!mk)return
  const chg=(v,p)=>v==null?'<small class="flat">sem comparação</small>':`<small class="${v>0?'up':v<0?'down':'flat'}">${v>0?'▲':v<0?'▼':'●'} ${money(Math.abs(v))}${p!=null?' ('+(p>=0?'+':'')+p.toFixed(1).replace('.',',')+'%)':''}</small>`
- el.innerHTML=mk.commodities.map(c=>{const main=c.own?c.own.price:c.today?c.today.price:null;return `<article class="mkt"><header><b>${esc(c.label)}</b>${c.stage?`<span class="tag ${c.stage.key}">${esc(c.stage.label)}</span>`:''}</header><div class="price"><b>${main!=null?money(main):'—'}</b>${chg(c.dayChange,c.dayChangePercent)}</div><span class="src">${c.own?'C.Vale • '+dt(c.own.observedAt):c.today?'média da praça em '+dt(c.today.date):'sem cotação recente'}</span><dl>${c.praca.best?`<dt>Melhor concorrente</dt><dd>${esc(c.praca.best.sourceName.split(' — ')[0])} ${money(c.praca.best.price)}</dd>`:''}${c.praca.avg!=null?`<dt>Média praça (${c.praca.sources})</dt><dd>${money(c.praca.avg)}</dd>`:''}${c.port.rioGrande?`<dt>Rio Grande</dt><dd>${money(c.port.rioGrande.price)}</dd>`:''}${c.port.paranagua?`<dt>Paranaguá</dt><dd>${money(c.port.paranagua.price)}</dd>`:''}${c.basisRg!=null?`<dt>Base × RG</dt><dd>${money(c.basisRg)}</dd>`:''}${c.weekChange!=null?`<dt>7 dias</dt><dd class="${c.weekChange>0?'up':c.weekChange<0?'down':'flat'}">${c.weekChange>=0?'+':''}${money(c.weekChange)}</dd>`:''}</dl></article>`}).join('')
+ el.innerHTML=mk.commodities.map(c=>{const main=c.own?c.own.price:c.today?c.today.price:null;return `<article class="mkt"><header><b>${esc(c.label)}</b>${c.stage?`<span class="tag ${c.stage.key}">${esc(c.stage.label)}</span>`:''}</header><div class="price"><b>${main!=null?money(main):'—'}</b>${chg(c.dayChange,c.dayChangePercent)}</div><span class="src">${c.own?'C.Vale • '+dt(c.own.observedAt):c.today?'média da praça em '+dt(c.today.date):'sem cotação recente'}</span><dl>${c.praca.best?`<dt>Melhor concorrente</dt><dd>${esc(c.praca.best.sourceName.split(' — ')[0])} ${money(c.praca.best.price)}</dd>`:''}${c.praca.avg!=null?`<dt>Média praça (${c.praca.sources})</dt><dd>${money(c.praca.avg)}</dd>`:''}${c.port.rioGrande?`<dt>Rio Grande</dt><dd>${money(c.port.rioGrande.price)}</dd>`:''}${c.port.paranagua?`<dt>Paranaguá</dt><dd>${money(c.port.paranagua.price)}</dd>`:''}${c.basisRg!=null?`<dt>Base × RG</dt><dd>${money(c.basisRg)}</dd>`:''}${c.weekChange!=null?`<dt>7 dias</dt><dd class="${c.weekChange>0?'up':c.weekChange<0?'down':'flat'}">${c.weekChange>=0?'+':''}${money(c.weekChange)}</dd>`:''}${(()=>{const rc=(state.regional?.commodities||[]).find(x=>x.commodity===c.commodity);const n=rc?.nearest?.[0];if(!n)return '';return `<dt title="${esc(n.label)}">Região (${esc(state.regional.region?.name||state.regional.origin.label)})</dt><dd>${money(n.priceSc)} <small>${esc(n.buyer||n.name)} • ${int(n.distanceKm)} km</small></dd>`})()}</dl></article>`}).join('')
  $('#marketInd').innerHTML=(mk.indicators||[]).filter(i=>i.value!=null).map(i=>`<div class="ind ${i.ageHours>30?'stale':''}" title="${esc(i.sourceName||'')} • ${dt(i.observedAt)}"><small>${esc(i.label)}</small><b>${esc(i.display||String(i.value))}</b><span>${i.changePercent!=null?(i.changePercent>=0?'+':'')+i.changePercent.toFixed(2).replace('.',',')+'% • ':''}${ago(i.observedAt)}</span></div>`).join('')
  $('#marketHeadlines').innerHTML=(mk.headlines||[]).map(h=>`<li>${esc(h)}</li>`).join('')+((mk.brief?.risks||[]).slice(0,2).map(r=>`<li class="meta">Praça (${dt(mk.brief.observedAt)}): ${esc(r)}</li>`).join(''))
  $('#marketWhen').innerHTML=`<span class="pulse"></span>Última leitura das fontes ${mk.lastRead?ago(mk.lastRead)+' ('+dt(mk.lastRead)+')':'ainda não feita'} • cotação mais recente ${mk.lastObserved?dt(mk.lastObserved):'—'}`
@@ -516,10 +516,14 @@ $('#exportOffersJson').addEventListener('click',async()=>{try{const r=await api(
 let regionSel=null;try{regionSel=JSON.parse(localStorage.getItem('gm.region')||'null')}catch{}
 let placesLoaded=false
 async function loadPlacesList(){if(placesLoaded)return;placesLoaded=true;try{const r=await api('/api/places?kind=praca');$('#placesList').innerHTML=(r.places||[]).map(p=>`<option value="${esc(p.label)}"></option>`).join('')}catch{placesLoaded=false}}
+let regionSeq=0
 async function loadRegion(sel,{silent=false}={}){
  if(!$('#regionCard'))return
  const qs=new URLSearchParams();if(sel?.lat!=null&&sel?.lon!=null){qs.set('lat',sel.lat);qs.set('lon',sel.lon)}else if(sel?.place)qs.set('place',sel.place);else if(sel?.q)qs.set('q',sel.q)
- try{const r=await api('/api/regions?'+qs);state.regional=r.regional;regionSel=sel||null;try{if(sel)localStorage.setItem('gm.region',JSON.stringify(sel));else localStorage.removeItem('gm.region')}catch{}renderRegion()}catch(e){if(!silent)status(e.message,6000)}
+ const seq=++regionSeq;const card=$('#regionCard');card.classList.add('loading');if(!silent)$('#regionWhen').innerHTML=`<span class="pulse"></span>atualizando preços para ${esc(sel?.label||'a praça de casa')}…`
+ try{const r=await api('/api/regions?'+qs);if(seq!==regionSeq)return;state.regional=r.regional;state.regional.updatedAt=new Date().toISOString();regionSel=sel||null;try{if(sel)localStorage.setItem('gm.region',JSON.stringify(sel));else localStorage.removeItem('gm.region')}catch{}renderRegion();renderMarket();if(!silent)status(`Preços atualizados para ${r.regional.region?.label||r.regional.origin.label}.`)}
+ catch(e){if(seq!==regionSeq)return;$('#regionWhen').textContent='não foi possível atualizar a região';$('#regionBody').insertAdjacentHTML('afterbegin',`<p class="error" role="alert">${esc(e.message)}</p>`);if(!silent)status(e.message,6000)}
+ finally{if(seq===regionSeq)card.classList.remove('loading')}
 }
 function geolocate(onOk,{silent=false}={}){
  if(!navigator.geolocation){if(!silent)status('Este aparelho não oferece geolocalização.',5000);return}
@@ -528,109 +532,149 @@ function geolocate(onOk,{silent=false}={}){
 async function initRegion(){
  loadPlacesList()
  if(regionSel){loadRegion(regionSel,{silent:true});return}
- let granted=false;try{const p=await navigator.permissions?.query({name:'geolocation'});granted=p?.state==='granted'}catch{}
- if(granted)geolocate(c=>loadRegion({...c,label:'GPS'},{silent:true}),{silent:true});else loadRegion(null,{silent:true})
+ let denied=false;try{const p=await navigator.permissions?.query({name:'geolocation'});denied=p?.state==='denied'}catch{}
+ await loadRegion(null,{silent:true})
+ if(!denied&&navigator.geolocation)geolocate(c=>loadRegion({...c,label:'GPS'}),{silent:true})
 }
 function renderRegion(){
  const v=state.regional;const body=$('#regionBody');if(!v||!body)return
  const modeTag={gps:['GPS','fresh'],busca:['busca','attention'],praca:['praça escolhida','attention'],casa:['praça de casa','']}[v.mode]||['',''];
  $('#regionWhen').innerHTML=`${v.readAt?`praças lidas ${ago(v.readAt)} (${dt(v.readAt)})`:'praças ainda não lidas'} • ${v.results.filter(r=>r.status==='ok').length}/${v.results.length||0} fontes • ${v.catalogSize} lugares no catálogo`
- const head=`<div class="regionhead"><span class="tag ${modeTag[1]}">${esc(modeTag[0])}</span><b>${esc(v.region?.label||v.origin.label)}</b>${v.mode==='gps'&&v.region?`<span class="meta">praça mais próxima, a ${int(v.region.distanceKm)} km de você</span>`:''}${v.mode!=='gps'?`<span class="meta">origem: ${esc(v.origin.label)}</span>`:''}<span class="meta">distâncias em linha reta; rodoviária ≈ × ${String(v.roadFactor).replace('.',',')}</span></div>`
+ const head=`<div class="regionhead"><span class="tag ${modeTag[1]}">${esc(modeTag[0])}</span><b>${esc(v.region?.label||v.origin.label)}</b>${v.mode==='gps'&&v.region?`<span class="meta">praça mais próxima, a ${int(v.region.distanceKm)} km de você</span>`:''}${v.mode!=='gps'?`<span class="meta">origem: ${esc(v.origin.label)}</span>`:''}<span class="meta">distâncias em linha reta; rodoviária ≈ × ${String(v.roadFactor).replace('.',',')}</span><span class="meta regionstamp">atualizado ${v.updatedAt?ago(v.updatedAt):'agora'}</span></div>`
  if(!v.commodities.length){body.innerHTML=head+`<p class="meta">Nenhuma praça com preço lido ainda. ${v.results.length?v.results.map(r=>`${esc(r.name.split(' — ')[1]||r.name)}: ${r.status==='ok'?r.count+' praça(s)':esc(r.error||r.status)}`).join(' • '):'As fontes regionais são lidas junto com o comparativo, a cada '+(state.automation?.hours||4)+' h.'} Use “Ler fontes agora” no card Mercado agora.</p>`;return}
  const chg=x=>x==null?'<span class="flat">—</span>':`<span class="${x>0?'up':x<0?'down':'flat'}">${x>0?'+':''}${money(x)}</span>`
- body.innerHTML=head+`<div class="regiongrid">${v.commodities.map(c=>`<div class="regionblock"><header><b>${esc(c.label)}</b><small>${c.own?`C.Vale ${money(c.own.price)} (${dt(c.own.observedAt)})`:'sem preço C.Vale registrado'}</small></header><table class="regiontable"><thead><tr><th>Praça</th><th class="num">km</th><th class="num">R$/sc</th><th class="num">vs C.Vale</th></tr></thead><tbody>${c.nearest.map(r=>`<tr class="${c.best&&r.label===c.best.label?'best':''}"><td><b>${esc(r.label)}</b><small>${dt(r.date)} • ${esc((r.sourceName||'').split(' — ')[0])}</small></td><td class="num">${int(r.distanceKm)}<small>≈ ${int(r.roadKm)} rod.</small></td><td class="num"><b>${money(r.priceSc)}</b>${r.priceUnit==='BRL/t'?'<small>lido em R$/t</small>':''}</td><td class="num">${chg(r.vsOwnSc)}</td></tr>`).join('')}</tbody></table><div class="regionfoot">${c.ufAverage!=null?`<span>média ${esc(c.uf)}: <b>${money(c.ufAverage)}</b> (${c.ufCount} praças)</span>`:''}<span>${c.totalPlaces} praça(s) lidas</span>${c.unlocated.length?`<span title="${esc(c.unlocated.join(', '))}">${c.unlocated.length} sem coordenada no catálogo</span>`:''}</div></div>`).join('')}</div>`
+ body.innerHTML=head+`<div class="regiongrid">${v.commodities.map(c=>`<div class="regionblock"><header><b>${esc(c.label)}</b><small>${c.own?`C.Vale ${money(c.own.price)} (${dt(c.own.observedAt)})`:'sem preço C.Vale registrado'}</small></header><table class="regiontable"><thead><tr><th>Praça</th><th class="num">km</th><th class="num">R$/sc</th><th class="num">vs C.Vale</th></tr></thead><tbody>${c.nearest.map(r=>`<tr class="${c.best&&r.label===c.best.label?'best':''}"><td><b>${esc(r.label)}</b><small>${dt(r.date)} • ${r.kind==='cotacao'?'cotação registrada':esc((r.sourceName||'').split(' — ')[0])}${r.paymentTerms?' • '+esc(r.paymentTerms):''}${r.port?' • porto':''}</small></td><td class="num">${int(r.distanceKm)}<small>≈ ${int(r.roadKm)} rod.</small></td><td class="num"><b>${money(r.priceSc)}</b>${r.priceUnit==='BRL/t'?'<small>lido em R$/t</small>':''}</td><td class="num">${chg(r.vsOwnSc)}</td></tr>`).join('')}</tbody></table><div class="regionfoot">${c.ufAverage!=null?`<span>média ${esc(c.uf)}: <b>${money(c.ufAverage)}</b> (${c.ufCount} praças)</span>`:''}<span>${c.totalPlaces} preço(s) • ${c.localQuotes||0} de compradores registrados</span>${c.unlocated.length?`<span title="${esc(c.unlocated.join(', '))}">${c.unlocated.length} sem coordenada no catálogo</span>`:''}</div></div>`).join('')}</div>`
 }
 $('#regionLocate')?.addEventListener('click',()=>{const b=$('#regionLocate');b.disabled=true;b.textContent='localizando…';const done=()=>{b.disabled=false;b.textContent='Usar minha localização'};geolocate(async c=>{await loadRegion({...c,label:'GPS'});done();status(`Localização obtida (precisão ~${c.accuracy} m).`)});setTimeout(done,13000)})
 $('#regionHome')?.addEventListener('click',()=>loadRegion({place:state.home?.id||'sao-luiz-gonzaga-rs',label:state.home?.label||'São Luiz Gonzaga/RS'}))
 $('#regionForm')?.addEventListener('submit',e=>{e.preventDefault();const q=new FormData(e.target).get('q').trim();if(!q)return loadRegion(null);loadRegion({q,label:q})})
 $('#regionForm input[name=q]')?.addEventListener('focus',loadPlacesList)
+$('#regionForm input[name=q]')?.addEventListener('change',e=>{const v=e.target.value.trim();if(v&&[...$('#placesList').options].some(o=>o.value===v))loadRegion({q:v,label:v})})
 
-// ——— geotools nos formulários (GPS, busca por município, marcar no mapa) ———
-$$('[data-geo-gps]').forEach(b=>b.addEventListener('click',()=>{const f=$('#'+b.dataset.geoGps);geolocate(c=>{f.lat.value=c.lat;f.lon.value=c.lon;status(`Coordenadas do GPS preenchidas (precisão ~${c.accuracy} m).`)})}))
+// ——— geotools nos formulários (GPS, busca por município) ———
+$$('[data-geo-gps]').forEach(b=>b.addEventListener('click',()=>{const f=$('#'+b.dataset.geoGps);geolocate(c=>{f.lat.value=c.lat;f.lon.value=c.lon;f.dispatchEvent(new CustomEvent('coords',{detail:{zoom:15}}));status(`Coordenadas do GPS preenchidas (precisão ~${c.accuracy} m).`)})}))
 $$('[data-geo-search]').forEach(b=>b.addEventListener('click',async()=>{const f=$('#'+b.dataset.geoSearch);const fid=f.getAttribute('id');const parts=fid==='producerForm'?[f.locality?.value,f.municipality?.value]:[f.name?.value,f.municipality?.value];const q=parts.map(x=>String(x||'').trim()).filter(Boolean).join(', ');if(!q)return status('Informe o município (ou a localidade) antes de localizar.',5000)
  b.disabled=true;try{const r=await api('/api/geocode?q='+encodeURIComponent(q));const sel=$(`[data-geo-results="${fid}"]`);const list=r.results||[];if(!list.length){status('Nenhum lugar encontrado para “'+q+'”.',5000);sel.hidden=true;return}
-  sel.innerHTML=list.map((x,i)=>`<option value="${i}">${esc(x.display||x.label)} — ${x.lat.toFixed(4)}, ${x.lon.toFixed(4)}${x.source==='osm'?' (OSM)':''}</option>`).join('');sel.hidden=false;const pick=i=>{const x=list[i];if(!x)return;f.lat.value=x.lat;f.lon.value=x.lon;status(`Coordenadas de ${x.label||x.display} preenchidas.`)};sel.onchange=()=>pick(Number(sel.value));pick(0)
+  sel.innerHTML=list.map((x,i)=>`<option value="${i}">${esc(x.display||x.label)} — ${x.lat.toFixed(4)}, ${x.lon.toFixed(4)}${x.source==='osm'?' (OSM)':''}</option>`).join('');sel.hidden=false;const pick=i=>{const x=list[i];if(!x)return;f.lat.value=x.lat;f.lon.value=x.lon;f.dispatchEvent(new CustomEvent('coords',{detail:{zoom:x.source==='osm'?14:12}}));status(`Coordenadas de ${x.label||x.display} preenchidas: ajuste o pin no mapa até a estrutura de carregamento.`)};sel.onchange=()=>pick(Number(sel.value));pick(0)
   if(r.error)status('Busca online indisponível ('+r.error+'); usando o catálogo local.',5000)}catch(e){status(e.message,6000)}finally{b.disabled=false}}))
-$$('[data-geo-map]').forEach(b=>b.addEventListener('click',()=>{const f=$('#'+b.dataset.geoMap);MAP.marking={form:f.getAttribute('id'),id:f.id.value||null,name:f.name.value||'novo cadastro'};if(f.lat.value&&f.lon.value){MAP.center={lat:Number(f.lat.value),lon:Number(f.lon.value)};MAP.z=Math.max(MAP.z,12)}goTab('mapa');updateMapMode()}))
 
-// ——— mapa de produtores (tiles OSM, sem dependências) ———
-const TILE=256;const MAP={z:9,center:null,sel:null,marking:null,filter:'',drag:null,layer:'mapa'}
-try{MAP.layer=localStorage.getItem('gm.maplayer')==='satelite'?'satelite':'mapa'}catch{}
-const MAP_LAYERS={mapa:{label:'Mapa',urls:[k=>`https://tile.openstreetmap.org/${k}.png`],maxZoom:18,attr:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'},satelite:{label:'Satélite',urls:[k=>{const [z,x,y]=k.split('/');return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`},k=>{const [z,x,y]=k.split('/');return `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/${z}/${y}/${x}`}],maxZoom:18,attr:'Imagens © Esri, Maxar, Earthstar Geographics e comunidade GIS'}}
-function setMapLayer(layer){MAP.layer=MAP_LAYERS[layer]?layer:'mapa';try{localStorage.setItem('gm.maplayer',MAP.layer)}catch{}$$('#mapLayer button').forEach(b=>b.classList.toggle('active',b.dataset.layer===MAP.layer));const attr=$('#mapView .mapattr');if(attr)attr.innerHTML=MAP_LAYERS[MAP.layer].attr;$('#mapView').classList.toggle('sat',MAP.layer==='satelite');drawMap()}
+// ——— motor de mapa (mosaicos OSM/Esri, sem dependências) reutilizado pela aba Mapa e pelo cadastro ———
+const TILE=256
+const MAP_LAYERS={mapa:{label:'Mapa',urls:[k=>`https://tile.openstreetmap.org/${k}.png`],attr:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'},satelite:{label:'Satélite',urls:[k=>{const [z,x,y]=k.split('/');return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`},k=>{const [z,x,y]=k.split('/');return `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/${z}/${y}/${x}`}],attr:'Imagens © Esri, Maxar, Earthstar Geographics e comunidade GIS'}}
 const proj={x:(lon,z)=>(lon+180)/360*2**z*TILE,y:(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z*TILE},lon:(x,z)=>x/(2**z*TILE)*360-180,lat:(y,z)=>{const n=Math.PI-2*Math.PI*y/(2**z*TILE);return 180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n)))}}
+let mapLayerPref='mapa';try{mapLayerPref=localStorage.getItem('gm.maplayer')==='satelite'?'satelite':'mapa'}catch{}
+function makeMap(el,{onPick=null,onMarker=null,layerBar=null,pick=false}={}){
+ const st={z:9,center:null,layer:mapLayerPref,drag:null,markers:[],lines:[],pick}
+ const home=()=>({lat:state.home?.lat??-28.408,lon:state.home?.lon??-54.961})
+ const fitTo=(pts,{maxZoom=12,pad=90}={})=>{if(!pts.length){st.center=home();st.z=9;return}const minLat=Math.min(...pts.map(p=>p.lat)),maxLat=Math.max(...pts.map(p=>p.lat)),minLon=Math.min(...pts.map(p=>p.lon)),maxLon=Math.max(...pts.map(p=>p.lon));const W=el.clientWidth||800,H=el.clientHeight||460;let z=16;for(;z>3;z--){const w=proj.x(maxLon,z)-proj.x(minLon,z),h=proj.y(minLat,z)-proj.y(maxLat,z);if(w<=W-pad&&h<=H-pad-20)break}st.z=Math.min(z,maxZoom);st.center={lat:(minLat+maxLat)/2,lon:(minLon+maxLon)/2}}
+ const draw=()=>{
+  if(!st.center)st.center=home();const W=el.clientWidth,H=el.clientHeight;if(!W)return
+  const z=st.z;const cx=proj.x(st.center.lon,z),cy=proj.y(st.center.lat,z);const sx=(lat,lon)=>({x:proj.x(lon,z)-cx+W/2,y:proj.y(lat,z)-cy+H/2})
+  const tiles=el.querySelector('.maptiles');const n=2**z;const want=new Map()
+  for(let tx=Math.floor((cx-W/2)/TILE);tx<=Math.floor((cx+W/2)/TILE);tx++)for(let ty=Math.floor((cy-H/2)/TILE);ty<=Math.floor((cy+H/2)/TILE);ty++){if(ty<0||ty>=n)continue;want.set(`${z}/${((tx%n)+n)%n}/${ty}`,{left:tx*TILE-cx+W/2,top:ty*TILE-cy+H/2})}
+  const layer=MAP_LAYERS[st.layer]||MAP_LAYERS.mapa
+  for(const img of [...tiles.children])if(!want.has(img.dataset.key)||img.dataset.layer!==st.layer)img.remove()
+  for(const [k,pos] of want)layer.urls.forEach((url,li)=>{const id=`${k}#${li}`;let img=tiles.querySelector(`img[data-id="${id}"]`);if(!img){img=document.createElement('img');img.dataset.key=k;img.dataset.id=id;img.dataset.layer=st.layer;img.alt='';img.decoding='async';img.src=url(k);img.addEventListener('error',()=>{img.style.display='none'});tiles.appendChild(img)}img.style.left=pos.left+'px';img.style.top=pos.top+'px';img.style.zIndex=String(li)})
+  const lines=el.querySelector('.maplines');lines.setAttribute('viewBox',`0 0 ${W} ${H}`)
+  lines.innerHTML=st.lines.map(l=>{const a=sx(l.a.lat,l.a.lon),b=sx(l.b.lat,l.b.lon);return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" ${l.strong?'style="opacity:1;stroke:#E86A4C;stroke-width:2.5"':''}></line>${l.label?`<text x="${((a.x+b.x)/2).toFixed(1)}" y="${((a.y+b.y)/2-4).toFixed(1)}" text-anchor="middle">${esc(l.label)}</text>`:''}`}).join('')
+  const marks=el.querySelector('.mapmarkers')
+  marks.innerHTML=st.markers.map(m=>{const s=sx(m.lat,m.lon);return `<div class="mk ${m.cls||''}" ${m.id?`data-mk="${esc(m.id)}"`:''} style="left:${s.x.toFixed(1)}px;top:${s.y.toFixed(1)}px;z-index:${m.cls&&/sel/.test(m.cls)?3:1}" title="${esc(m.title||m.label||'')}"><i>${m.num?`<b>${m.num}</b>`:''}</i>${m.label?`<span>${esc(m.label)}</span>`:''}</div>`}).join('')
+  marks.querySelectorAll('[data-mk]').forEach(m=>{m.addEventListener('pointerdown',e=>e.stopPropagation());m.addEventListener('click',e=>{e.stopPropagation();if(onMarker)onMarker(m.dataset.mk)})})
+  const attr=el.querySelector('.mapattr');if(attr)attr.innerHTML=layer.attr;el.classList.toggle('sat',st.layer==='satelite');el.classList.toggle('marking',Boolean(st.pick))
+ }
+ const setLayer=l=>{st.layer=MAP_LAYERS[l]?l:'mapa';mapLayerPref=st.layer;try{localStorage.setItem('gm.maplayer',st.layer)}catch{}if(layerBar)layerBar.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.layer===st.layer));draw()}
+ const zoomBy=d=>{st.z=Math.max(3,Math.min(18,st.z+d));draw()}
+ el.addEventListener('pointerdown',e=>{if(e.button!==0)return;if(!st.center)st.center=home();st.drag={x:e.clientX,y:e.clientY,cx:st.center.lon,cy:st.center.lat,moved:false};el.setPointerCapture(e.pointerId);el.classList.add('dragging')})
+ el.addEventListener('pointermove',e=>{const d=st.drag;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.abs(dx)+Math.abs(dy)>3)d.moved=true;const z=st.z;st.center={lon:proj.lon(proj.x(d.cx,z)-dx,z),lat:proj.lat(proj.y(d.cy,z)-dy,z)};draw()})
+ const end=e=>{const d=st.drag;st.drag=null;el.classList.remove('dragging');if(!d)return;if(!d.moved&&st.pick&&onPick){const r=el.getBoundingClientRect();const z=st.z;const cx=proj.x(st.center.lon,z),cy=proj.y(st.center.lat,z);onPick(proj.lat(cy+(e.clientY-r.top)-r.height/2,z),proj.lon(cx+(e.clientX-r.left)-r.width/2,z))}}
+ el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>{st.drag=null;el.classList.remove('dragging')})
+ el.addEventListener('wheel',e=>{e.preventDefault();zoomBy(e.deltaY<0?1:-1)},{passive:false})
+ el.addEventListener('dblclick',()=>zoomBy(1))
+ el.querySelectorAll('[data-zoom]').forEach(b=>{b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',()=>zoomBy(Number(b.dataset.zoom)))})
+ el.addEventListener('keydown',e=>{const step=60;const z=st.z;const move={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];if(move){e.preventDefault();st.center={lon:proj.lon(proj.x(st.center.lon,z)+move[0],z),lat:proj.lat(proj.y(st.center.lat,z)+move[1],z)};draw()}else if(e.key==='+'||e.key==='=')zoomBy(1);else if(e.key==='-')zoomBy(-1)})
+ if(layerBar)layerBar.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setLayer(b.dataset.layer)))
+ window.addEventListener('resize',draw)
+ return {st,draw,fitTo,setLayer,zoomBy,setData(markers,lines){st.markers=markers;st.lines=lines||[]},center(lat,lon,z){st.center={lat,lon};if(z)st.z=z;draw()}}
+}
+
+// ——— aba Mapa: visão geral dos pins e distâncias do produtor selecionado ———
+const MAP={sel:null,filter:'',fitted:false}
+const mainMap=$('#mapView')?makeMap($('#mapView'),{layerBar:$('#mapLayer'),onMarker:id=>selectProducer(id)}):null
 function mapFiltered(){return (state.map?.producers||[]).filter(p=>!MAP.filter||p.crops.some(c=>c.commodity===MAP.filter))}
 function mapNumbers(){const out={};let n=0;for(const p of mapFiltered())if(p.lat!=null)out[p.id]=++n;return out}
 function mapPoints(){const m=state.map;if(!m)return {producers:[],units:[]};return {producers:mapFiltered().filter(p=>p.lat!=null),units:m.units||[]}}
-function fitMap(){const el=$('#mapView');const {producers,units}=mapPoints();const pts=[...producers,...units];const home={lat:state.home?.lat??-28.408,lon:state.home?.lon??-54.961}
- if(!pts.length){MAP.center=home;MAP.z=9;return}
- const minLat=Math.min(...pts.map(p=>p.lat)),maxLat=Math.max(...pts.map(p=>p.lat)),minLon=Math.min(...pts.map(p=>p.lon)),maxLon=Math.max(...pts.map(p=>p.lon))
- const W=el?.clientWidth||800,H=el?.clientHeight||460;let z=15;for(;z>3;z--){const w=proj.x(maxLon,z)-proj.x(minLon,z),h=proj.y(minLat,z)-proj.y(maxLat,z);if(w<=W-90&&h<=H-110)break}
- MAP.z=Math.min(z,12);MAP.center={lat:(minLat+maxLat)/2,lon:(minLon+maxLon)/2}
+function mapData(){
+ const {producers,units}=mapPoints();const nums=mapNumbers();const sel=producers.find(p=>p.id===MAP.sel)||null
+ const markers=[...units.map(u=>({id:null,lat:u.lat,lon:u.lon,cls:'unit',label:u.name,title:`${u.name}${u.capacityT?' • '+int(u.capacityT)+' t':''}`})),...producers.map(p=>({id:p.id,lat:p.lat,lon:p.lon,cls:`${p.coordSource==='municipio'?'approx':''} ${p.id===MAP.sel?'sel':''}`,num:nums[p.id],label:`${p.name}${p.distanceKm!=null?' • '+int(p.distanceKm)+' km':''}`,title:`${p.name} • ${p.distanceKm!=null?int(p.distanceKm)+' km':'—'} • ${p.coordNote}`}))]
+ const lines=[]
+ if(sel){for(const u of units){const d=haversine(sel,u);lines.push({a:sel,b:u,strong:u.id===sel.nearestUnit?.id,label:`${int(Math.round(d*(state.map?.roadFactor||1.3)))} km`})}}
+ else if(producers.length<=25){const byId=Object.fromEntries(units.map(u=>[u.id,u]));for(const p of producers){const u=byId[p.nearestUnit?.id];if(u)lines.push({a:p,b:u,label:''})}}
+ return {markers,lines,producers,units,sel}
 }
-function drawMap(){
- const el=$('#mapView');if(!el||!MAP.center||el.clientWidth===0)return
- const W=el.clientWidth,H=el.clientHeight,z=MAP.z;const cx=proj.x(MAP.center.lon,z),cy=proj.y(MAP.center.lat,z);const sx=(lat,lon)=>({x:proj.x(lon,z)-cx+W/2,y:proj.y(lat,z)-cy+H/2})
- const tiles=el.querySelector('.maptiles');const n=2**z;const want=new Map()
- for(let tx=Math.floor((cx-W/2)/TILE);tx<=Math.floor((cx+W/2)/TILE);tx++)for(let ty=Math.floor((cy-H/2)/TILE);ty<=Math.floor((cy+H/2)/TILE);ty++){if(ty<0||ty>=n)continue;want.set(`${z}/${((tx%n)+n)%n}/${ty}`,{left:tx*TILE-cx+W/2,top:ty*TILE-cy+H/2})}
- const layer=MAP_LAYERS[MAP.layer]||MAP_LAYERS.mapa
- for(const img of [...tiles.children])if(!want.has(img.dataset.key)||img.dataset.layer!==MAP.layer)img.remove()
- for(const [k,pos] of want)layer.urls.forEach((url,li)=>{const id=`${k}#${li}`;let img=tiles.querySelector(`img[data-id="${id}"]`);if(!img){img=document.createElement('img');img.dataset.key=k;img.dataset.id=id;img.dataset.layer=MAP.layer;img.alt='';img.decoding='async';img.src=url(k);img.addEventListener('error',()=>{img.style.display='none'});tiles.appendChild(img)}img.style.left=pos.left+'px';img.style.top=pos.top+'px';img.style.zIndex=String(li)})
- const {producers,units}=mapPoints();const marks=el.querySelector('.mapmarkers');const lines=el.querySelector('.maplines')
- const unitById=Object.fromEntries(units.map(u=>[u.id,u]))
- lines.setAttribute('viewBox',`0 0 ${W} ${H}`);lines.innerHTML=producers.map(p=>{const u=unitById[p.nearestUnit?.id];if(!u)return '';const a=sx(p.lat,p.lon),b=sx(u.lat,u.lon);const sel=p.id===MAP.sel;return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" ${sel?'style="opacity:1;stroke:#E86A4C;stroke-width:2.5"':''}></line>${sel||producers.length<=12?`<text x="${((a.x+b.x)/2).toFixed(1)}" y="${((a.y+b.y)/2-4).toFixed(1)}" text-anchor="middle">${int(p.distanceKm)} km</text>`:''}`}).join('')
- marks.innerHTML=units.map(u=>{const s=sx(u.lat,u.lon);return `<div class="mk unit" style="left:${s.x.toFixed(1)}px;top:${s.y.toFixed(1)}px" title="${esc(u.name)}${u.capacityT?' • '+int(u.capacityT)+' t':''}"><i></i><span>${esc(u.name)}</span></div>`}).join('')+(()=>{const nums=mapNumbers();return producers.map(p=>{const s=sx(p.lat,p.lon);return `<div class="mk ${p.coordSource==='municipio'?'approx':''} ${p.id===MAP.sel?'sel':''}" data-mk="${p.id}" style="left:${s.x.toFixed(1)}px;top:${s.y.toFixed(1)}px;z-index:${p.id===MAP.sel?3:1}" title="${esc(p.name)} • ${p.distanceKm!=null?int(p.distanceKm)+' km':'—'} • ${esc(p.coordNote)}"><i><b>${nums[p.id]||''}</b></i><span>${esc(p.name)}${p.distanceKm!=null?' • '+int(p.distanceKm)+' km':''}</span></div>`}).join('')})()
- marks.querySelectorAll('[data-mk]').forEach(m=>m.addEventListener('pointerdown',e=>e.stopPropagation()));marks.querySelectorAll('[data-mk]').forEach(m=>m.addEventListener('click',e=>{e.stopPropagation();selectProducer(m.dataset.mk)}))
+function haversine(a,b){const R=6371,rad=d=>d*Math.PI/180;const dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon);const s=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(s))}
+function drawMainMap(){if(!mainMap)return;const d=mapData();mainMap.setData(d.markers,d.lines);mainMap.draw()}
+function fitMainMap(){if(!mainMap)return;const {producers,units}=mapPoints();mainMap.fitTo([...producers,...units],{maxZoom:12});MAP.fitted=true}
+function selectProducer(id){
+ MAP.sel=MAP.sel===id?null:id;const p=(state.map?.producers||[]).find(x=>x.id===MAP.sel)
+ if(p&&p.lat!=null&&mainMap){const units=state.map?.units||[];mainMap.fitTo([p,...units],{maxZoom:13,pad:120})}
+ drawMainMap();renderMapList();renderMapDetail()
 }
-function updateMapMode(){const el=$('#mapMode');if(!el)return;el.hidden=!MAP.marking;$('#mapView').classList.toggle('marking',Boolean(MAP.marking));if(MAP.marking)el.innerHTML=`Marcando: <b>${esc(MAP.marking.name)}</b> — clique no ponto do mapa (Esc cancela)`}
-async function setLocationFromMap(lat,lon){
- const m=MAP.marking;MAP.marking=null;updateMapMode();if(!m)return
- if(m.form&&!m.id){const f=$('#'+m.form);f.lat.value=lat.toFixed(5);f.lon.value=lon.toFixed(5);goTab(m.form==='unitForm'?'armazenagem':'produtores');f.scrollIntoView({behavior:'smooth',block:'center'});status('Coordenadas marcadas no mapa preenchidas no formulário.');return}
- if(m.form==='unitForm'&&m.id){const f=$('#unitForm');f.lat.value=lat.toFixed(5);f.lon.value=lon.toFixed(5);goTab('armazenagem');f.scrollIntoView({behavior:'smooth',block:'center'});status('Coordenadas da unidade preenchidas; salve a unidade.');return}
- try{await api(`/api/producers/${m.id}/location`,{method:'POST',body:JSON.stringify({lat:lat.toFixed(5),lon:lon.toFixed(5)})});status('Posição do produtor gravada.');MAP.sel=m.id;const f=$('#producerForm');if(f.id.value===m.id){f.lat.value=lat.toFixed(5);f.lon.value=lon.toFixed(5)}await load()}catch(e){status(e.message,6000)}
-}
-function selectProducer(id){MAP.sel=id;const p=(state.map?.producers||[]).find(x=>x.id===id);const u=(state.map?.units||[]).find(x=>x.id===p?.nearestUnit?.id);if(p&&p.lat!=null){const pts=u?[p,u]:[p];const el=$('#mapView');const W=el?.clientWidth||800,H=el?.clientHeight||460;const minLat=Math.min(...pts.map(x=>x.lat)),maxLat=Math.max(...pts.map(x=>x.lat)),minLon=Math.min(...pts.map(x=>x.lon)),maxLon=Math.max(...pts.map(x=>x.lon));let z=14;for(;z>4;z--){const w=proj.x(maxLon,z)-proj.x(minLon,z),h=proj.y(minLat,z)-proj.y(maxLat,z);if(w<=W-120&&h<=H-120)break}MAP.z=z;MAP.center={lat:(minLat+maxLat)/2,lon:(minLon+maxLon)/2}}drawMap();renderMapList();renderMapDetail()}
 function renderMapList(){
- const el=$('#mapList');if(!el)return;const m=state.map;const list=(m?.producers||[]).filter(p=>!MAP.filter||p.crops.some(c=>c.commodity===MAP.filter))
+ const el=$('#mapList');if(!el)return;const list=mapFiltered()
  $('#mapCount').textContent=`${list.length} produtor(es)`
  if(!list.length){el.innerHTML='<div class="empty"><p>Nenhum produtor cadastrado.</p></div>';return}
- const nums=mapNumbers();el.innerHTML=list.map(p=>`<div class="mapitem ${p.id===MAP.sel?'sel':''}" data-sel="${p.id}"><span class="n">${nums[p.id]||'?'}</span><div><b>${esc(p.name)}</b><div class="meta">${esc(p.municipality||'—')}${p.locality?' • '+esc(p.locality):''} • ${esc(p.coordNote)}${p.crops.length?' • '+p.crops.map(c=>`${esc(c.label)} ${int(c.openSc)} sc`).join(', '):''}${p.storageT?' • '+int(p.storageT)+' t armaz.':''}</div></div><div class="km">${p.distanceKm!=null?`<b>${int(p.distanceKm)} km</b><small>${p.distanceSource==='informado'?'informado':'≈ rodov. • '+p.straightKm.toLocaleString('pt-BR')+' km reta'}</small>`:'<b>—</b><small>sem localização</small>'}</div></div>`).join('')
+ const nums=mapNumbers();el.innerHTML=list.map(p=>`<div class="mapitem ${p.id===MAP.sel?'sel':''}" data-sel="${p.id}"><span class="n">${nums[p.id]||'?'}</span><div><b>${esc(p.name)}</b><div class="meta">${esc(p.municipality||'—')}${p.locality?' • '+esc(p.locality):''} • ${esc(p.coordNote)}${p.crops.length?' • '+p.crops.map(c=>`${esc(c.label)} ${int(c.openSc)} sc`).join(', '):''}${p.storageT?' • '+int(p.storageT)+' t armaz.':''}</div></div><div class="km">${p.distanceKm!=null?`<b>${int(p.distanceKm)} km</b><small>${p.distanceSource==='informado'?'informado':'≈ rodov. • '+p.straightKm.toLocaleString('pt-BR')+' km reta'}</small>`:'<b>—</b><small>sem pin</small>'}</div></div>`).join('')
  el.querySelectorAll('[data-sel]').forEach(x=>x.addEventListener('click',()=>selectProducer(x.dataset.sel)))
 }
 function renderMapDetail(){
  const el=$('#mapDetail');if(!el)return;const p=(state.map?.producers||[]).find(x=>x.id===MAP.sel)
- if(!p){el.innerHTML='<p class="meta">Selecione um produtor no mapa ou na lista.</p>';return}
- el.innerHTML=`<div class="deskgrid"><div><small>Distância</small><b>${p.distanceKm!=null?int(p.distanceKm)+' km':'—'}</b><span class="meta">${p.distanceSource==='informado'?'informada':p.straightKm!=null?`${p.straightKm.toLocaleString('pt-BR')} km reta`:'sem coordenadas'}</span></div><div><small>Unidade</small><b>${esc(p.nearestUnit?.name||'—')}</b></div><div><small>Armazenagem</small><b>${p.storageT?int(p.storageT)+' t':'—'}</b></div><div><small>Produção</small><b>${p.productionSc?int(p.productionSc)+' sc':'—'}</b><span class="meta">${p.openSc?int(p.openSc)+' sc em aberto':''}</span></div></div><pre class="desk" id="deskText">${esc(p.desk||'')}</pre><div class="actions"><button class="primary" type="button" id="deskCopy">Copiar resumo</button><button class="secondary" type="button" id="deskPdf">Ficha em PDF</button><button class="secondary" type="button" id="deskFicha">Ficha completa</button><button class="secondary" type="button" id="deskMark" data-write-only="comercial">Marcar posição no mapa</button>${p.lat!=null?`<a class="mini" href="https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lon}#map=13/${p.lat}/${p.lon}" target="_blank" rel="noopener">Abrir no OpenStreetMap</a>`:''}</div>`
+ if(!p){el.innerHTML='<p class="meta">Selecione um produtor no mapa ou na lista para ver as distâncias e o resumo para a mesa.</p>';return}
+ const units=state.map?.units||[];const factor=state.map?.roadFactor||1.3
+ const dist=p.lat!=null?units.map(u=>{const km=haversine(p,u);return `<li><b>${esc(u.name)}</b>: ${int(Math.round(km*factor))} km estimados <span class="meta">(${km.toFixed(1).replace('.',',')} km em linha reta)</span>${u.id===p.nearestUnit?.id?' <span class="tag fresh">mais próxima</span>':''}</li>`}).join(''):''
+ el.innerHTML=`<div class="deskgrid"><div><small>Distância</small><b>${p.distanceKm!=null?int(p.distanceKm)+' km':'—'}</b><span class="meta">${p.distanceSource==='informado'?'informada':p.straightKm!=null?`${p.straightKm.toLocaleString('pt-BR')} km reta`:'sem pin'}</span></div><div><small>Unidade</small><b>${esc(p.nearestUnit?.name||'—')}</b></div><div><small>Armazenagem</small><b>${p.storageT?int(p.storageT)+' t':'—'}</b></div><div><small>Produção</small><b>${p.productionSc?int(p.productionSc)+' sc':'—'}</b><span class="meta">${p.openSc?int(p.openSc)+' sc em aberto':''}</span></div></div>${dist?`<ul class="reading distlist">${dist}</ul>`:'<p class="meta">Este produtor ainda não tem o pin da estrutura de carregamento: marque no cadastro, na página Produtores.</p>'}<pre class="desk" id="deskText">${esc(p.desk||'')}</pre><div class="actions"><button class="primary" type="button" id="deskCopy">Copiar resumo</button><button class="secondary" type="button" id="deskPdf">Ficha em PDF</button><button class="secondary" type="button" id="deskFicha">Ficha completa</button><button class="secondary" type="button" id="deskEdit" data-write-only="comercial">${p.lat!=null&&p.coordSource==='cadastro'?'Ajustar pin no cadastro':'Marcar pin no cadastro'}</button>${p.lat!=null?`<a class="mini" href="https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lon}#map=15/${p.lat}/${p.lon}" target="_blank" rel="noopener">Abrir no OpenStreetMap</a>`:''}</div>`
  $('#deskCopy').addEventListener('click',async()=>{const t=p.desk||'';try{await navigator.clipboard.writeText(t);status('Resumo copiado para a área de transferência.')}catch{const r=document.createRange();r.selectNodeContents($('#deskText'));const s=getSelection();s.removeAllRanges();s.addRange(r);status('Selecionado: use Ctrl+C para copiar.')}})
  $('#deskPdf').addEventListener('click',()=>downloadPdf('produtor/'+p.id,{}))
  $('#deskFicha').addEventListener('click',()=>openDrawer(p.id))
- $('#deskMark').addEventListener('click',()=>{MAP.marking={id:p.id,name:p.name};updateMapMode();$('#mapView').scrollIntoView({behavior:'smooth',block:'center'})})
- if(!canWrite('comercial'))$('#deskMark').hidden=true
+ $('#deskEdit').addEventListener('click',()=>{goTab('produtores');$(`#producers .item[data-id="${p.id}"] [data-edit]`)?.click();setTimeout(()=>$('#producerMap')?.scrollIntoView({behavior:'smooth',block:'center'}),350)})
+ if(!canWrite('comercial'))$('#deskEdit').hidden=true
 }
 function renderMapPanel(){
- const m=state.map;if(!m||!$('#mapView'))return
+ const m=state.map;if(!m||!mainMap)return
  const sel=$('#mapFilter');if(sel.options.length<=1)sel.innerHTML='<option value="">Todos os grãos</option>'+state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')
- const s=m.summary;const pins=mapPoints().producers.length;$('#mapSummary').textContent=`${pins} pin(s) de propriedades no mapa${MAP.filter?' (filtro por grão)':''} • ${s.producers} produtor(es) • ${s.located} localizados${s.fromMunicipality?` (${s.fromMunicipality} pela sede do município)`:''}${s.missing.length?` • ${s.missing.length} sem localização`:''} • ${m.units.length} unidade(s)${s.avgKm!=null?` • média ${s.avgKm} km, máx. ${s.maxKm} km`:''}`
- $('#mapHint').innerHTML=`<span class="maplegend"><span><i style="background:#0B1A12;border-radius:2px"></i>unidade de recebimento</span><span><i style="background:#3A7D34"></i>produtor (coordenadas do cadastro)</span><span><i style="background:#8A651D"></i>produtor (sede do município, aproximado)</span><span>km = linha reta × ${String(m.roadFactor).replace('.',',')}${m.units[0]?.virtual?' • cadastre a unidade em Armazenagem com coordenadas para medir a partir dela':''}</span></span>`
- if(!MAP.center)fitMap()
- renderMapList();renderMapDetail();drawMap()
+ const s=m.summary;const pins=mapPoints().producers.length;$('#mapSummary').textContent=`${pins} pin(s) de propriedades no mapa${MAP.filter?' (filtro por grão)':''} • ${s.producers} produtor(es) • ${s.located} localizados${s.fromMunicipality?` (${s.fromMunicipality} pela sede do município)`:''}${s.missing.length?` • ${s.missing.length} sem pin`:''} • ${m.units.length} unidade(s)${s.avgKm!=null?` • média ${s.avgKm} km, máx. ${s.maxKm} km`:''}`
+ $('#mapHint').innerHTML=`<span class="maplegend"><span><i style="background:#0B1A12;border-radius:2px"></i>unidade de recebimento</span><span><i style="background:#3A7D34"></i>pin da estrutura de carregamento (cadastro)</span><span><i style="background:#8A651D"></i>sede do município (aproximado, sem pin)</span><span>km = linha reta × ${String(m.roadFactor).replace('.',',')}${m.units[0]?.virtual?' • cadastre a unidade em Armazenagem com coordenadas para medir a partir dela':''}</span><span>clique em um pin para ver as distâncias; o pin é marcado no cadastro do produtor</span></span>`
+ if(!MAP.fitted)fitMainMap()
+ renderMapList();renderMapDetail();drawMainMap()
 }
-{const el=$('#mapView');if(el){
- el.addEventListener('pointerdown',e=>{if(e.button!==0)return;MAP.drag={x:e.clientX,y:e.clientY,cx:MAP.center.lon,cy:MAP.center.lat,moved:false};el.setPointerCapture(e.pointerId);el.classList.add('dragging')})
- el.addEventListener('pointermove',e=>{const d=MAP.drag;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.abs(dx)+Math.abs(dy)>3)d.moved=true;const z=MAP.z;MAP.center={lon:proj.lon(proj.x(d.cx,z)-dx,z),lat:proj.lat(proj.y(d.cy,z)-dy,z)};drawMap()})
- const end=e=>{const d=MAP.drag;MAP.drag=null;el.classList.remove('dragging');if(!d)return;if(!d.moved&&MAP.marking){const r=el.getBoundingClientRect();const z=MAP.z;const cx=proj.x(MAP.center.lon,z),cy=proj.y(MAP.center.lat,z);const lon=proj.lon(cx+(e.clientX-r.left)-r.width/2,z),lat=proj.lat(cy+(e.clientY-r.top)-r.height/2,z);setLocationFromMap(lat,lon)}}
- el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>{MAP.drag=null;el.classList.remove('dragging')})
- el.addEventListener('wheel',e=>{e.preventDefault();MAP.z=Math.max(3,Math.min(18,MAP.z+(e.deltaY<0?1:-1)));drawMap()},{passive:false})
- el.addEventListener('dblclick',()=>{MAP.z=Math.min(18,MAP.z+1);drawMap()})
- el.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('pointerdown',e=>e.stopPropagation()));el.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('click',()=>{MAP.z=Math.max(3,Math.min(18,MAP.z+Number(b.dataset.zoom)));drawMap()}))
- el.addEventListener('keydown',e=>{const step=60;const z=MAP.z;const move={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];if(move){e.preventDefault();MAP.center={lon:proj.lon(proj.x(MAP.center.lon,z)+move[0],z),lat:proj.lat(proj.y(MAP.center.lat,z)+move[1],z)};drawMap()}else if(e.key==='+'||e.key==='='){MAP.z=Math.min(18,z+1);drawMap()}else if(e.key==='-'){MAP.z=Math.max(3,z-1);drawMap()}})
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&MAP.marking){MAP.marking=null;updateMapMode();status('Marcação cancelada.')}})
- $$('#mapLayer button').forEach(b=>b.addEventListener('click',()=>setMapLayer(b.dataset.layer)));setMapLayer(MAP.layer)
- $('#mapFit').addEventListener('click',()=>{fitMap();drawMap()})
- $('#mapFilter').addEventListener('change',e=>{MAP.filter=e.target.value;fitMap();renderMapPanel()})
+if(mainMap){
+ mainMap.setLayer(mainMap.st.layer)
+ $('#mapFit').addEventListener('click',()=>{MAP.sel=null;fitMainMap();drawMainMap();renderMapList();renderMapDetail()})
+ $('#mapFilter').addEventListener('change',e=>{MAP.filter=e.target.value;fitMainMap();renderMapPanel()})
  $('#mapPdf').addEventListener('click',()=>downloadPdf('mapa',MAP.filter?{commodity:MAP.filter}:{}))
- window.addEventListener('resize',()=>drawMap())
- document.addEventListener('tabchange',e=>{if(e.detail==='mapa'){if(!MAP.center)fitMap();requestAnimationFrame(()=>{drawMap();updateMapMode()})}})
-}}
+ document.addEventListener('tabchange',e=>{if(e.detail==='mapa'){if(!MAP.fitted)fitMainMap();requestAnimationFrame(drawMainMap)}})
+}
+
+// ——— cadastro do produtor: mini-mapa para marcar o pin da estrutura de carregamento ———
+const pform=$('#producerForm');const formMap=$('#producerMap')?makeMap($('#producerMap'),{layerBar:$('#producerMapLayer'),pick:true,onPick:(lat,lon)=>{pform.lat.value=lat.toFixed(5);pform.lon.value=lon.toFixed(5);drawFormMap();$('#producerMapHint').textContent=`Pin marcado em ${lat.toFixed(5)}, ${lon.toFixed(5)}. Salve o produtor para gravar.`}}):null
+function formCoords(){const lat=Number(String(pform.lat.value).replace(',','.')),lon=Number(String(pform.lon.value).replace(',','.'));return pform.lat.value!==''&&pform.lon.value!==''&&Number.isFinite(lat)&&Number.isFinite(lon)?{lat,lon}:null}
+function drawFormMap(){
+ if(!formMap)return;const c=formCoords();const units=(state.map?.units||[]).filter(u=>u.lat!=null)
+ const markers=[...units.map(u=>({id:null,lat:u.lat,lon:u.lon,cls:'unit',label:u.name})),...(c?[{id:'pin',lat:c.lat,lon:c.lon,cls:'sel',label:pform.name.value||'pin do carregamento'}]:[])]
+ const lines=[];if(c&&units.length){const factor=state.map?.roadFactor||1.3;let best=null;for(const u of units){const d=haversine(c,u);if(!best||d<best.d)best={u,d}}lines.push({a:c,b:best.u,strong:true,label:`${int(Math.round(best.d*factor))} km`});$('#producerMapKm').textContent=`≈ ${int(Math.round(best.d*factor))} km até ${best.u.name} (${best.d.toFixed(1).replace('.',',')} km em linha reta)`}else $('#producerMapKm').textContent=c?'':'sem pin: clique no mapa no ponto da estrutura de carregamento (silo, galpão ou balança) ou use o GPS estando no local'
+ formMap.setData(markers,lines);formMap.draw()
+}
+function focusFormMap({zoom=null}={}){
+ if(!formMap)return;const c=formCoords()
+ if(c)formMap.center(c.lat,c.lon,zoom||Math.max(formMap.st.z,14))
+ else{const p=(state.map?.producers||[]).find(x=>x.id===pform.id.value);const muni=p&&p.lat!=null?{lat:p.lat,lon:p.lon}:null;if(muni)formMap.center(muni.lat,muni.lon,12);else formMap.center(state.home?.lat??-28.408,state.home?.lon??-54.961,11)}
+ drawFormMap()
+}
+if(formMap){
+ formMap.setLayer(formMap.st.layer)
+ pform.addEventListener('coords',e=>{focusFormMap({zoom:e.detail?.zoom||14});const c=formCoords();if(c)$('#producerMapHint').textContent=`Pin em ${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}: confira no mapa e clique para ajustar até a estrutura de carregamento. Salve o produtor para gravar.`})
+ pform.lat.addEventListener('change',()=>focusFormMap());pform.lon.addEventListener('change',()=>focusFormMap())
+ $('#producerMapClear').addEventListener('click',()=>{pform.lat.value='';pform.lon.value='';$('#producerMapHint').textContent='Pin removido; salve o produtor para gravar.';drawFormMap()})
+ document.addEventListener('tabchange',e=>{if(e.detail==='produtores')requestAnimationFrame(()=>focusFormMap())})
+}
 ;(async()=>{try{const s=await fetch('/api/session',{headers:authHeaders()}).then(r=>r.json());if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
 })()

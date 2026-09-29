@@ -131,7 +131,12 @@
    "uf": "RS",
    "lat": -27.944,
    "lon": -52.923,
-   "kind": "praca"
+   "kind": "praca",
+   "aliases": [
+    "Noroeste",
+    "Noroeste do RS",
+    "Noroeste gaucho"
+   ]
   },
   {
    "name": "Marau",
