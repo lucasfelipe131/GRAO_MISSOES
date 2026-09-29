@@ -17,8 +17,38 @@ function showLogin(on){$('#login').hidden=!on;$('.tabs').hidden=on;if(on)$('#who
 let currentTab='painel'
 const goTab=t=>{const b=$(`.tabs button[data-tab="${t}"]`);if(b)b.click()}
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)))
-$$('.tabs button').forEach(b=>b.addEventListener('click',()=>{currentTab=b.dataset.tab;$$('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));$$('.panel').forEach(p=>p.hidden=p.dataset.panel!==currentTab);try{localStorage.setItem('gm.tab',currentTab)}catch{}}))
-try{const t=localStorage.getItem('gm.tab');if(t&&$(`.tabs button[data-tab="${t}"]`))$(`.tabs button[data-tab="${t}"]`).click()}catch{}
+function activateTab(t,{push=true}={}){const b=$(`.tabs button[data-tab="${t}"]`);if(!b||b.hidden)return false;const changed=currentTab!==t;currentTab=t;$$('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));$$('.panel').forEach(p=>p.hidden=p.dataset.panel!==currentTab);try{localStorage.setItem('gm.tab',currentTab)}catch{}if(push&&location.hash!=='#'+t)history.replaceState(null,'','#'+t);if(changed)window.scrollTo({top:0});if(window.innerWidth<=900)b.scrollIntoView({inline:'center',block:'nearest'});document.dispatchEvent(new CustomEvent('tabchange',{detail:t}));return true}
+$$('.tabs button').forEach(b=>b.addEventListener('click',()=>activateTab(b.dataset.tab)))
+window.addEventListener('hashchange',()=>{const t=location.hash.slice(1).split('/')[0];if(t&&t!==currentTab)activateTab(t,{push:false})})
+{const h=location.hash.slice(1).split('/')[0];let t=h;try{if(!t)t=localStorage.getItem('gm.tab')}catch{}if(t&&$(`.tabs button[data-tab="${t}"]`))activateTab(t)}
+document.addEventListener('keydown',e=>{if(!e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;const n=e.key==='0'?10:Number(e.key);if(n>=1&&n<=10){const vis=$$('.tabs button').filter(b=>!b.hidden);if(vis[n-1]){e.preventDefault();vis[n-1].click()}}})
+function renumberTabs(){$$('.tabs button').filter(b=>!b.hidden).forEach((b,i)=>b.title=i<10?`${b.querySelector('span')?.textContent||''} (Alt+${(i+1)%10})`:b.querySelector('span')?.textContent||'');$$('.navgroup').forEach(g=>g.hidden=![...g.querySelectorAll('button')].some(b=>!b.hidden))}
+function buildSubnavs(){
+ $$('.panel').forEach(panel=>{
+  panel.querySelector('.subnav')?.remove()
+  const secs=[];const seen=new Set()
+  for(const h of panel.querySelectorAll('h2')){const card=h.closest('.card');if(!card||h.closest('.drawer'))continue;const par=card.parentElement;if(!(par===panel||par.parentElement===panel||par.parentElement?.parentElement===panel))continue
+   let el=card,hidden=false;while(el&&el!==panel){if(el.hidden){hidden=true;break}el=el.parentElement}if(hidden)continue
+   const raw=[...h.childNodes].filter(n=>n.nodeType===3||n.tagName!=='BUTTON').map(n=>n.textContent).join('').replace(/\s+/g,' ').trim().replace(/ em PDF$/,' (PDF)');const label=raw.length>36?raw.slice(0,36).replace(/\s+\S*$/,'')+'…':raw;if(!label||seen.has(label))continue;seen.add(label)
+   if(!card.id)card.id=`sec-${panel.dataset.panel}-${secs.length+1}`;secs.push({id:card.id,label})}
+  if(secs.length<3)return
+  const nav=document.createElement('nav');nav.className='subnav';nav.setAttribute('aria-label','Nesta página');nav.innerHTML=`<small>Nesta página</small>${secs.map(x=>`<button type="button" data-sec="${x.id}">${esc(x.label)}</button>`).join('')}<button type="button" class="subnav-top" data-sec="top">↑ topo</button>`
+  nav.addEventListener('click',e=>{const b=e.target.closest('[data-sec]');if(!b)return;if(b.dataset.sec==='top')return window.scrollTo({top:0,behavior:'smooth'});document.getElementById(b.dataset.sec)?.scrollIntoView({behavior:'smooth',block:'start'})})
+  const first=panel.firstElementChild;const after=first&&(first.classList.contains('hero')||first.classList.contains('guide'))?first:null;if(after)after.after(nav);else panel.prepend(nav)
+ })
+ highlightSubnav()
+}
+function highlightSubnav(){const panel=$(`.panel[data-panel="${currentTab}"]`);const nav=panel?.querySelector('.subnav');if(!nav)return;const btns=[...nav.querySelectorAll('[data-sec]:not(.subnav-top)')];let best=null;for(const b of btns){const el=document.getElementById(b.dataset.sec);if(!el)continue;const top=el.getBoundingClientRect().top;if(top<=140)best=b;else if(!best)best=b}btns.forEach(b=>b.classList.toggle('active',b===best))}
+{let tick=false;window.addEventListener('scroll',()=>{if(tick)return;tick=true;requestAnimationFrame(()=>{tick=false;highlightSubnav();totop.classList.toggle('show',window.scrollY>600)})},{passive:true})}
+const totop=document.createElement('button');totop.type='button';totop.className='totop';totop.title='Voltar ao topo';totop.textContent='↑';totop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));document.body.appendChild(totop)
+function updateBadges(){
+ const set=(k,n,tone)=>{const el=$(`.navbadge[data-badge="${k}"]`);if(!el)return;el.hidden=!n;el.textContent=n>99?'99+':String(n||'');el.className='navbadge'+(tone?' '+tone:'')}
+ set('pedidos',(state.requests||[]).filter(r=>r.status==='open').length)
+ set('painel',(state.targetHits||[]).length,'warn')
+ set('cotacoes',(state.portfolio?.sourcesToday||[]).filter(f=>!f.done).length,'warn')
+ const al=state.storage?.alerts||[];set('armazenagem',al.filter(a=>a.level==='fora'||a.level==='atencao').length,al.some(a=>a.level==='fora')?'danger':'warn')
+ set('mapa',(state.map?.summary?.missing||[]).length,'warn')
+}
 async function finishLogin(s){if(s.token){token=s.token;code='';try{localStorage.setItem('gm.token',token);localStorage.removeItem('gm.code')}catch{}}else if(s.code){code=s.code;token='';try{localStorage.setItem('gm.code',code);localStorage.removeItem('gm.token')}catch{}}state.session=s;applyRole();$('#loginError').hidden=true;showLogin(false);await load()}
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(e.target);try{const s=await api('/api/login',{method:'POST',headers:{'x-access-code':'','Authorization':''},body:JSON.stringify({username:fd.get('username'),password:fd.get('password')})});await finishLogin(s)}catch(err){$('#loginError').textContent=err.message;$('#loginError').hidden=false}})
 $('#codeForm').addEventListener('submit',async e=>{e.preventDefault();const c=new FormData(e.target).get('code');try{const s=await api('/api/login',{method:'POST',headers:{'x-access-code':'','Authorization':''},body:JSON.stringify({code:c})});await finishLogin(s)}catch(err){$('#loginError').textContent=err.message;$('#loginError').hidden=false}})
@@ -30,6 +60,7 @@ function applyRole(){
  $('#who').hidden=!s?.role;if(s?.role){$('#roleBadge').textContent=s.roleLabel;const name=s.user?.name||s.user?.username||(s.via==='codigo'?'Código da equipe':'Equipe');$('#userName').textContent=name;$('#userAvatar').textContent=name.split(/\s+/).slice(0,2).map(p=>p[0]||'').join('').toUpperCase()||'VS';$('#myPassword').hidden=!s.user}
  $$('.tabs button').forEach(b=>{b.hidden=Boolean(s?.role)&&!tabs.includes(b.dataset.tab)})
  if(s?.role&&!tabs.includes(currentTab)){goTab(tabs[0]||'painel')}
+ renumberTabs()
  $$('[data-write]').forEach(el=>{const ok=!s?.role||write.includes(el.dataset.write);el.hidden=!ok;if(el.tagName==='FORM')el.querySelectorAll('input,select,textarea,button').forEach(x=>x.disabled=!ok)})
  $$('[data-write-only]').forEach(el=>{el.hidden=Boolean(s?.role)&&!write.includes(el.dataset.writeOnly)})
 }
@@ -70,8 +101,8 @@ function renderSourceBar(){
  $$('#sourcebar [data-source]').forEach(b=>b.addEventListener('click',()=>{const f=$('#quoteForm');f.sourceId.value=b.dataset.source;applySource(b.dataset.source,b.dataset.commodity);f.scrollIntoView({behavior:'smooth',block:'start'})}))
 }
 
-async function load(){try{const s=await api('/api/bootstrap');state={...state,...s};fillSelects();applyRole();renderAll();showLogin(false);if(!marketTimer)startMarketPolling()}catch(e){status(e.message,6000)}}
-function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderOffers();renderStorageOps();renderStorage();renderBrief();renderAdmin()}
+async function load(){try{const s=await api('/api/bootstrap');state={...state,...s};fillSelects();applyRole();renderAll();showLogin(false);if(!marketTimer){startMarketPolling();initRegion()}else loadRegion(regionSel,{silent:true})}catch(e){status(e.message,6000)}}
+function renderAll(){renderHits();renderDashboard();renderRequests();renderQuotes();renderTrend();renderComparison();renderProducers();renderPrices();renderOffers();renderStorageOps();renderStorage();renderBrief();renderAdmin();renderMapPanel();updateBadges();buildSubnavs()}
 async function renderAdmin(){
  const s=state.session;if(!s?.role||!(s.write||[]).includes('usuarios')||!$('#users'))return
  const rolesDef=s.roles||{};$('#roleHelp').innerHTML=Object.entries(rolesDef).map(([k,v])=>`<li><b>${esc(v.label)}</b>: abas ${v.tabs.join(', ')}; escrita em ${v.write.length?v.write.join(', '):'nada'}.${v.configured?' Há código de equipe configurado para este nível.':''}</li>`).join('')
@@ -145,7 +176,7 @@ function renderProducers(){
  const list=state.producers||[];$('#producerCount').textContent=`${list.length} cadastrados`
  if(!list.length){$('#producers').innerHTML='<div class="empty"><p>Cadastre o primeiro produtor para registrar pedidos.</p></div>';return}
  $('#producers').innerHTML=list.map(p=>`<article class="item" data-id="${p.id}"><header><div><b>${esc(p.name)}</b><div class="meta">${esc(p.municipality)}${p.deliveryLocation?' • entrega: '+esc(p.deliveryLocation):''}${p.storageT?' • '+int(p.storageT)+' t de armazenagem':''}${p.phone?' • '+esc(p.phone):''}</div></div><div class="row">${Object.entries(p.crops||{}).filter(([k,c])=>c.areaHa>0).map(([k,c])=>`<span class="tag">${esc(k)} ${int(c.areaHa)} ha • ${c.fixedPercent||0}% fixado</span>`).join('')}${p.riskTolerance?`<span class="tag">risco ${esc(p.riskTolerance)}</span>`:''}<button data-ficha class="primary">Ficha</button><button data-edit>Editar</button></div></header>${p.notes?`<div class="meta">${esc(p.notes)}</div>`:''}</article>`).join('')
- $$('#producers [data-edit]').forEach(b=>b.addEventListener('click',()=>{const p=list.find(x=>x.id===b.closest('.item').dataset.id);const f=$('#producerForm');f.id.value=p.id;for(const k of ['name','municipality','phone','deliveryLocation','storageT','storageCostScMonth','distanceKm','logistics','notes','decisionMaker','riskTolerance','sellingStyle','proofPreference','paymentPreference','contactChannel','bestContact'])if(f[k])f[k].value=p[k]??'';f.usualBuyers.value=(p.usualBuyers||[]).join(', ');for(const k of ['soja','milho','trigo','canola']){f[`cost_${k}`].value=p.costs?.[k]??'';f[`area_${k}`].value=p.crops?.[k]?.areaHa||'';f[`yield_${k}`].value=p.crops?.[k]?.yieldScHa||'';f[`fixed_${k}`].value=p.crops?.[k]?.fixedPercent??''}$$('#cashMonths input').forEach(i=>{i.checked=(p.cashMonths||[]).includes(Number(i.value))});$('#cropgrid').dispatchEvent(new Event('input'));$('#producerFormTitle').textContent='Editar produtor';goTab('produtores');f.scrollIntoView({behavior:'smooth'})}))
+ $$('#producers [data-edit]').forEach(b=>b.addEventListener('click',()=>{const p=list.find(x=>x.id===b.closest('.item').dataset.id);const f=$('#producerForm');f.id.value=p.id;for(const k of ['name','municipality','phone','deliveryLocation','storageT','storageCostScMonth','distanceKm','lat','lon','locality','logistics','notes','decisionMaker','riskTolerance','sellingStyle','proofPreference','paymentPreference','contactChannel','bestContact'])if(f[k])f[k].value=p[k]??'';f.usualBuyers.value=(p.usualBuyers||[]).join(', ');for(const k of ['soja','milho','trigo','canola']){f[`cost_${k}`].value=p.costs?.[k]??'';f[`area_${k}`].value=p.crops?.[k]?.areaHa||'';f[`yield_${k}`].value=p.crops?.[k]?.yieldScHa||'';f[`fixed_${k}`].value=p.crops?.[k]?.fixedPercent??''}$$('#cashMonths input').forEach(i=>{i.checked=(p.cashMonths||[]).includes(Number(i.value))});$('#cropgrid').dispatchEvent(new Event('input'));$('#producerFormTitle').textContent='Editar produtor';goTab('produtores');f.scrollIntoView({behavior:'smooth'})}))
  $$('#producers [data-ficha]').forEach(b=>b.addEventListener('click',()=>openDrawer(b.closest('.item').dataset.id)))
 }
 function renderBrief(){
@@ -169,7 +200,7 @@ function renderMarket(){
  $('#marketAuto').textContent=`atualiza sozinho a cada ${MARKET_POLL_MS/6e4} min • fontes lidas a cada ${state.automation?.hours||4} h`
 }
 async function loadMarket(){try{const r=await api('/api/market');state.market=r.market;state.automation={...(state.automation||{}),...(r.automation||{})};renderMarket()}catch(e){}}
-function startMarketPolling(){if(marketTimer)clearInterval(marketTimer);marketTimer=setInterval(loadMarket,MARKET_POLL_MS);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadMarket()})}
+function startMarketPolling(){if(marketTimer)clearInterval(marketTimer);marketTimer=setInterval(()=>{loadMarket();loadRegion(regionSel,{silent:true})},MARKET_POLL_MS);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadMarket()})}
 $('#marketPdf').addEventListener('click',()=>downloadPdf('mercado',{}))
 $('#dashboardPdf').addEventListener('click',()=>downloadPdf('painel',{}))
 $('#marketRefresh').addEventListener('click',async()=>{const b=$('#marketRefresh');b.disabled=true;b.textContent='lendo…';try{await api('/api/comparison/refresh',{method:'POST'});await load();status('Fontes lidas.')}catch(e){status(e.message,6000)}finally{b.disabled=false;b.textContent='Ler fontes agora'}})
@@ -368,7 +399,7 @@ function renderStorageOps(){
  // recent lists
  const rc=st.receipts||[];$('#stReceipts').innerHTML=rc.length?`<table class="cmptable"><thead><tr><th>Data</th><th>Unidade</th><th>Grão</th><th>t</th><th>Cargas</th><th>Umid.</th><th>Produtor</th><th></th></tr></thead><tbody>${rc.slice(0,25).map(r=>`<tr><td>${dt(r.date)}</td><td>${esc(units.find(u=>u.id===r.unitId)?.name||'—')}</td><td>${esc(state.catalog.commodities.find(x=>x.value===r.commodity)?.label||r.commodity)}</td><td>${r.quantityT.toLocaleString('pt-BR')}</td><td>${r.loads??'—'}</td><td>${r.params?.moisture!=null?String(r.params.moisture).replace('.',','):'—'}</td><td>${esc(r.producerName||'—')}</td><td>${write?`<button class="mini" data-del-receipt="${r.id}">×</button>`:''}</td></tr>`).join('')}</tbody></table>`:'<p class="meta">Nenhum recebimento registrado.</p>'
  const rd=st.readings||[];$('#stReadings').innerHTML=rd.length?`<table class="cmptable"><thead><tr><th>Leitura</th><th>Unidade</th><th>Grão</th><th>t</th><th>Umid.</th><th>Temp.</th><th>Imp.</th><th></th></tr></thead><tbody>${rd.slice(0,25).map(r=>`<tr><td>${dt(r.date)}${r.silo?' • '+esc(r.silo):''}</td><td>${esc(units.find(u=>u.id===r.unitId)?.name||'—')}</td><td>${esc(state.catalog.commodities.find(x=>x.value===r.commodity)?.label||r.commodity)}</td><td>${r.quantityT.toLocaleString('pt-BR')}</td><td>${r.params?.moisture!=null?String(r.params.moisture).replace('.',','):'—'}</td><td>${r.params?.temperature!=null?String(r.params.temperature).replace('.',','):'—'}</td><td>${r.params?.impurities!=null?String(r.params.impurities).replace('.',','):'—'}</td><td>${write?`<button class="mini" data-del-reading="${r.id}">×</button>`:''}</td></tr>`).join('')}</tbody></table>`:'<p class="meta">Nenhuma leitura registrada.</p>'
- $$('#stUnits [data-edit-unit]').forEach(b=>b.addEventListener('click',()=>{const u=(st.unitsRaw||[]).find(x=>x.id===b.dataset.editUnit);if(!u)return;const f=$('#unitForm');f.id.value=u.id;for(const k of ['name','municipality','kind','capacityT','dryingTDay','receivingTDay','manager','season','seasonStart','seasonEnd','notes'])if(f[k])f[k].value=u[k]??'';for(const c of state.catalog.commodities)if(f['goal_'+c.value])f['goal_'+c.value].value=u.goals?.[c.value]??'';$('#unitFormTitle').textContent='Editar unidade';$('#unitCancel').hidden=false;f.scrollIntoView({behavior:'smooth',block:'start'})}))
+ $$('#stUnits [data-edit-unit]').forEach(b=>b.addEventListener('click',()=>{const u=(st.unitsRaw||[]).find(x=>x.id===b.dataset.editUnit);if(!u)return;const f=$('#unitForm');f.id.value=u.id;for(const k of ['name','municipality','kind','capacityT','dryingTDay','receivingTDay','manager','season','seasonStart','seasonEnd','lat','lon','notes'])if(f[k])f[k].value=u[k]??'';for(const c of state.catalog.commodities)if(f['goal_'+c.value])f['goal_'+c.value].value=u.goals?.[c.value]??'';$('#unitFormTitle').textContent='Editar unidade';$('#unitCancel').hidden=false;f.scrollIntoView({behavior:'smooth',block:'start'})}))
  $$('#stUnits [data-del-unit]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover a unidade e todos os seus registros?'))return;try{await api('/api/storage/units/'+b.dataset.delUnit,{method:'DELETE'});status('Unidade removida.');await load()}catch(e){status(e.message,6000)}}))
  $$('#stReceipts [data-del-receipt]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover este recebimento?'))return;try{await api('/api/storage/receipts/'+b.dataset.delReceipt,{method:'DELETE'});await load()}catch(e){status(e.message,6000)}}))
  $$('#stReadings [data-del-reading]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover esta leitura?'))return;try{await api('/api/storage/readings/'+b.dataset.delReading,{method:'DELETE'});await load()}catch(e){status(e.message,6000)}}))
@@ -457,5 +488,118 @@ function renderOffers(){
 }
 $('#exportOffersCsv').addEventListener('click',()=>csv((state.offers||[]).map(o=>({id:o.id,produtor:o.producerName,grao:o.offer.commodity,volume_sc:o.offer.volumeSc,vencimento:o.offer.deliveryMonth,destino:o.offer.destination.name,referencia:o.offer.reference?.price,referencia_venc:o.offer.referenceAtDelivery,frete_sc:o.offer.freight.perSc,margem_sc:o.offer.margin.perSc,oferta_sc:o.offer.offerPrice,pedida_sc:o.offer.askingPrice,diferenca_pedida_sc:o.offer.asking?.gapSc,situacao:o.status,fechado_sc:o.closedPrice,criada_em:o.createdAt,observacoes:o.notes})),'ofertas.csv'))
 $('#exportOffersJson').addEventListener('click',async()=>{try{const r=await api('/api/offers/export');const blob=new Blob([JSON.stringify(r,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='val-sog-export.json';a.click();URL.revokeObjectURL(a.href)}catch(e){status(e.message,6000)}})
+// ——— região: preços mais próximos por GPS ou busca ———
+let regionSel=null;try{regionSel=JSON.parse(localStorage.getItem('gm.region')||'null')}catch{}
+let placesLoaded=false
+async function loadPlacesList(){if(placesLoaded)return;placesLoaded=true;try{const r=await api('/api/places?kind=praca');$('#placesList').innerHTML=(r.places||[]).map(p=>`<option value="${esc(p.label)}"></option>`).join('')}catch{placesLoaded=false}}
+async function loadRegion(sel,{silent=false}={}){
+ if(!$('#regionCard'))return
+ const qs=new URLSearchParams();if(sel?.lat!=null&&sel?.lon!=null){qs.set('lat',sel.lat);qs.set('lon',sel.lon)}else if(sel?.place)qs.set('place',sel.place);else if(sel?.q)qs.set('q',sel.q)
+ try{const r=await api('/api/regions?'+qs);state.regional=r.regional;regionSel=sel||null;try{if(sel)localStorage.setItem('gm.region',JSON.stringify(sel));else localStorage.removeItem('gm.region')}catch{}renderRegion()}catch(e){if(!silent)status(e.message,6000)}
+}
+function geolocate(onOk,{silent=false}={}){
+ if(!navigator.geolocation){if(!silent)status('Este aparelho não oferece geolocalização.',5000);return}
+ navigator.geolocation.getCurrentPosition(pos=>onOk({lat:Number(pos.coords.latitude.toFixed(5)),lon:Number(pos.coords.longitude.toFixed(5)),accuracy:Math.round(pos.coords.accuracy||0)}),err=>{if(!silent)status(err.code===1?'Permissão de localização negada no navegador.':'Não foi possível obter a localização: '+err.message,6000)},{enableHighAccuracy:false,timeout:12000,maximumAge:300000})
+}
+async function initRegion(){
+ loadPlacesList()
+ if(regionSel){loadRegion(regionSel,{silent:true});return}
+ let granted=false;try{const p=await navigator.permissions?.query({name:'geolocation'});granted=p?.state==='granted'}catch{}
+ if(granted)geolocate(c=>loadRegion({...c,label:'GPS'},{silent:true}),{silent:true});else loadRegion(null,{silent:true})
+}
+function renderRegion(){
+ const v=state.regional;const body=$('#regionBody');if(!v||!body)return
+ const modeTag={gps:['GPS','fresh'],busca:['busca','attention'],praca:['praça escolhida','attention'],casa:['praça de casa','']}[v.mode]||['',''];
+ $('#regionWhen').innerHTML=`${v.readAt?`praças lidas ${ago(v.readAt)} (${dt(v.readAt)})`:'praças ainda não lidas'} • ${v.results.filter(r=>r.status==='ok').length}/${v.results.length||0} fontes • ${v.catalogSize} lugares no catálogo`
+ const head=`<div class="regionhead"><span class="tag ${modeTag[1]}">${esc(modeTag[0])}</span><b>${esc(v.region?.label||v.origin.label)}</b>${v.mode==='gps'&&v.region?`<span class="meta">praça mais próxima, a ${int(v.region.distanceKm)} km de você</span>`:''}${v.mode!=='gps'?`<span class="meta">origem: ${esc(v.origin.label)}</span>`:''}<span class="meta">distâncias em linha reta; rodoviária ≈ × ${String(v.roadFactor).replace('.',',')}</span></div>`
+ if(!v.commodities.length){body.innerHTML=head+`<p class="meta">Nenhuma praça com preço lido ainda. ${v.results.length?v.results.map(r=>`${esc(r.name.split(' — ')[1]||r.name)}: ${r.status==='ok'?r.count+' praça(s)':esc(r.error||r.status)}`).join(' • '):'As fontes regionais são lidas junto com o comparativo, a cada '+(state.automation?.hours||4)+' h.'} Use “Ler fontes agora” no card Mercado agora.</p>`;return}
+ const chg=x=>x==null?'<span class="flat">—</span>':`<span class="${x>0?'up':x<0?'down':'flat'}">${x>0?'+':''}${money(x)}</span>`
+ body.innerHTML=head+`<div class="regiongrid">${v.commodities.map(c=>`<div class="regionblock"><header><b>${esc(c.label)}</b><small>${c.own?`C.Vale ${money(c.own.price)} (${dt(c.own.observedAt)})`:'sem preço C.Vale registrado'}</small></header><table class="regiontable"><thead><tr><th>Praça</th><th class="num">km</th><th class="num">R$/sc</th><th class="num">vs C.Vale</th></tr></thead><tbody>${c.nearest.map(r=>`<tr class="${c.best&&r.label===c.best.label?'best':''}"><td><b>${esc(r.label)}</b><small>${dt(r.date)} • ${esc((r.sourceName||'').split(' — ')[0])}</small></td><td class="num">${int(r.distanceKm)}<small>≈ ${int(r.roadKm)} rod.</small></td><td class="num"><b>${money(r.priceSc)}</b>${r.priceUnit==='BRL/t'?'<small>lido em R$/t</small>':''}</td><td class="num">${chg(r.vsOwnSc)}</td></tr>`).join('')}</tbody></table><div class="regionfoot">${c.ufAverage!=null?`<span>média ${esc(c.uf)}: <b>${money(c.ufAverage)}</b> (${c.ufCount} praças)</span>`:''}<span>${c.totalPlaces} praça(s) lidas</span>${c.unlocated.length?`<span title="${esc(c.unlocated.join(', '))}">${c.unlocated.length} sem coordenada no catálogo</span>`:''}</div></div>`).join('')}</div>`
+}
+$('#regionLocate')?.addEventListener('click',()=>{const b=$('#regionLocate');b.disabled=true;b.textContent='localizando…';const done=()=>{b.disabled=false;b.textContent='Usar minha localização'};geolocate(async c=>{await loadRegion({...c,label:'GPS'});done();status(`Localização obtida (precisão ~${c.accuracy} m).`)});setTimeout(done,13000)})
+$('#regionHome')?.addEventListener('click',()=>loadRegion({place:state.home?.id||'sao-luiz-gonzaga-rs',label:state.home?.label||'São Luiz Gonzaga/RS'}))
+$('#regionForm')?.addEventListener('submit',e=>{e.preventDefault();const q=new FormData(e.target).get('q').trim();if(!q)return loadRegion(null);loadRegion({q,label:q})})
+$('#regionForm input[name=q]')?.addEventListener('focus',loadPlacesList)
+
+// ——— geotools nos formulários (GPS, busca por município, marcar no mapa) ———
+$$('[data-geo-gps]').forEach(b=>b.addEventListener('click',()=>{const f=$('#'+b.dataset.geoGps);geolocate(c=>{f.lat.value=c.lat;f.lon.value=c.lon;status(`Coordenadas do GPS preenchidas (precisão ~${c.accuracy} m).`)})}))
+$$('[data-geo-search]').forEach(b=>b.addEventListener('click',async()=>{const f=$('#'+b.dataset.geoSearch);const fid=f.getAttribute('id');const parts=fid==='producerForm'?[f.locality?.value,f.municipality?.value]:[f.name?.value,f.municipality?.value];const q=parts.map(x=>String(x||'').trim()).filter(Boolean).join(', ');if(!q)return status('Informe o município (ou a localidade) antes de localizar.',5000)
+ b.disabled=true;try{const r=await api('/api/geocode?q='+encodeURIComponent(q));const sel=$(`[data-geo-results="${fid}"]`);const list=r.results||[];if(!list.length){status('Nenhum lugar encontrado para “'+q+'”.',5000);sel.hidden=true;return}
+  sel.innerHTML=list.map((x,i)=>`<option value="${i}">${esc(x.display||x.label)} — ${x.lat.toFixed(4)}, ${x.lon.toFixed(4)}${x.source==='osm'?' (OSM)':''}</option>`).join('');sel.hidden=false;const pick=i=>{const x=list[i];if(!x)return;f.lat.value=x.lat;f.lon.value=x.lon;status(`Coordenadas de ${x.label||x.display} preenchidas.`)};sel.onchange=()=>pick(Number(sel.value));pick(0)
+  if(r.error)status('Busca online indisponível ('+r.error+'); usando o catálogo local.',5000)}catch(e){status(e.message,6000)}finally{b.disabled=false}}))
+$$('[data-geo-map]').forEach(b=>b.addEventListener('click',()=>{const f=$('#'+b.dataset.geoMap);MAP.marking={form:f.getAttribute('id'),id:f.id.value||null,name:f.name.value||'novo cadastro'};if(f.lat.value&&f.lon.value){MAP.center={lat:Number(f.lat.value),lon:Number(f.lon.value)};MAP.z=Math.max(MAP.z,12)}goTab('mapa');updateMapMode()}))
+
+// ——— mapa de produtores (tiles OSM, sem dependências) ———
+const TILE=256;const MAP={z:9,center:null,sel:null,marking:null,filter:'',drag:null}
+const proj={x:(lon,z)=>(lon+180)/360*2**z*TILE,y:(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z*TILE},lon:(x,z)=>x/(2**z*TILE)*360-180,lat:(y,z)=>{const n=Math.PI-2*Math.PI*y/(2**z*TILE);return 180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n)))}}
+function mapPoints(){const m=state.map;if(!m)return {producers:[],units:[]};return {producers:m.producers.filter(p=>p.lat!=null&&(!MAP.filter||p.crops.some(c=>c.commodity===MAP.filter))),units:m.units||[]}}
+function fitMap(){const el=$('#mapView');const {producers,units}=mapPoints();const pts=[...producers,...units];const home={lat:state.home?.lat??-28.408,lon:state.home?.lon??-54.961}
+ if(!pts.length){MAP.center=home;MAP.z=9;return}
+ const minLat=Math.min(...pts.map(p=>p.lat)),maxLat=Math.max(...pts.map(p=>p.lat)),minLon=Math.min(...pts.map(p=>p.lon)),maxLon=Math.max(...pts.map(p=>p.lon))
+ const W=el?.clientWidth||800,H=el?.clientHeight||460;let z=15;for(;z>3;z--){const w=proj.x(maxLon,z)-proj.x(minLon,z),h=proj.y(minLat,z)-proj.y(maxLat,z);if(w<=W-90&&h<=H-110)break}
+ MAP.z=Math.min(z,12);MAP.center={lat:(minLat+maxLat)/2,lon:(minLon+maxLon)/2}
+}
+function drawMap(){
+ const el=$('#mapView');if(!el||!MAP.center||el.clientWidth===0)return
+ const W=el.clientWidth,H=el.clientHeight,z=MAP.z;const cx=proj.x(MAP.center.lon,z),cy=proj.y(MAP.center.lat,z);const sx=(lat,lon)=>({x:proj.x(lon,z)-cx+W/2,y:proj.y(lat,z)-cy+H/2})
+ const tiles=el.querySelector('.maptiles');const n=2**z;const want=new Map()
+ for(let tx=Math.floor((cx-W/2)/TILE);tx<=Math.floor((cx+W/2)/TILE);tx++)for(let ty=Math.floor((cy-H/2)/TILE);ty<=Math.floor((cy+H/2)/TILE);ty++){if(ty<0||ty>=n)continue;want.set(`${z}/${((tx%n)+n)%n}/${ty}`,{left:tx*TILE-cx+W/2,top:ty*TILE-cy+H/2})}
+ for(const img of [...tiles.children])if(!want.has(img.dataset.key))img.remove()
+ for(const [k,pos] of want){let img=tiles.querySelector(`img[data-key="${k}"]`);if(!img){img=document.createElement('img');img.dataset.key=k;img.alt='';img.decoding='async';img.src=`https://tile.openstreetmap.org/${k}.png`;img.addEventListener('error',()=>{img.style.display='none'});tiles.appendChild(img)}img.style.left=pos.left+'px';img.style.top=pos.top+'px'}
+ const {producers,units}=mapPoints();const marks=el.querySelector('.mapmarkers');const lines=el.querySelector('.maplines')
+ const unitById=Object.fromEntries(units.map(u=>[u.id,u]))
+ lines.setAttribute('viewBox',`0 0 ${W} ${H}`);lines.innerHTML=producers.map(p=>{const u=unitById[p.nearestUnit?.id];if(!u)return '';const a=sx(p.lat,p.lon),b=sx(u.lat,u.lon);const sel=p.id===MAP.sel;return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" ${sel?'style="opacity:1;stroke:#E86A4C;stroke-width:2.5"':''}></line>${sel||producers.length<=12?`<text x="${((a.x+b.x)/2).toFixed(1)}" y="${((a.y+b.y)/2-4).toFixed(1)}" text-anchor="middle">${int(p.distanceKm)} km</text>`:''}`}).join('')
+ marks.innerHTML=units.map(u=>{const s=sx(u.lat,u.lon);return `<div class="mk unit" style="left:${s.x.toFixed(1)}px;top:${s.y.toFixed(1)}px" title="${esc(u.name)}${u.capacityT?' • '+int(u.capacityT)+' t':''}"><i></i><span>${esc(u.name)}</span></div>`}).join('')+producers.map((p,i)=>{const s=sx(p.lat,p.lon);return `<div class="mk ${p.coordSource==='municipio'?'approx':''} ${p.id===MAP.sel?'sel':''}" data-mk="${p.id}" style="left:${s.x.toFixed(1)}px;top:${s.y.toFixed(1)}px;z-index:${p.id===MAP.sel?3:1}" title="${esc(p.name)} • ${p.distanceKm!=null?int(p.distanceKm)+' km':'—'} • ${esc(p.coordNote)}"><i></i><span>${esc(p.name)}</span></div>`}).join('')
+ marks.querySelectorAll('[data-mk]').forEach(m=>m.addEventListener('pointerdown',e=>e.stopPropagation()));marks.querySelectorAll('[data-mk]').forEach(m=>m.addEventListener('click',e=>{e.stopPropagation();selectProducer(m.dataset.mk)}))
+}
+function updateMapMode(){const el=$('#mapMode');if(!el)return;el.hidden=!MAP.marking;$('#mapView').classList.toggle('marking',Boolean(MAP.marking));if(MAP.marking)el.innerHTML=`Marcando: <b>${esc(MAP.marking.name)}</b> — clique no ponto do mapa (Esc cancela)`}
+async function setLocationFromMap(lat,lon){
+ const m=MAP.marking;MAP.marking=null;updateMapMode();if(!m)return
+ if(m.form&&!m.id){const f=$('#'+m.form);f.lat.value=lat.toFixed(5);f.lon.value=lon.toFixed(5);goTab(m.form==='unitForm'?'armazenagem':'produtores');f.scrollIntoView({behavior:'smooth',block:'center'});status('Coordenadas marcadas no mapa preenchidas no formulário.');return}
+ if(m.form==='unitForm'&&m.id){const f=$('#unitForm');f.lat.value=lat.toFixed(5);f.lon.value=lon.toFixed(5);goTab('armazenagem');f.scrollIntoView({behavior:'smooth',block:'center'});status('Coordenadas da unidade preenchidas; salve a unidade.');return}
+ try{await api(`/api/producers/${m.id}/location`,{method:'POST',body:JSON.stringify({lat:lat.toFixed(5),lon:lon.toFixed(5)})});status('Posição do produtor gravada.');MAP.sel=m.id;const f=$('#producerForm');if(f.id.value===m.id){f.lat.value=lat.toFixed(5);f.lon.value=lon.toFixed(5)}await load()}catch(e){status(e.message,6000)}
+}
+function selectProducer(id){MAP.sel=id;const p=(state.map?.producers||[]).find(x=>x.id===id);const u=(state.map?.units||[]).find(x=>x.id===p?.nearestUnit?.id);if(p&&p.lat!=null){const pts=u?[p,u]:[p];const el=$('#mapView');const W=el?.clientWidth||800,H=el?.clientHeight||460;const minLat=Math.min(...pts.map(x=>x.lat)),maxLat=Math.max(...pts.map(x=>x.lat)),minLon=Math.min(...pts.map(x=>x.lon)),maxLon=Math.max(...pts.map(x=>x.lon));let z=14;for(;z>4;z--){const w=proj.x(maxLon,z)-proj.x(minLon,z),h=proj.y(minLat,z)-proj.y(maxLat,z);if(w<=W-120&&h<=H-120)break}MAP.z=z;MAP.center={lat:(minLat+maxLat)/2,lon:(minLon+maxLon)/2}}drawMap();renderMapList();renderMapDetail()}
+function renderMapList(){
+ const el=$('#mapList');if(!el)return;const m=state.map;const list=(m?.producers||[]).filter(p=>!MAP.filter||p.crops.some(c=>c.commodity===MAP.filter))
+ $('#mapCount').textContent=`${list.length} produtor(es)`
+ if(!list.length){el.innerHTML='<div class="empty"><p>Nenhum produtor cadastrado.</p></div>';return}
+ el.innerHTML=list.map((p,i)=>`<div class="mapitem ${p.id===MAP.sel?'sel':''}" data-sel="${p.id}"><span class="n">${p.lat!=null?i+1:'?'}</span><div><b>${esc(p.name)}</b><div class="meta">${esc(p.municipality||'—')}${p.locality?' • '+esc(p.locality):''} • ${esc(p.coordNote)}${p.crops.length?' • '+p.crops.map(c=>`${esc(c.label)} ${int(c.openSc)} sc`).join(', '):''}${p.storageT?' • '+int(p.storageT)+' t armaz.':''}</div></div><div class="km">${p.distanceKm!=null?`<b>${int(p.distanceKm)} km</b><small>${p.distanceSource==='informado'?'informado':'≈ rodov. • '+p.straightKm.toLocaleString('pt-BR')+' km reta'}</small>`:'<b>—</b><small>sem localização</small>'}</div></div>`).join('')
+ el.querySelectorAll('[data-sel]').forEach(x=>x.addEventListener('click',()=>selectProducer(x.dataset.sel)))
+}
+function renderMapDetail(){
+ const el=$('#mapDetail');if(!el)return;const p=(state.map?.producers||[]).find(x=>x.id===MAP.sel)
+ if(!p){el.innerHTML='<p class="meta">Selecione um produtor no mapa ou na lista.</p>';return}
+ el.innerHTML=`<div class="deskgrid"><div><small>Distância</small><b>${p.distanceKm!=null?int(p.distanceKm)+' km':'—'}</b><span class="meta">${p.distanceSource==='informado'?'informada':p.straightKm!=null?`${p.straightKm.toLocaleString('pt-BR')} km reta`:'sem coordenadas'}</span></div><div><small>Unidade</small><b>${esc(p.nearestUnit?.name||'—')}</b></div><div><small>Armazenagem</small><b>${p.storageT?int(p.storageT)+' t':'—'}</b></div><div><small>Produção</small><b>${p.productionSc?int(p.productionSc)+' sc':'—'}</b><span class="meta">${p.openSc?int(p.openSc)+' sc em aberto':''}</span></div></div><pre class="desk" id="deskText">${esc(p.desk||'')}</pre><div class="actions"><button class="primary" type="button" id="deskCopy">Copiar resumo</button><button class="secondary" type="button" id="deskPdf">Ficha em PDF</button><button class="secondary" type="button" id="deskFicha">Ficha completa</button><button class="secondary" type="button" id="deskMark" data-write-only="comercial">Marcar posição no mapa</button>${p.lat!=null?`<a class="mini" href="https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lon}#map=13/${p.lat}/${p.lon}" target="_blank" rel="noopener">Abrir no OpenStreetMap</a>`:''}</div>`
+ $('#deskCopy').addEventListener('click',async()=>{const t=p.desk||'';try{await navigator.clipboard.writeText(t);status('Resumo copiado para a área de transferência.')}catch{const r=document.createRange();r.selectNodeContents($('#deskText'));const s=getSelection();s.removeAllRanges();s.addRange(r);status('Selecionado: use Ctrl+C para copiar.')}})
+ $('#deskPdf').addEventListener('click',()=>downloadPdf('produtor/'+p.id,{}))
+ $('#deskFicha').addEventListener('click',()=>openDrawer(p.id))
+ $('#deskMark').addEventListener('click',()=>{MAP.marking={id:p.id,name:p.name};updateMapMode();$('#mapView').scrollIntoView({behavior:'smooth',block:'center'})})
+ if(!canWrite('comercial'))$('#deskMark').hidden=true
+}
+function renderMapPanel(){
+ const m=state.map;if(!m||!$('#mapView'))return
+ const sel=$('#mapFilter');if(sel.options.length<=1)sel.innerHTML='<option value="">Todos os grãos</option>'+state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')
+ const s=m.summary;$('#mapSummary').textContent=`${s.producers} produtor(es) • ${s.located} localizados${s.fromMunicipality?` (${s.fromMunicipality} pela sede do município)`:''}${s.missing.length?` • ${s.missing.length} sem localização`:''} • ${m.units.length} unidade(s)${s.avgKm!=null?` • média ${s.avgKm} km, máx. ${s.maxKm} km`:''}`
+ $('#mapHint').innerHTML=`<span class="maplegend"><span><i style="background:#0B1A12;border-radius:2px"></i>unidade de recebimento</span><span><i style="background:#3A7D34"></i>produtor (coordenadas do cadastro)</span><span><i style="background:#8A651D"></i>produtor (sede do município, aproximado)</span><span>km = linha reta × ${String(m.roadFactor).replace('.',',')}${m.units[0]?.virtual?' • cadastre a unidade em Armazenagem com coordenadas para medir a partir dela':''}</span></span>`
+ if(!MAP.center)fitMap()
+ renderMapList();renderMapDetail();drawMap()
+}
+{const el=$('#mapView');if(el){
+ el.addEventListener('pointerdown',e=>{if(e.button!==0)return;MAP.drag={x:e.clientX,y:e.clientY,cx:MAP.center.lon,cy:MAP.center.lat,moved:false};el.setPointerCapture(e.pointerId);el.classList.add('dragging')})
+ el.addEventListener('pointermove',e=>{const d=MAP.drag;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.abs(dx)+Math.abs(dy)>3)d.moved=true;const z=MAP.z;MAP.center={lon:proj.lon(proj.x(d.cx,z)-dx,z),lat:proj.lat(proj.y(d.cy,z)-dy,z)};drawMap()})
+ const end=e=>{const d=MAP.drag;MAP.drag=null;el.classList.remove('dragging');if(!d)return;if(!d.moved&&MAP.marking){const r=el.getBoundingClientRect();const z=MAP.z;const cx=proj.x(MAP.center.lon,z),cy=proj.y(MAP.center.lat,z);const lon=proj.lon(cx+(e.clientX-r.left)-r.width/2,z),lat=proj.lat(cy+(e.clientY-r.top)-r.height/2,z);setLocationFromMap(lat,lon)}}
+ el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>{MAP.drag=null;el.classList.remove('dragging')})
+ el.addEventListener('wheel',e=>{e.preventDefault();MAP.z=Math.max(3,Math.min(18,MAP.z+(e.deltaY<0?1:-1)));drawMap()},{passive:false})
+ el.addEventListener('dblclick',()=>{MAP.z=Math.min(18,MAP.z+1);drawMap()})
+ el.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('pointerdown',e=>e.stopPropagation()));el.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('click',()=>{MAP.z=Math.max(3,Math.min(18,MAP.z+Number(b.dataset.zoom)));drawMap()}))
+ el.addEventListener('keydown',e=>{const step=60;const z=MAP.z;const move={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];if(move){e.preventDefault();MAP.center={lon:proj.lon(proj.x(MAP.center.lon,z)+move[0],z),lat:proj.lat(proj.y(MAP.center.lat,z)+move[1],z)};drawMap()}else if(e.key==='+'||e.key==='='){MAP.z=Math.min(18,z+1);drawMap()}else if(e.key==='-'){MAP.z=Math.max(3,z-1);drawMap()}})
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&MAP.marking){MAP.marking=null;updateMapMode();status('Marcação cancelada.')}})
+ $('#mapFit').addEventListener('click',()=>{fitMap();drawMap()})
+ $('#mapFilter').addEventListener('change',e=>{MAP.filter=e.target.value;fitMap();renderMapPanel()})
+ $('#mapPdf').addEventListener('click',()=>downloadPdf('mapa',MAP.filter?{commodity:MAP.filter}:{}))
+ window.addEventListener('resize',()=>drawMap())
+ document.addEventListener('tabchange',e=>{if(e.detail==='mapa'){if(!MAP.center)fitMap();requestAnimationFrame(()=>{drawMap();updateMapMode()})}})
+}}
 ;(async()=>{try{const s=await fetch('/api/session',{headers:authHeaders()}).then(r=>r.json());if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
 })()

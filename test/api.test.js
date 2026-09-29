@@ -286,3 +286,32 @@ test('rota /api/market devolve o mercado agora com indicadores e automação',as
   const boot=await call(base,'GET','/api/bootstrap');assert.ok(boot.data.market.commodities.length>=4)
  }finally{server.close()}
 })
+
+test('regiões: leitura por praça, busca por GPS ou nome, mapa de produtores e relatório do mapa',async()=>{
+ const html=`<html><body><table><tr><th>Praça</th><th>Preço</th><th>Data</th></tr><tr><td>Cruz Alta/RS</td><td>146,00</td><td>29/09/2026</td></tr><tr><td>Santa Rosa/RS</td><td>147,00</td><td>29/09/2026</td></tr><tr><td>Cascavel/PR</td><td>150,00</td><td>29/09/2026</td></tr></table></body></html>`
+ const site=createServer((req,res)=>{if(req.url.includes('/nominatim')){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify([{lat:'-28.41',lon:'-54.96',display_name:'Linha Sete, São Luiz Gonzaga, RS',type:'hamlet',address:{municipality:'São Luiz Gonzaga','ISO3166-2-lvl4':'BR-RS'}}]))}res.setHeader('Content-Type','text/html');res.end(req.url.includes('milho')?'<html><body>sem tabela</body></html>':html)});await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
+ const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id,fetch:{...s.fetch,urls:[]}}:s),indicators:[],regional:real.regional.map(r=>({...r,url:siteBase+'/'+r.id,urls:[]}))}
+ const fetchImpl=(url,opts)=>fetch(String(url).includes('nominatim.openstreetmap.org')?siteBase+'/nominatim':url,opts)
+ const {server,base}=await start({sourcesOverride,fetchImpl})
+ try{
+  assert.equal(real.regional.length,3)
+  const bad=await call(base,'POST','/api/producers',{name:'Fora',lat:10,lon:10});assert.equal(bad.status,400);assert.match(bad.data.error,/fora do Brasil/)
+  const p1=(await call(base,'POST','/api/producers',{name:'João',municipality:'Bossoroca',storageT:500,area_soja:100,yield_soja:60,fixed_soja:20})).data.producer
+  const p2=(await call(base,'POST','/api/producers',{name:'Maria',municipality:'Santo Ângelo',lat:'-28,30',lon:'-54,26',distanceKm:80})).data.producer
+  assert.equal(p2.lat,-28.3);assert.equal(p1.lat,null)
+  const unit=await call(base,'POST','/api/storage/units',{name:'Unidade SLG',municipality:'São Luiz Gonzaga',capacityT:12000,lat:-28.408,lon:-54.961});assert.equal(unit.status,201);assert.equal(unit.data.unit.lon,-54.961)
+  await call(base,'POST','/api/own-quotes',{soja:'140'})
+  const refresh=await call(base,'POST','/api/comparison/refresh');assert.equal(refresh.status,200);assert.equal(refresh.data.comparison.regional.okCount,1);assert.equal(refresh.data.comparison.regional.rows.length,3);assert.equal(refresh.data.comparison.regional.results.find(r=>r.commodity==="trigo").status,"empty")
+  const gps=await call(base,'GET','/api/regions?lat=-28.4&lon=-54.5');assert.equal(gps.status,200);assert.equal(gps.data.regional.mode,'gps');const soja=gps.data.regional.commodities.find(c=>c.commodity==='soja');assert.equal(soja.nearest[0].label,'Santa Rosa/RS');assert.equal(soja.nearest[0].vsOwnSc,7);assert.equal(soja.own.price,140)
+  const byQ=await call(base,'GET','/api/regions?q=cascavel');assert.equal(byQ.data.regional.mode,'busca');assert.equal(byQ.data.regional.commodities[0].nearest[0].label,'Cascavel/PR');assert.equal(byQ.data.regional.commodities[0].nearest[0].distanceKm,0)
+  const byPlace=await call(base,'GET','/api/regions?place=cruz-alta-rs');assert.equal(byPlace.data.regional.mode,'praca');assert.equal(byPlace.data.regional.origin.label,'Cruz Alta/RS')
+  const places=await call(base,'GET','/api/places?q=santo%20ang');assert.equal(places.data.places[0].label,'Santo Ângelo/RS');assert.equal(places.data.home.label,'São Luiz Gonzaga/RS')
+  const all=await call(base,'GET','/api/places?kind=praca&lat=-28.4&lon=-54.9');assert.ok(all.data.places.length>50);assert.equal(all.data.near[0].label,'São Luiz Gonzaga/RS')
+  const geo=await call(base,'GET','/api/geocode?q=linha%20sete');assert.equal(geo.status,200);assert.ok(geo.data.results.some(r=>r.source==='osm'&&r.uf==='RS'))
+  const map=await call(base,'GET','/api/map');assert.equal(map.status,200);assert.equal(map.data.map.units[0].name,'Unidade SLG');const j=map.data.map.producers.find(p=>p.id===p1.id);assert.equal(j.coordSource,'municipio');assert.equal(j.distanceKm,47);assert.match(j.desk,/Distância até Unidade SLG: 47 km/);const m=map.data.map.producers.find(p=>p.id===p2.id);assert.equal(m.distanceSource,'informado')
+  const loc=await call(base,'POST',`/api/producers/${p1.id}/location`,{lat:-28.72,lon:-54.9,distanceKm:''});assert.equal(loc.status,200);assert.equal(loc.data.producer.lat,-28.72);assert.equal(loc.data.producer.distanceKm,null);assert.equal((await call(base,'POST',`/api/producers/${p1.id}/location`,{lat:-28.72})).status,400);assert.equal((await call(base,'GET','/api/map')).data.map.producers.find(p=>p.id===p1.id).coordSource,'cadastro')
+  const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.map.producers.length,2);assert.equal(boot.data.regionalRun.rows,3);assert.equal(boot.data.home.label,'São Luiz Gonzaga/RS')
+  for(const path of ['/api/reports/mapa.pdf','/api/reports/mapa.pdf?commodity=soja',`/api/reports/produtor/${p1.id}.pdf`]){const r=await fetch(base+path);assert.equal(r.status,200,path);assert.equal(r.headers.get('content-type'),'application/pdf');const buf=Buffer.from(await r.arrayBuffer());assert.equal(buf.subarray(0,5).toString(),'%PDF-')}
+  assert.equal((await fetch(base+'/api/reports/mapa.pdf')).headers.get('x-report-count'),'2')
+ }finally{server.close();site.close()}
+})

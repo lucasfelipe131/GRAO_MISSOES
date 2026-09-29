@@ -1,5 +1,5 @@
 {
-  "version": "fontes-v15",
+  "version": "fontes-v16",
   "updatedAt": "2026-09-27",
   "sources": [
     {
@@ -809,6 +809,38 @@
           1150
         ]
       }
+    }
+  ],
+  "regional": [
+    {
+      "id": "na-soja-pracas",
+      "name": "Notícias Agrícolas — soja mercado físico por praça",
+      "commodity": "soja",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/soja/soja-mercado-fisico-sindicatos-e-cooperativas",
+      "urls": [
+        "https://www.noticiasagricolas.com.br/cotacoes/soja"
+      ],
+      "note": "Tabela de praças (Cidade/UF) com preço em R$/sc de 60 kg; linhas sem preço reconhecido são ignoradas."
+    },
+    {
+      "id": "na-milho-pracas",
+      "name": "Notícias Agrícolas — milho mercado físico por praça",
+      "commodity": "milho",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/milho",
+      "urls": [
+        "https://www.noticiasagricolas.com.br/cotacoes/milho/milho-mercado-fisico-sindicatos-e-cooperativas"
+      ],
+      "note": "Tabela de praças (Cidade/UF) com preço em R$/sc de 60 kg."
+    },
+    {
+      "id": "na-trigo-pracas",
+      "name": "Notícias Agrícolas — trigo mercado físico por praça",
+      "commodity": "trigo",
+      "url": "https://www.noticiasagricolas.com.br/cotacoes/trigo",
+      "urls": [
+        "https://www.noticiasagricolas.com.br/cotacoes/trigo/trigo-mercado-fisico-sindicatos-e-cooperativas"
+      ],
+      "note": "Tabela de praças (Cidade/UF) com preço em R$/sc de 60 kg ou R$/t (convertido)."
     }
   ]
 }

@@ -14,15 +14,24 @@
 <aside class="sidebar">
  <div class="brand" role="img" aria-label="VAL-SOG — Sistema de Operações de Grãos"><div class="brand-row"><img class="val-mark" src="val-mark.svg" alt=""><img class="val-word" src="val-word.svg" alt="VAL"><b class="brand-sog">SOG</b></div><span class="brand-tag">Inteligência que gera valor</span><small>Sistema de Operações de Grãos • Missões</small></div>
  <nav class="tabs" role="tablist" aria-label="Seções">
-  <button role="tab" data-tab="painel" aria-selected="true">Painel</button>
-  <button role="tab" data-tab="pedidos" aria-selected="false">Pedidos</button>
-  <button role="tab" data-tab="cotacoes" aria-selected="false">Cotações</button>
-  <button role="tab" data-tab="produtores" aria-selected="false">Produtores</button>
-  <button role="tab" data-tab="ofertas" aria-selected="false">Ofertas</button>
-  <button role="tab" data-tab="precos" aria-selected="false">Preços</button>
-  <button role="tab" data-tab="armazenagem" aria-selected="false">Armazenagem</button>
-  <button role="tab" data-tab="praca" aria-selected="false">Praça</button>
-  <button role="tab" data-tab="admin" aria-selected="false">Administração</button>
+  <div class="navgroup"><small>Operação</small>
+   <button role="tab" data-tab="painel" aria-selected="true" title="Painel (Alt+1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h5v8H3zM10 3h4v18h-4zM17 8h4v13h-4z"/></svg><span>Painel</span><i class="navbadge" data-badge="painel" hidden></i></button>
+   <button role="tab" data-tab="pedidos" aria-selected="false" title="Pedidos (Alt+2)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l3 3v15H5V6z"/><path d="M9 11h6M9 15h6"/></svg><span>Pedidos</span><i class="navbadge" data-badge="pedidos" hidden></i></button>
+   <button role="tab" data-tab="produtores" aria-selected="false" title="Produtores (Alt+3)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Produtores</span><i class="navbadge" data-badge="produtores" hidden></i></button>
+   <button role="tab" data-tab="ofertas" aria-selected="false" title="Ofertas (Alt+4)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7 9 18l-5-5"/><path d="M3 9V4h5"/></svg><span>Ofertas</span><i class="navbadge" data-badge="ofertas" hidden></i></button>
+   <button role="tab" data-tab="mapa" aria-selected="false" title="Mapa (Alt+5)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-11a6 6 0 0 1 12 0c0 5.8-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg><span>Mapa</span><i class="navbadge" data-badge="mapa" hidden></i></button>
+  </div>
+  <div class="navgroup"><small>Mercado</small>
+   <button role="tab" data-tab="cotacoes" aria-selected="false" title="Cotações (Alt+6)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span>Cotações</span><i class="navbadge" data-badge="cotacoes" hidden></i></button>
+   <button role="tab" data-tab="precos" aria-selected="false" title="Preços (Alt+7)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16"/><path d="M8 16l3-4 3 2 5-6"/></svg><span>Preços</span><i class="navbadge" data-badge="precos" hidden></i></button>
+   <button role="tab" data-tab="praca" aria-selected="false" title="Praça (Alt+8)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-7 9 7v11H3z"/><path d="M9 21v-6h6v6"/></svg><span>Praça</span><i class="navbadge" data-badge="praca" hidden></i></button>
+  </div>
+  <div class="navgroup"><small>Armazém</small>
+   <button role="tab" data-tab="armazenagem" aria-selected="false" title="Armazenagem (Alt+9)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M10 21v-4h4v4"/></svg><span>Armazenagem</span><i class="navbadge" data-badge="armazenagem" hidden></i></button>
+  </div>
+  <div class="navgroup"><small>Sistema</small>
+   <button role="tab" data-tab="admin" aria-selected="false" title="Administração (Alt+10)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Administração</span><i class="navbadge" data-badge="admin" hidden></i></button>
+  </div>
  </nav>
  <div class="who user-card" id="who" hidden><div class="user-avatar" id="userAvatar">VS</div><div class="user-meta"><strong id="userName">Equipe</strong><span id="roleBadge" class="rolebadge"></span></div><div class="btns"><button type="button" class="mini ghost" id="myPassword" title="Trocar minha senha" hidden>senha</button><button type="button" class="mini ghost" id="logout" title="Sair">sair</button></div></div>
 </aside>
@@ -43,6 +52,9 @@
   <div class="hero"><div><small>VAL-SOG • PRAÇA DE SÃO LUIZ GONZAGA</small><h1>Painel de originação <button class="mini ghost heropdf" type="button" id="dashboardPdf" title="Painel em PDF">PDF</button></h1><p>Posição da carteira, cotações do dia, alvos atingidos e a agenda de fechamentos. Tudo o que entra aqui vem dos cadastros, dos pedidos e das cotações registradas com fonte.</p></div><div class="hero-actions"><button class="primary" type="button" data-go="pedidos">Novo pedido</button><button class="secondary" type="button" data-go="cotacoes">Registrar cotações do dia</button></div></div>
   <div id="kpis" class="tiles"></div>
   <section class="card market" id="marketCard"><div class="cardhead"><div><h2>Mercado agora</h2><p class="muted" id="marketWhen">aguardando leitura…</p></div><div class="row"><small id="marketAuto" class="meta"></small><button class="mini" type="button" id="marketPdf" title="Mercado agora em PDF">PDF</button><button class="mini" type="button" id="marketRefresh" data-write-only="cotacoes">Ler fontes agora</button></div></div><div id="marketGrid" class="marketgrid"></div><div id="marketInd" class="indstrip"></div><ul id="marketHeadlines" class="reading marketlines"></ul></section>
+  <section class="card region" id="regionCard"><div class="cardhead"><div><h2>Preços na sua região</h2><p class="muted" id="regionWhen">aguardando leitura regional…</p></div><div class="row"><button class="mini" type="button" id="regionLocate" title="Usa o GPS do aparelho para achar a praça mais próxima">Usar minha localização</button><button class="mini" type="button" id="regionHome" title="Volta para a praça de São Luiz Gonzaga">Praça de São Luiz Gonzaga</button></div></div>
+   <form id="regionForm" class="regionsearch" autocomplete="off"><label>Buscar por região<input name="q" list="placesList" placeholder="cidade ou cidade UF — ex.: Cruz Alta RS, Cascavel PR, Sorriso MT"></label><datalist id="placesList"></datalist><button class="mini" type="submit">Buscar região</button></form>
+   <div id="regionBody"><p class="meta">Escolha uma região ou use a sua localização: o sistema mostra as praças mais próximas com o preço lido nas tabelas públicas de mercado físico e compara com a C.Vale.</p></div></section>
   <div class="split wide2">
    <div class="card"><div class="cardhead"><h2>Posição da carteira por grão</h2><small>produção estimada × fixado</small></div><div id="positions" class="positions"></div></div>
    <div class="card"><div class="cardhead"><h2>Agenda de fechamentos</h2><small>próximos 45 dias</small></div><div id="agenda" class="agenda"></div></div>
@@ -180,6 +192,10 @@
     <fieldset><legend>Logística, armazenagem e caixa</legend><div class="grid">
      <label>Local usual de entrega<input name="deliveryLocation" placeholder="Coopatrigo, armazém…"></label>
      <label>Distância até a unidade (km)<input name="distanceKm" type="number" min="0" step="1"></label>
+     <label>Localidade / linha<input name="locality" placeholder="Linha Sete, Rincão dos Mellos…"></label>
+     <label>Latitude<input name="lat" inputmode="decimal" placeholder="-28.40810"></label>
+     <label>Longitude<input name="lon" inputmode="decimal" placeholder="-54.96120"></label>
+     <div class="wide geotools"><button class="mini" type="button" data-geo-gps="producerForm">Usar GPS do aparelho</button><button class="mini" type="button" data-geo-search="producerForm">Localizar pelo município/localidade</button><button class="mini" type="button" data-geo-map="producerForm">Marcar no mapa</button><select data-geo-results="producerForm" hidden></select><span class="meta" data-geo-note="producerForm">Com as coordenadas o mapa estima os km até a unidade sozinho; a distância informada acima, se preenchida, prevalece.</span></div>
      <label>Armazenagem própria (t)<input name="storageT" type="number" min="0" step="1"></label>
      <label>Custo de armazenar (R$/sc/mês)<input name="storageCostScMonth" type="number" min="0" step="0.01" placeholder="Ex.: 1,20"></label>
      <label>Logística<input name="logistics" placeholder="FOB, CIF, frota própria"></label>
@@ -272,6 +288,9 @@
       <label>Safra<input name="season" placeholder="2026/27"></label>
       <label>Início da safra<input name="seasonStart" type="date"></label>
       <label>Fim da safra<input name="seasonEnd" type="date"></label>
+      <label>Latitude<input name="lat" inputmode="decimal" placeholder="-28.40810"></label>
+      <label>Longitude<input name="lon" inputmode="decimal" placeholder="-54.96120"></label>
+      <div class="wide geotools"><button class="mini" type="button" data-geo-gps="unitForm">Usar GPS do aparelho</button><button class="mini" type="button" data-geo-search="unitForm">Localizar pelo município</button><select data-geo-results="unitForm" hidden></select><span class="meta" data-geo-note="unitForm">A unidade com coordenadas é a referência dos km no mapa de produtores.</span></div>
      </div>
      <fieldset><legend>Metas de recebimento na safra (t)</legend><div class="grid goals" id="unitGoals"></div></fieldset>
      <label class="wide">Observações<textarea name="notes" rows="2" placeholder="silos, secador, balança, horário de recebimento…"></textarea></label>
@@ -348,6 +367,21 @@
    <div class="card"><div class="cardhead"><h2>Logins cadastrados</h2><small id="userCount"></small></div><div id="users" class="list"></div>
     <div class="box"><h4>O que cada nível pode fazer</h4><ul class="reading" id="roleHelp"></ul></div>
    </div>
+  </div>
+ </section>
+ <section data-panel="mapa" class="panel" hidden>
+  <details class="guide"><summary>Guia: mapa de produtores, km até a unidade e resumo para a mesa</summary><div class="guidegrid">
+   <div><b>Coordenadas</b><p>Vêm do cadastro do produtor (GPS, busca pelo município/localidade ou marcação no mapa). Sem coordenadas, o sistema usa a sede do município, marcada como aproximada.</p></div>
+   <div><b>Km até a unidade</b><p>Linha reta entre o produtor e a unidade de recebimento mais próxima × fator rodoviário 1,3. Se a distância foi informada no cadastro, ela prevalece.</p></div>
+   <div><b>Resumo para a mesa</b><p>Clique no produtor: o resumo traz localização, km, capacidades e volumes em aberto, pronto para copiar e enviar junto com a cotação.</p></div>
+   <div><b>Marcar no mapa</b><p>Selecione o produtor e clique em “Marcar posição”; o próximo clique no mapa grava as coordenadas. Arraste para mover e use a roda ou os botões para o zoom.</p></div>
+  </div></details>
+  <div class="card mapcard"><div class="cardhead"><div><h2>Mapa de produtores e unidades</h2><p class="muted" id="mapSummary">carregando…</p></div><div class="row"><select id="mapFilter" class="mini"><option value="">Todos os grãos</option></select><button class="mini" type="button" id="mapFit">Enquadrar</button><button class="mini" type="button" id="mapPdf" title="Mapa e logística em PDF">PDF</button></div></div>
+   <div id="mapView" class="mapview" tabindex="0" aria-label="Mapa"><div class="maptiles"></div><svg class="maplines"></svg><div class="mapmarkers"></div><div class="mapctl"><button type="button" data-zoom="1" title="Aproximar">+</button><button type="button" data-zoom="-1" title="Afastar">−</button></div><div class="mapattr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div><div class="mapmode" id="mapMode" hidden></div></div>
+   <p class="meta" id="mapHint"></p></div>
+  <div class="split wide2">
+   <div class="card"><div class="cardhead"><h2>Produtores por distância</h2><small id="mapCount"></small></div><div id="mapList" class="list"></div></div>
+   <div class="card" id="mapDetailCard"><div class="cardhead"><h2>Resumo para a mesa</h2><small>localização, km, capacidades e volumes</small></div><div id="mapDetail"><p class="meta">Selecione um produtor no mapa ou na lista.</p></div></div>
   </div>
  </section>
  <section data-panel="praca" class="panel" hidden>
