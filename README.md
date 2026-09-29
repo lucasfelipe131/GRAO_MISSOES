@@ -113,6 +113,7 @@ Todas as rotas de `/api/`, exceto `/api/session` e `/api/login`, exigem sessão 
 | `/api/reports/cotacoes.pdf` | GET | todos | cotações e comparativo de preços (from, to, commodity; sem datas usa 30 dias) |
 | `/api/reports/produtores.pdf` | GET | todos | produtores e carteira (producerId, commodity; detail=0 só carteira e tabela) |
 | `/api/reports/produtor/:id.pdf` | GET | todos | ficha de um produtor (perfil, posição da safra, pedidas, pedidos e ofertas) |
+| `/api/reports/painel.pdf` | GET | todos | painel de originação: KPIs, carteira por grão, C.Vale × concorrência, alvos atingidos, agenda, produtores abaixo do ritmo e fontes do dia |
 | `/api/reports/mercado.pdf` | GET | todos | mercado agora: cartões por grão, indicadores, concorrentes das últimas 72 h e leitura do dia |
 | `/api/reports/armazenagem.pdf` | GET | todos | armazenagem e qualidade dos grãos (from, to para as leituras; unitId, commodity) |
 | `/api/reports/geral.pdf` | GET | todos | cotações (compacto), carteira, pedidos, ofertas, recebimentos e armazenagem (compacto) em um único PDF |

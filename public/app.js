@@ -171,6 +171,7 @@ function renderMarket(){
 async function loadMarket(){try{const r=await api('/api/market');state.market=r.market;state.automation={...(state.automation||{}),...(r.automation||{})};renderMarket()}catch(e){}}
 function startMarketPolling(){if(marketTimer)clearInterval(marketTimer);marketTimer=setInterval(loadMarket,MARKET_POLL_MS);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadMarket()})}
 $('#marketPdf').addEventListener('click',()=>downloadPdf('mercado',{}))
+$('#dashboardPdf').addEventListener('click',()=>downloadPdf('painel',{}))
 $('#marketRefresh').addEventListener('click',async()=>{const b=$('#marketRefresh');b.disabled=true;b.textContent='lendo…';try{await api('/api/comparison/refresh',{method:'POST'});await load();status('Fontes lidas.')}catch(e){status(e.message,6000)}finally{b.disabled=false;b.textContent='Ler fontes agora'}})
 function renderDashboard(){
  renderMarket()

@@ -1,9 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {createPdf,drawTable,textWidth,toWinAnsi} from '../lib/pdf.js'
-import {generalReport,marketReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport,storageReport} from '../lib/reports.js'
+import {dashboardReport,generalReport,marketReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport,storageReport} from '../lib/reports.js'
 import {defaultStandards} from '../lib/storage.js'
-import {buildAskingHistory,buildPortfolio,loadPraca,loadSources,normalizeProducer,producerOptions} from '../lib/analysis.js'
+import {buildAskingHistory,buildPortfolio,checkTargets,loadPraca,loadSources,normalizeProducer,producerOptions} from '../lib/analysis.js'
 
 const parse=buf=>{const s=buf.toString('latin1');const sx=Number(s.slice(s.lastIndexOf('startxref')+9).trim().split(/\s/)[0]);const lines=s.slice(sx).split('\n');assert.equal(lines[0],'xref');const count=Number(lines[1].split(' ')[1]);for(let i=1;i<count;i++){const off=Number(lines[2+i].slice(0,10));assert.equal(s.slice(off,off+`${i} 0 obj`.length),`${i} 0 obj`,'offset do objeto '+i)}return {text:s,objects:count-1}}
 
@@ -93,4 +93,17 @@ test('relatório do mercado agora: cartões por grão, indicadores, concorrentes
  assert.match(txt,/Mercado agora/);assert.match(txt,/Indicadores \\\(d\u00f3lar e Chicago\\\)/);assert.match(txt,/US\$ 12,89\/bu/);assert.match(txt,/Concorrentes com cota\u00e7\u00e3o/);assert.match(txt,/Coopatrigo/);assert.match(txt,/Leitura do dia/);assert.match(r.filename,/^mercado-agora-2026-09-29/)
  const empty=marketReport({quotes:[],praca,indicators:{},now});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Sem cota\u00e7\u00f5es recentes/)
  const g=generalReport({quotes,praca,indicators,automation:{},producers:[],portfolio:null,askingHistory:[],requests:[],offers:[],units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=2);parse(g.buffer)
+})
+
+test('relatório do painel de originação: KPIs, carteira, concorrência, alvos, agenda, ritmo e fontes',()=>{
+ const now=new Date('2026-09-29T12:00:00Z');const praca=loadPraca();const sources=loadSources().sources
+ const p1={...normalizeProducer({name:'João da Silva',municipality:'São Luiz Gonzaga',area_soja:200,yield_soja:60,fixed_soja:5,cashMonths:['10']}),id:'p1',createdAt:'2026-08-01T10:00:00Z'}
+ const quotes=[{id:'q1',sourceId:'cvale',sourceName:'C.Vale',commodity:'soja',price:141,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',observedAt:'2026-09-29T10:00:00Z',status:'active'},{id:'q2',sourceId:'coopatrigo',sourceName:'Coopatrigo',commodity:'soja',price:149,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',observedAt:'2026-09-29T09:00:00Z',status:'active'}]
+ const requests=[{id:'r1',producerId:'p1',producerName:'João da Silva',commodity:'soja',volume:500,status:'open',createdAt:'2026-09-22T10:00:00Z',closings:[{price:143,volumeSc:100}],cashNeedBRL:50000,cashDeadline:'2026-10-15',analysis:{request:{commodityLabel:'Soja',volumeSc:500,targetPriceSc:148},marketReading:{reference:{price:141}},closingTargets:[{key:'trigger',label:'Alvo 1',price:141,volumeSc:170,priceUnit:'BRL/sc_60kg',trigger:'Cotação registrada igual ou superior'},{key:'target',label:'Alvo 2',price:148,volumeSc:165,priceUnit:'BRL/sc_60kg'}]}}]
+ const portfolio=buildPortfolio({producers:[p1],requests,quotes,praca,sources},{now});const targetHits=checkTargets(requests,quotes,now)
+ const r=dashboardReport({portfolio,targetHits,quotes,praca,indicators:{},automation:{lastRun:'2026-09-29T11:00:00Z'},now,user:'Chefe'})
+ assert.equal(r.count,portfolio.commodities.length);const p=parse(r.buffer);const txt=p.text
+ assert.match(txt,/Painel de origina\u00e7\u00e3o/);assert.match(txt,/Posi\u00e7\u00e3o da carteira por gr\u00e3o/);assert.match(txt,/C\.Vale \u00d7 concorr\u00eancia/);assert.match(txt,/Agenda de fechamentos/);assert.match(txt,/abaixo do ritmo de prote\u00e7\u00e3o/);assert.match(txt,/Cota\u00e7\u00f5es de hoje por fonte/);assert.match(txt,/Jo\u00e3o da Silva/)
+ if(targetHits.length)assert.match(txt,/Alvos atingidos por cota\u00e7\u00e3o/)
+ const g=generalReport({portfolio,targetHits,quotes,praca,indicators:{},automation:{},producers:[p1],askingHistory:[],requests,offers:[],units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=3);parse(g.buffer)
 })
