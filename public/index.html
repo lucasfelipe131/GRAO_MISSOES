@@ -107,7 +107,7 @@
   <form id="requestsReportForm" class="card form reportcard"><div class="cardhead"><h2>Relatório de pedidos e análises em PDF</h2><small>tabela dos pedidos e uma página de análise por produtor</small></div><div class="grid"><label>De<input name="from" type="date"></label><label>Até<input name="to" type="date"></label><label>Situação<select name="status"><option value="">Todas</option><option value="open">Aberto</option><option value="closed">Concluído</option><option value="cancelled">Cancelado</option></select></label><label>Produtor<select name="producerId"><option value="">Todos</option></select></label><label>Grão<select name="commodity"><option value="">Todos</option></select></label><label>Conteúdo<select name="detail"><option value="1">Tabela + análise de cada pedido</option><option value="0">Só a tabela resumida</option></select></label></div><div class="actions"><button class="secondary" type="button" data-report="geral">Relatório geral (pedidos + ofertas + recebimentos)</button><button class="primary" type="submit">Exportar PDF</button></div></form></div>
  </section>
  <section data-panel="cotacoes" class="panel" hidden>
- <details class="guide" open><summary>Guia: quais cotações registrar e de onde tirar</summary><div class="guidegrid">
+ <details class="guide"><summary>Guia: quais cotações registrar e de onde tirar</summary><div class="guidegrid">
   <div><b>Rotina diária (5 minutos)</b><p>1) Preencha o preço C.Vale do dia. 2) Confira o comparativo automático e salve as leituras corretas. 3) Complete à mão o que a leitura não pegou (Coopatrigo, Cotrisal). 4) CEPEA Paranaguá e CEPEA RS para a base contra o porto.</p></div>
   <div><b>Preços de porto</b><p>Bunge, ADM, LDC e Cargill não publicam preço aberto na internet: anote o que a mesa ou a corretora passar, com horário e embarque. O sistema calcula a base (C.Vale menos porto) e usa o porto mais recente na análise dos pedidos.</p></div>
   <div><b>Abastecimento automático</b><p>A cada 4 h o sistema lê as páginas dos concorrentes, do porto e dos indicadores CEPEA e salva sozinho as leituras válidas como cotações (marcadas “auto”), inclusive o histórico de datas que as páginas do CEPEA mostram. Confira o trecho lido; se algo divergir, clique em Editar na cotação e corrija: a correção fica marcada e não é sobrescrita pela próxima leitura.</p></div>
@@ -119,6 +119,7 @@
   <div><b>O que não registrar</b><p>Chicago em US$/bushel e dólar não são cotações da praça; use-os só para leitura de tendência. Preço de conversa sem fonte identificada também não entra.</p></div>
  </div></details>
  <div class="split ownsplit">
+  <div class="stack">
   <form id="ownForm" class="card own" data-write="cotacoes"><div class="cardhead"><div><h2>Preço C.Vale hoje</h2><p class="muted">Nossa cotação em São Luiz Gonzaga, por saca de 60 kg. Preencha o que tiver; é a referência do comparativo.</p></div></div>
    <div class="owngrid"><label>Soja (R$/sc)<input name="soja" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Milho (R$/sc)<input name="milho" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Trigo (R$/sc)<input name="trigo" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label>Canola (R$/sc)<input name="canola" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label class="wide">Prazo<input name="paymentTerms" placeholder="à vista, 72 h…"></label></div>
    <p class="error" id="ownError" role="alert" hidden></p>
@@ -129,10 +130,12 @@
    <p class="error" id="portError" role="alert" hidden></p>
    <div class="actions"><button class="primary" type="submit">Salvar preço de porto</button></div>
   </form>
-  <div class="card"><div class="cardhead"><div><h2>Comparativo de compradores</h2><p class="muted">Leitura automática das páginas dos concorrentes e do porto, a cada 4 h. As leituras válidas já entram como cotações “auto”; use Editar na lista de cotações para corrigir divergências.</p></div><div class="row"><small id="cmpWhen"></small><button class="mini" type="button" id="cmpRefresh">Buscar agora</button></div></div><div id="comparison" class="cmp"></div></div>
+  </div>
+  <div class="card cmpcard"><div class="cardhead"><div><h2>Comparativo de compradores</h2><p class="muted">Leitura automática das páginas dos concorrentes e do porto, a cada 4 h. As leituras válidas já entram como cotações “auto”; use Editar na lista para corrigir divergências.</p></div><div class="row"><small id="cmpWhen"></small><button class="mini" type="button" id="cmpToggleEmpty" title="Mostra ou esconde as fontes sem leitura">fontes sem leitura</button><button class="mini" type="button" id="cmpRefresh">Buscar agora</button></div></div><div id="comparison" class="cmp"></div></div>
  </div>
  <div class="sourcebar" id="sourcebar"></div>
-  <div class="split">
+  <div class="split quotesplit">
+   <div class="stack">
    <form id="quoteForm" class="card form" data-write="cotacoes">
     <h2>Registrar cotação</h2>
     <p class="muted">Fonte e horário são obrigatórios. O sistema não busca nem inventa cotações.</p>
@@ -153,7 +156,8 @@
     <div class="actions"><button class="primary" type="submit">Salvar cotação</button></div>
    </form>
    <form id="quotesReportForm" class="card form reportcard"><div class="cardhead"><h2>Relatório de cotações e comparativo em PDF</h2><small>comparativo de compradores, estatísticas do período, padrão sazonal e cotações</small></div><div class="grid"><label>De<input name="from" type="date"></label><label>Até<input name="to" type="date"></label><label>Grão<select name="commodity"><option value="">Todos</option></select></label></div><p class="meta">Sem datas, o relatório usa os últimos 30 dias. O comparativo de compradores considera sempre a última cotação de cada fonte nos últimos 7 dias.</p><div class="actions"><button class="secondary" type="button" data-report="geral">Relatório geral (cotações + pedidos + ofertas + recebimentos)</button><button class="primary" type="submit">Exportar PDF</button></div></form>
-   <div class="card"><div class="cardhead"><h2>Cotações registradas</h2><div class="row"><small id="quoteCount"></small><button class="mini" type="button" id="exportQuotes">Exportar CSV</button></div></div><div id="trend" class="trend"></div><div id="quotes" class="list"></div></div>
+   </div>
+   <div class="card quotescard"><div class="cardhead"><div><h2>Cotações registradas</h2><p class="muted" id="quoteCount"></p></div><div class="row"><button class="mini" type="button" id="exportQuotes">Exportar CSV</button></div></div><div id="trend" class="trend"></div><form id="quoteFilters" class="qfilters" autocomplete="off"><select name="commodity"><option value="">Todos os grãos</option></select><select name="kind"><option value="">Todas as origens</option><option value="manual">Manuais</option><option value="auto">Automáticas</option><option value="historico">Histórico</option><option value="corrigida">Corrigidas</option></select><input name="q" placeholder="fonte, praça ou comprador"><label class="chk"><input type="checkbox" name="recent"><span>só 7 dias</span></label></form><div id="quotes" class="list qlist"></div><div class="actions center" id="quotesMore" hidden><button class="secondary" type="button" id="quotesMoreBtn">Mostrar mais</button></div></div>
   </div>
  </section>
  <section data-panel="produtores" class="panel" hidden>
