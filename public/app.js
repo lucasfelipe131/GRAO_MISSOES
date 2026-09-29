@@ -428,9 +428,9 @@ function renderStorageOps(){
  $$('#stReceipts [data-del-receipt]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover este recebimento?'))return;try{await api('/api/storage/receipts/'+b.dataset.delReceipt,{method:'DELETE'});await load()}catch(e){status(e.message,6000)}}))
  $$('#stReadings [data-del-reading]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remover esta leitura?'))return;try{await api('/api/storage/readings/'+b.dataset.delReading,{method:'DELETE'});await load()}catch(e){status(e.message,6000)}}))
 }
-async function downloadPdf(kind,params){
+async function downloadPdf(kind,params,{post=null}={}){
  const qs=new URLSearchParams(Object.entries(params).filter(([,v])=>v));status('Gerando PDF…',0)
- try{const r=await fetch(`/api/reports/${kind}.pdf?${qs}`,{headers:authHeaders()});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||'Falha ao gerar o relatório.')}const blob=await r.blob();const name=(r.headers.get('Content-Disposition')||'').match(/filename="([^"]+)"/)?.[1]||`${kind}.pdf`;const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);status(`PDF gerado (${r.headers.get('X-Report-Count')||0} registro(s)).`)}
+ try{const r=await fetch(`/api/reports/${kind}.pdf?${qs}`,post?{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify(post)}:{headers:authHeaders()});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||'Falha ao gerar o relatório.')}const blob=await r.blob();const name=(r.headers.get('Content-Disposition')||'').match(/filename="([^"]+)"/)?.[1]||`${kind}.pdf`;const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);status(`PDF gerado (${r.headers.get('X-Report-Count')||0} registro(s)).`)}
  catch(e){status(e.message,6000)}
 }
 $('#offersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('ofertas',formData(e.target))})
@@ -574,7 +574,7 @@ function makeMap(el,{onPick=null,onMarker=null,layerBar=null,pick=false}={}){
   for(let tx=Math.floor((cx-W/2)/TILE);tx<=Math.floor((cx+W/2)/TILE);tx++)for(let ty=Math.floor((cy-H/2)/TILE);ty<=Math.floor((cy+H/2)/TILE);ty++){if(ty<0||ty>=n)continue;want.set(`${z}/${((tx%n)+n)%n}/${ty}`,{left:tx*TILE-cx+W/2,top:ty*TILE-cy+H/2})}
   const layer=MAP_LAYERS[st.layer]||MAP_LAYERS.mapa
   for(const img of [...tiles.children])if(!want.has(img.dataset.key)||img.dataset.layer!==st.layer)img.remove()
-  for(const [k,pos] of want)layer.urls.forEach((url,li)=>{const id=`${k}#${li}`;let img=tiles.querySelector(`img[data-id="${id}"]`);if(!img){img=document.createElement('img');img.dataset.key=k;img.dataset.id=id;img.dataset.layer=st.layer;img.alt='';img.decoding='async';img.src=url(k);img.addEventListener('error',()=>{img.style.display='none'});tiles.appendChild(img)}img.style.left=pos.left+'px';img.style.top=pos.top+'px';img.style.zIndex=String(li)})
+  for(const [k,pos] of want)layer.urls.forEach((url,li)=>{const id=`${k}#${li}`;let img=tiles.querySelector(`img[data-id="${id}"]`);if(!img){img=document.createElement('img');img.dataset.key=k;img.dataset.id=id;img.dataset.layer=st.layer;img.alt='';img.decoding='async';img.crossOrigin='anonymous';img.src=url(k);img.addEventListener('error',()=>{img.style.display='none'});tiles.appendChild(img)}img.style.left=pos.left+'px';img.style.top=pos.top+'px';img.style.zIndex=String(li)})
   const lines=el.querySelector('.maplines');lines.setAttribute('viewBox',`0 0 ${W} ${H}`)
   lines.innerHTML=st.lines.map(l=>{const a=sx(l.a.lat,l.a.lon),b=sx(l.b.lat,l.b.lon);return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" ${l.strong?'style="opacity:1;stroke:#E86A4C;stroke-width:2.5"':''}></line>${l.label?`<text x="${((a.x+b.x)/2).toFixed(1)}" y="${((a.y+b.y)/2-4).toFixed(1)}" text-anchor="middle">${esc(l.label)}</text>`:''}`}).join('')
   const marks=el.querySelector('.mapmarkers')
@@ -594,9 +594,26 @@ function makeMap(el,{onPick=null,onMarker=null,layerBar=null,pick=false}={}){
  el.addEventListener('keydown',e=>{const step=60;const z=st.z;const move={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];if(move){e.preventDefault();st.center={lon:proj.lon(proj.x(st.center.lon,z)+move[0],z),lat:proj.lat(proj.y(st.center.lat,z)+move[1],z)};draw()}else if(e.key==='+'||e.key==='=')zoomBy(1);else if(e.key==='-')zoomBy(-1)})
  if(layerBar)layerBar.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setLayer(b.dataset.layer)))
  window.addEventListener('resize',draw)
- return {st,draw,fitTo,setLayer,zoomBy,setData(markers,lines){st.markers=markers;st.lines=lines||[]},center(lat,lon,z){st.center={lat,lon};if(z)st.z=z;draw()}}
+ return {st,el,draw,fitTo,setLayer,zoomBy,setData(markers,lines){st.markers=markers;st.lines=lines||[]},center(lat,lon,z){st.center={lat,lon};if(z)st.z=z;draw()},toScreen(lat,lon){const W=el.clientWidth,H=el.clientHeight,z=st.z;const cx=proj.x(st.center.lon,z),cy=proj.y(st.center.lat,z);return {x:proj.x(lon,z)-cx+W/2,y:proj.y(lat,z)-cy+H/2}}}
 }
 
+function captureMap(map,{scale=2}={}){
+ const el=map.el;const W=el.clientWidth,H=el.clientHeight;if(!W||!H)return {error:'mapa fora da tela'}
+ const canvas=document.createElement('canvas');canvas.width=Math.round(W*scale);canvas.height=Math.round(H*scale);const ctx=canvas.getContext('2d');ctx.scale(scale,scale)
+ ctx.fillStyle='#E8EEE3';ctx.fillRect(0,0,W,H);let tiles=0
+ for(const img of el.querySelectorAll('.maptiles img')){if(!img.complete||!img.naturalWidth||img.style.display==='none')continue;try{ctx.drawImage(img,parseFloat(img.style.left),parseFloat(img.style.top),TILE,TILE);tiles++}catch{}}
+ if(!tiles){ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=1;for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}}
+ ctx.lineCap='round';ctx.font='bold 11px Helvetica, Arial, sans-serif';ctx.textBaseline='middle'
+ const label=(x,y,text,{fill='rgba(255,255,255,.92)',color='#0B1A12'}={})=>{const w=ctx.measureText(text).width+12;const h=16;ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-h/2,w,h,8):ctx.rect(x-w/2,y-h/2,w,h);ctx.fill();ctx.fillStyle=color;ctx.textAlign='center';ctx.fillText(text,x,y+0.5)}
+ for(const l of map.st.lines){const a=map.toScreen(l.a.lat,l.a.lon),b=map.toScreen(l.b.lat,l.b.lon);ctx.setLineDash(l.strong?[]:[5,5]);ctx.strokeStyle=l.strong?'#E86A4C':'rgba(11,26,18,.6)';ctx.lineWidth=l.strong?2.5:1.5;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();if(l.label)label((a.x+b.x)/2,(a.y+b.y)/2-10,l.label)}
+ ctx.setLineDash([])
+ for(const mk of map.st.markers){const s=map.toScreen(mk.lat,mk.lon);const unit=/unit/.test(mk.cls||'');const sel=/sel/.test(mk.cls||'');const approx=/approx/.test(mk.cls||'')
+  if(unit){ctx.fillStyle='#0B1A12';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.rect(s.x-8,s.y-16,16,16);ctx.fill();ctx.stroke();label(s.x,s.y+10,mk.label||'',{fill:'#0B1A12',color:'#fff'})}
+  else{ctx.fillStyle=sel?'#E86A4C':approx?'#8A651D':'#3A7D34';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(s.x,s.y-11,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(s.x-5,s.y-4);ctx.lineTo(s.x,s.y);ctx.lineTo(s.x+5,s.y-4);ctx.closePath();ctx.fill();if(mk.num){ctx.fillStyle='#fff';ctx.font='bold 9px Helvetica, Arial, sans-serif';ctx.textAlign='center';ctx.fillText(String(mk.num),s.x,s.y-10.5);ctx.font='bold 11px Helvetica, Arial, sans-serif'}if(mk.label)label(s.x,s.y+10,mk.label)}}
+ ctx.font='9px Helvetica, Arial, sans-serif';ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,.85)';const attr=map.st.layer==='satelite'?'Imagens © Esri, Maxar, Earthstar Geographics':'© OpenStreetMap contributors';const aw=ctx.measureText(attr).width+10;ctx.fillRect(W-aw-4,H-16,aw,13);ctx.fillStyle='#333';ctx.fillText(attr,W-9,H-9.5)
+ try{const url=canvas.toDataURL('image/jpeg',0.85);return {url,tiles,width:canvas.width,height:canvas.height,caption:`${map.st.markers.filter(m=>!/unit/.test(m.cls||'')).length} pin(s) e ${map.st.markers.filter(m=>/unit/.test(m.cls||'')).length} unidade(s) na vista atual${tiles?'':' (mosaicos do mapa indisponíveis no momento da captura)'}.`}}
+ catch(e){return {error:e.name==='SecurityError'?'os mosaicos não permitem exportação':e.message,tiles}}
+}
 // ——— aba Mapa: visão geral dos pins e distâncias do produtor selecionado ———
 const MAP={sel:null,filter:'',fitted:false}
 const mainMap=$('#mapView')?makeMap($('#mapView'),{layerBar:$('#mapLayer'),onMarker:id=>selectProducer(id)}):null
@@ -650,7 +667,7 @@ if(mainMap){
  mainMap.setLayer(mainMap.st.layer)
  $('#mapFit').addEventListener('click',()=>{MAP.sel=null;fitMainMap();drawMainMap();renderMapList();renderMapDetail()})
  $('#mapFilter').addEventListener('change',e=>{MAP.filter=e.target.value;fitMainMap();renderMapPanel()})
- $('#mapPdf').addEventListener('click',()=>downloadPdf('mapa',MAP.filter?{commodity:MAP.filter}:{}))
+ $('#mapPdf').addEventListener('click',async()=>{const b=$('#mapPdf');b.disabled=true;try{const cap=captureMap(mainMap);const params=MAP.filter?{commodity:MAP.filter}:{};if(cap.url){await downloadPdf('mapa',params,{post:{...params,image:cap.url,layer:mainMap.st.layer,caption:cap.caption}})}else{status(`Não deu para capturar a imagem do mapa (${cap.error||'mosaicos indisponíveis'}); gerando o esquema de posições.`,6000);await downloadPdf('mapa',params)}}finally{b.disabled=false}})
  document.addEventListener('tabchange',e=>{if(e.detail==='mapa'){if(!MAP.fitted)fitMainMap();requestAnimationFrame(drawMainMap)}})
 }
 

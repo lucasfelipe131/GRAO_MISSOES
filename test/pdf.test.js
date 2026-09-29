@@ -107,3 +107,17 @@ test('relatório do painel de originação: KPIs, carteira, concorrência, alvos
  if(targetHits.length)assert.match(txt,/Alvos atingidos por cota\u00e7\u00e3o/)
  const g=generalReport({portfolio,targetHits,quotes,praca,indicators:{},automation:{},producers:[p1],askingHistory:[],requests,offers:[],units:[],readings:[],receipts:[],filters:normalizeReportFilters({}),now});assert.ok(g.count>=3);parse(g.buffer)
 })
+
+test('imagem JPEG embutida no PDF (XObject DCTDecode) e relatório do mapa com imagem',async()=>{
+ const {createPdf,jpegSize}=await import('../lib/pdf.js');const {mapReport}=await import('../lib/reports.js');const {buildMap}=await import('../lib/geo.js')
+ const jpg=Buffer.concat([Buffer.from([0xFF,0xD8,0xFF,0xE0,0,16]),Buffer.from([0x4A,0x46,0x49,0x46,0,1,1,0,0,1,0,1,0,0]),Buffer.from([0xFF,0xC0,0,17,8,0x01,0x2C,0x02,0x58,3,1,0x22,0,2,0x11,1,3,0x11,1]),Buffer.from([0xFF,0xD9])])
+ assert.deepEqual(jpegSize(jpg),{width:600,height:300,components:3});assert.equal(jpegSize(Buffer.from('nope')),null)
+ const doc=createPdf({title:'t'});doc.addPage();doc.image(40,60,300,150,jpg);const buf=doc.render();const t=buf.toString('latin1')
+ assert.match(t,/\/Subtype \/Image \/Width 600 \/Height 300 \/ColorSpace \/DeviceRGB \/BitsPerComponent 8 \/Filter \/DCTDecode/);assert.match(t,/\/XObject << \/Im1 \d+ 0 R >>/);assert.match(t,/\/Im1 Do Q/)
+ const sx=Number(t.match(/startxref\n(\d+)/)[1]);assert.equal(t.slice(sx,sx+4),'xref');const offs=[...t.slice(sx).matchAll(/(\d{10}) 00000 n/g)].map(m=>Number(m[1]));assert.ok(offs.every((o,i)=>t.slice(o,o+String(i+1).length+6)===(i+1)+' 0 obj'))
+ assert.throws(()=>doc.image(0,0,10,10,Buffer.from('x')),/JPEG/)
+ const map=buildMap({producers:[{id:'p1',name:'João',municipality:'Bossoroca',crops:{}}],units:[]})
+ const withImage=mapReport({map,mapImage:{jpeg:jpg,width:600,height:300,layer:'satelite'},now:new Date()});const tx=withImage.buffer.toString('latin1')
+ assert.match(tx,/DCTDecode/);assert.match(tx,/Mapa com os pins/);assert.doesNotMatch(tx,/Esquema de posi/)
+ const without=mapReport({map,now:new Date()});assert.match(without.buffer.toString('latin1'),/Esquema de posi/);assert.doesNotMatch(without.buffer.toString('latin1'),/DCTDecode/)
+})
