@@ -121,3 +121,15 @@ test('imagem JPEG embutida no PDF (XObject DCTDecode) e relatório do mapa com i
  assert.match(tx,/DCTDecode/);assert.match(tx,/Mapa com os pins/);assert.doesNotMatch(tx,/Esquema de posi/)
  const without=mapReport({map,now:new Date()});assert.match(without.buffer.toString('latin1'),/Esquema de posi/);assert.doesNotMatch(without.buffer.toString('latin1'),/DCTDecode/)
 })
+
+test('relatório de preços da região: tabela por grão com origem e comparação',async()=>{
+ const {regionReport}=await import('../lib/reports.js');const {buildRegionalView,runRegional}=await import('../lib/geo.js')
+ const html=`<table><tr><td>Cruz Alta/RS</td><td>146,00</td></tr><tr><td>Santa Rosa/RS (Cotrisal)</td><td>147,00</td></tr></table>`
+ const reg=await runRegional([{id:'r1',name:'NA — soja',commodity:'soja',url:'http://x'}],{fetchImpl:async()=>({ok:true,status:200,text:async()=>html}),now:new Date('2026-09-29T12:00:00Z')})
+ const quotes=[{commodity:'soja',price:140,priceUnit:'BRL/sc_60kg',sourceId:'cvale',observedAt:'2026-09-29T10:00:00Z',status:'active'},{commodity:'soja',price:143,priceUnit:'BRL/sc_60kg',sourceId:'coopatrigo',sourceName:'Coopatrigo',region:'São Luiz Gonzaga',observedAt:'2026-09-28T10:00:00Z',status:'active'}]
+ const regional=buildRegionalView({regional:reg,quotes,sources:[{id:'coopatrigo',name:'Coopatrigo',region:'São Luiz Gonzaga (Coopatrigo)'}],ownSourceId:'cvale',lat:-28.41,lon:-54.96,now:new Date('2026-09-29T12:00:00Z')})
+ const out=regionReport({regional,now:new Date('2026-09-29T12:00:00Z'),user:'teste'});const t=out.buffer.toString('latin1')
+ assert.equal(out.count,1);assert.match(out.filename,/^precos-regiao-sao-luiz-gonzaga-2026-09-29\.pdf$/)
+ for(const needle of ['Soja','Coopatrigo','Cruz Alta/RS','Santa Rosa/RS','147,00','+3,00','tabela p','Leitura'])assert.ok(t.includes(needle)||new RegExp(needle.replace(/[^a-zA-Z0-9,+ ]/g,'.')).test(t),needle)
+ const empty=regionReport({regional:buildRegionalView({regional:null,quotes:[]}),now:new Date()});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Nenhuma pra/)
+})

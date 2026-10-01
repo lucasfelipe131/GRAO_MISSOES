@@ -60,7 +60,8 @@ test('código de acesso protege a API quando configurado',async()=>{
 })
 
 test('preço C.Vale manual, comparativo automático e salvamento das leituras',async()=>{
- const html=`<html><body><table><tr><th>Data</th><th>Soja</th><th>Milho</th></tr><tr><td>27/09/2026</td><td>R$ 143,00</td><td>R$ 61,00</td></tr></table></body></html>`
+ const todayBr=new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}).format(new Date())
+ const html=`<html><body><table><tr><th>Data</th><th>Soja</th><th>Milho</th></tr><tr><td>${todayBr}</td><td>R$ 143,00</td><td>R$ 61,00</td></tr></table></body></html>`
  const site=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(html)});await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
  const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id}:s)}
  const {server,base}=await start({sourcesOverride})
@@ -313,6 +314,7 @@ test('regiões: leitura por praça, busca por GPS ou nome, mapa de produtores e 
   const boot=await call(base,'GET','/api/bootstrap');assert.equal(boot.data.map.producers.length,2);assert.equal(boot.data.regionalRun.rows,3);assert.equal(boot.data.home.label,'São Luiz Gonzaga/RS')
   for(const path of ['/api/reports/mapa.pdf','/api/reports/mapa.pdf?commodity=soja',`/api/reports/produtor/${p1.id}.pdf`]){const r=await fetch(base+path);assert.equal(r.status,200,path);assert.equal(r.headers.get('content-type'),'application/pdf');const buf=Buffer.from(await r.arrayBuffer());assert.equal(buf.subarray(0,5).toString(),'%PDF-')}
   assert.equal((await fetch(base+'/api/reports/mapa.pdf')).headers.get('x-report-count'),'2')
+  for(const q of ['?lat=-28.4&lon=-54.5','?q=cascavel','?place=cruz-alta-rs','']){const r=await fetch(base+'/api/reports/regiao.pdf'+q,{headers:{'x-access-code':'arm123'}});assert.equal(r.status,200,q);assert.equal(r.headers.get('content-type'),'application/pdf');assert.ok(Number(r.headers.get('x-report-count'))>=1,q);const txt=Buffer.from(await r.arrayBuffer()).toString('latin1');assert.match(txt,/Pre.os da regi.o/);if(q.startsWith('?q'))assert.match(txt,/Cascavel\/PR/)}
   const jpg=Buffer.concat([Buffer.from([0xFF,0xD8,0xFF,0xE0,0,16]),Buffer.from([0x4A,0x46,0x49,0x46,0,1,1,0,0,1,0,1,0,0]),Buffer.from([0xFF,0xC0,0,17,8,0x01,0x2C,0x02,0x58,3,1,0x22,0,2,0x11,1,3,0x11,1]),Buffer.from([0xFF,0xD9])])
   const post=await fetch(base+'/api/reports/mapa.pdf',{method:'POST',headers:{'Content-Type':'application/json','x-access-code':'arm123'},body:JSON.stringify({image:'data:image/jpeg;base64,'+jpg.toString('base64'),layer:'satelite',caption:'teste'})})
   assert.equal(post.status,200);assert.equal(post.headers.get('x-map-image'),'1');assert.match(Buffer.from(await post.arrayBuffer()).toString('latin1'),/DCTDecode/)
