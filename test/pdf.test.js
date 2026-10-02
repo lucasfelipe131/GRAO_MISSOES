@@ -149,3 +149,14 @@ test('relatório do histórico de pedidas: por grão, por produtor e lista com d
  const soja=askingReport({askingHistory,producers,filters:{commodity:'soja'},detail:false,now:new Date()});assert.equal(soja.count,3);assert.doesNotMatch(soja.buffer.toString('latin1'),/62,00/)
  const empty=askingReport({askingHistory,producers,filters:{from:'2027-01-01'},now:new Date()});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Nenhuma pedida/)
 })
+
+test('relatório do briefing da praça: grãos com momento e cotação, riscos, logística, compradores e fontes',async()=>{
+ const {pracaReport}=await import('../lib/reports.js');const {buildBrief,loadPraca,loadSources}=await import('../lib/analysis.js')
+ const praca=loadPraca();const quotes=[{commodity:'soja',price:141,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga',sourceName:'Coopatrigo',observedAt:'2026-09-29T10:00:00Z',status:'active'}]
+ const brief=buildBrief({praca,quotes},{now:new Date('2026-09-29T12:00:00Z')})
+ const out=pracaReport({brief,references:loadSources().references||[],now:new Date('2026-09-29T12:00:00Z'),user:'teste'});const t=out.buffer.toString('latin1')
+ assert.equal(out.count,brief.commodities.length);assert.match(out.filename,/^briefing-praca-2026-09-29\.pdf$/)
+ for(const needle of ['Briefing da pra','Soja','Coopatrigo','141,00','Riscos acompanhados','Compradores e refer','Cotrisal','Fontes do briefing','Dicas de fechamento'])assert.ok(t.includes(needle),needle)
+ const strings=[...t.matchAll(/\(([^)]{3,80})\) Tj/g)].map(x=>x[1]);assert.ok(strings.some(x=>/COTA..O REGISTRADA/.test(x)))
+ const empty=pracaReport({brief:null,now:new Date()});assert.equal(empty.count,0)
+})
