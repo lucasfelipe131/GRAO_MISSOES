@@ -133,3 +133,19 @@ test('relatório de preços da região: tabela por grão com origem e comparaç�
  for(const needle of ['Soja','Coopatrigo','Cruz Alta/RS','Santa Rosa/RS','147,00','+3,00','tabela p','Leitura'])assert.ok(t.includes(needle)||new RegExp(needle.replace(/[^a-zA-Z0-9,+ ]/g,'.')).test(t),needle)
  const empty=regionReport({regional:buildRegionalView({regional:null,quotes:[]}),now:new Date()});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Nenhuma pra/)
 })
+
+test('relatório do histórico de pedidas: por grão, por produtor e lista com dicas',async()=>{
+ const {askingReport}=await import('../lib/reports.js');const {buildAskingHistory}=await import('../lib/analysis.js')
+ const producers=[{id:'p1',name:'João da Silva'},{id:'p2',name:'Maria'}]
+ const quotes=[{commodity:'soja',price:140,priceUnit:'BRL/sc_60kg',sourceId:'cvale',sourceName:'C.Vale — São Luiz Gonzaga',region:'São Luiz Gonzaga (C.Vale)',observedAt:'2026-09-20T12:00:00Z',status:'active'}]
+ const offers=[{id:'o1',producerId:'p1',createdAt:'2026-09-21T10:00:00Z',status:'aceita',closedPrice:146,offer:{commodity:'soja',commodityLabel:'Soja',volumeSc:1000,askingPrice:150,offerPrice:145,asking:{gapSc:-5,status:'ajustavel'},comparison:{cvale:140}}},{id:'o2',producerId:'p1',createdAt:'2026-09-25T10:00:00Z',status:'recusada',offer:{commodity:'soja',commodityLabel:'Soja',volumeSc:500,askingPrice:155,offerPrice:146,asking:{gapSc:-9,status:'inviavel'},comparison:{cvale:141}}},{id:'o3',producerId:'p2',createdAt:'2026-09-26T10:00:00Z',status:'enviada',offer:{commodity:'milho',commodityLabel:'Milho',volumeSc:800,askingPrice:62,offerPrice:63,asking:{gapSc:1,status:'atende'},comparison:{cvale:60}}}]
+ const requests=[{id:'r1',producerId:'p2',createdAt:'2026-09-22T10:00:00Z',status:'open',commodity:'soja',volume:2000,analysis:{request:{commodityLabel:'Soja',volumeSc:2000,targetPriceSc:148},marketReading:{reference:{price:143}}},closings:[]}]
+ const askingHistory=buildAskingHistory({producers,offers,requests,quotes},{now:new Date('2026-09-29T12:00:00Z')})
+ assert.equal(askingHistory.length,2)
+ const out=askingReport({askingHistory,producers,filters:{},now:new Date('2026-09-29T12:00:00Z'),user:'teste'});const t=out.buffer.toString('latin1')
+ assert.equal(out.count,4);assert.match(out.filename,/^historico-pedidas-2026-09-29\.pdf$/)
+ for(const needle of ['Hist','pedidas dos produtores','Pedidas por gr','Resumo por produtor','Jo','Maria','Soja','Milho','150,00','155,00','62,00','148,00','Aceita','Recusada','Aceite'])assert.ok(t.includes(needle),needle)
+ const onlyMaria=askingReport({askingHistory,producers,filters:{producerId:'p2'},now:new Date()});assert.equal(onlyMaria.count,2);assert.doesNotMatch(onlyMaria.buffer.toString('latin1'),/155,00/)
+ const soja=askingReport({askingHistory,producers,filters:{commodity:'soja'},detail:false,now:new Date()});assert.equal(soja.count,3);assert.doesNotMatch(soja.buffer.toString('latin1'),/62,00/)
+ const empty=askingReport({askingHistory,producers,filters:{from:'2027-01-01'},now:new Date()});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Nenhuma pedida/)
+})

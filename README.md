@@ -119,6 +119,7 @@ Todas as rotas de `/api/`, exceto `/api/session` e `/api/login`, exigem sessão 
 | `/api/reports/ofertas.pdf` | GET | todos | relatório de ofertas em PDF (filtros from, to, status, producerId, commodity) |
 | `/api/reports/recebimentos.pdf` | GET | todos | relatório de recebimentos em PDF (from, to, unitId, commodity), com metas da safra |
 | `/api/reports/pedidos.pdf` | GET | todos | pedidos e análises dos produtores (from, to, status, producerId, commodity; detail=0 só a tabela) |
+| `/api/reports/pedidas.pdf` | GET | todos | histórico de pedidas dos produtores (from, to, producerId, commodity; detail=0 só os resumos): pedidas por grão, resumo por produtor e grão (média, mín., máx., última, vs C.Vale do dia, oferta − pedida, aceite, fechou vs pedida, tendência) e a lista das pedidas de cada produtor com as dicas de conversa |
 | `/api/reports/pedido/:id.pdf` | GET | todos | análise personalizada de um pedido para entregar ao produtor |
 | `/api/reports/cotacoes.pdf` | GET | todos | cotações e comparativo de preços (from, to, commodity; sem datas usa 30 dias) |
 | `/api/reports/produtores.pdf` | GET | todos | produtores e carteira (producerId, commodity; detail=0 só carteira e tabela) |
