@@ -437,6 +437,8 @@ async function downloadPdf(kind,params,{post=null}={}){
 }
 $('#offersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('ofertas',formData(e.target))})
 $('#pricesPdf')?.addEventListener('click',()=>downloadPdf('precos',{}))
+$('#cmpPdf')?.addEventListener('click',()=>downloadPdf('comparativo',{}))
+$('#cmpDashPdf')?.addEventListener('click',()=>downloadPdf('comparativo',{}))
 $('#askingReportForm')?.addEventListener('submit',e=>{e.preventDefault();downloadPdf('pedidas',formData(e.target))})
 $('#askingPdf')?.addEventListener('click',()=>{const id=$('#offerForm select[name=producerId]')?.value||'';downloadPdf('pedidas',id?{producerId:id}:{})})
 $('#requestsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('pedidos',formData(e.target))})

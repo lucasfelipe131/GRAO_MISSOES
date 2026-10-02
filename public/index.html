@@ -59,7 +59,7 @@
    <div class="card"><div class="cardhead"><h2>Posição da carteira por grão</h2><small>produção estimada × fixado</small></div><div id="positions" class="positions"></div></div>
    <div class="card"><div class="cardhead"><h2>Agenda de fechamentos</h2><small>próximos 45 dias</small></div><div id="agenda" class="agenda"></div></div>
   </div>
-  <div class="card"><div class="cardhead"><h2>C.Vale × concorrência</h2><small id="cmpDashWhen"></small></div><div id="cmpDash" class="cmp"></div></div>
+  <div class="card"><div class="cardhead"><h2>C.Vale × concorrência</h2><div class="row"><small id="cmpDashWhen"></small><button class="mini" type="button" id="cmpDashPdf" title="Comparativo de compradores em PDF">PDF</button></div></div><div id="cmpDash" class="cmp"></div></div>
   <div class="split wide2">
    <div class="card"><div class="cardhead"><h2>Cotações de hoje</h2><small>fontes principais</small></div><div id="sourcesToday" class="list"></div></div>
    <div class="card"><div class="cardhead"><h2>Produtores abaixo do ritmo de proteção</h2><small>fixado × fase da safra</small></div><div id="attention" class="list"></div></div>
@@ -131,7 +131,7 @@
    <div class="actions"><button class="primary" type="submit">Salvar preço de porto</button></div>
   </form>
   </div>
-  <div class="card cmpcard"><div class="cardhead"><div><h2>Comparativo de compradores</h2><p class="muted">Leitura automática das páginas dos concorrentes e do porto, a cada 4 h. As leituras válidas já entram como cotações “auto”; use Editar na lista para corrigir divergências.</p></div><div class="row"><small id="cmpWhen"></small><button class="mini" type="button" id="cmpToggleEmpty" title="Mostra ou esconde as fontes sem leitura">fontes sem leitura</button><button class="mini" type="button" id="cmpRefresh">Buscar agora</button></div></div><div id="comparison" class="cmp"></div></div>
+  <div class="card cmpcard"><div class="cardhead"><div><h2>Comparativo de compradores</h2><p class="muted">Leitura automática das páginas dos concorrentes e do porto, a cada 4 h. As leituras válidas já entram como cotações “auto”; use Editar na lista para corrigir divergências.</p></div><div class="row"><small id="cmpWhen"></small><button class="mini" type="button" id="cmpPdf" title="Comparativo de compradores em PDF">PDF</button><button class="mini" type="button" id="cmpToggleEmpty" title="Mostra ou esconde as fontes sem leitura">fontes sem leitura</button><button class="mini" type="button" id="cmpRefresh">Buscar agora</button></div></div><div id="comparison" class="cmp"></div></div>
  </div>
  <div class="sourcebar" id="sourcebar"></div>
   <div class="split quotesplit">
