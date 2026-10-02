@@ -372,13 +372,14 @@ function seasonBars(seasonal,{w=640,h=130}={}){
 function renderPrices(){
  const el=$('#prices');if(!el)return;const list=state.priceYear||[]
  el.innerHTML=list.map((c,i)=>{const st=c.stats
-  return `<div class="card pricecard"><div class="cardhead"><h2>${esc(c.label)}</h2><small>${st?`${st.n} cotações locais em ${st.days} dias • ${(c.sources||[]).length} fonte(s)`:'sem cotações no ano'}</small></div>
+  return `<div class="card pricecard"><div class="cardhead"><h2>${esc(c.label)}</h2><div class="row"><small>${st?`${st.n} cotações locais em ${st.days} dias • ${(c.sources||[]).length} fonte(s)`:'sem cotações no ano'}</small><button class="mini" type="button" data-prices-pdf="${esc(c.commodity)}" title="${esc(c.label)} em PDF">PDF</button></div></div>
   <div class="tiles four">${tile('Atual',st?money(st.current):'—',st?dt(st.currentDate):'')}${tile('Média 12 meses',st?money(st.avg):'—',st?`${st.vsAvgPercent>=0?'+':''}${st.vsAvgPercent.toFixed(1).replace('.',',')}% hoje`:'', st?(st.vsAvgPercent>=3?'good':st.vsAvgPercent<=-3?'warn':''):'')}${tile('Mínima • Máxima',st?`${money(st.min)} • ${money(st.max)}`:'—',st?`posição ${st.positionPercent}% do intervalo`:'')}${tile('Sazonal 3 meses',c.seasonal?.next3Percent!=null?`${c.seasonal.next3Percent>=0?'+':''}${c.seasonal.next3Percent.toFixed(1).replace('.',',')}%`:'—',c.seasonal?.usable===false?`${c.seasonal.observedMonths} de 12 meses observados`:c.seasonal?(c.seasonal.next3Percent!=null?`melhor: ${c.seasonal.bestMonths.map(m=>MONTHS[m-1]).join(', ')} • ${c.seasonal.observedMonths}/12 meses`:`sem cotação nos próximos meses • ${c.seasonal.observedMonths}/12 meses`):'',c.seasonal?.next3Percent!=null?(c.seasonal.next3Percent>=2?'good':c.seasonal.next3Percent<=-2?'warn':''):'')}</div>
   <div class="chartwrap" id="chart-${i}"></div>
   <div class="cols"><div class="box"><h4>Média mensal registrada</h4><div class="monthly">${c.monthly.map(m=>`<div class="${m.avg?'':'empty'}"><small>${MONTHS[m.month-1]}</small><b>${m.avg?money(m.avg):'—'}</b><span>${m.n?m.n+' d':''}</span></div>`).join('')}</div></div><div class="box"><h4>Padrão sazonal observado</h4>${seasonBars(c.seasonal)}<p class="meta">${esc(c.seasonal?.note||'')} Não é previsão: só reflete os meses com cotação registrada ou importada.</p></div></div>
   <ul class="hints">${c.hints.map(h=>`<li>${esc(h)}</li>`).join('')}</ul>
   ${(c.sources||[]).length?`<details class="coverage"><summary>Cobertura do histórico: ${c.sources.length} fonte(s), ${c.stats?c.stats.days:0} dia(s) locais</summary><table class="cmptable"><thead><tr><th>Fonte</th><th>Tipo</th><th>De</th><th>Até</th><th>Dias</th><th>Média</th></tr></thead><tbody>${c.sources.map(s=>`<tr><td>${esc(s.label)}</td><td>${s.kind==='own'?'C.Vale':s.kind==='port'?'porto/ref.':'praça'}</td><td>${dt(s.firstDate)}</td><td>${dt(s.lastDate)}</td><td>${s.days}</td><td>${money(s.avg)}</td></tr>`).join('')}</tbody></table><p class="meta">Só as fontes de praça (não porto) entram no padrão sazonal. O histórico cresce sozinho a cada leitura automática; para preencher meses antigos, importe linhas data;preço.</p></details>`:''}</div>`}).join('')
  list.forEach((c,i)=>renderPriceChart(i))
+ $$('#prices [data-prices-pdf]').forEach(b=>b.addEventListener('click',()=>downloadPdf('precos',{commodity:b.dataset.pricesPdf})))
  const sel=$('#importForm select[name=commodity]');if(sel&&!sel.options.length)sel.innerHTML=state.catalog.commodities.map(c=>`<option value="${c.value}">${esc(c.label)}</option>`).join('')
 }
 $('#importForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;$('#importError').hidden=true;try{const r=await api('/api/quotes/import',{method:'POST',body:JSON.stringify(formData(f))});f.lines.value='';status(`${r.imported} linha(s) importada(s)${r.rejected?`, ${r.rejected} rejeitada(s)`:''}.`,6000);await load()}catch(err){$('#importError').textContent=err.message;$('#importError').hidden=false}})
@@ -435,6 +436,7 @@ async function downloadPdf(kind,params,{post=null}={}){
  catch(e){status(e.message,6000)}
 }
 $('#offersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('ofertas',formData(e.target))})
+$('#pricesPdf')?.addEventListener('click',()=>downloadPdf('precos',{}))
 $('#askingReportForm')?.addEventListener('submit',e=>{e.preventDefault();downloadPdf('pedidas',formData(e.target))})
 $('#askingPdf')?.addEventListener('click',()=>{const id=$('#offerForm select[name=producerId]')?.value||'';downloadPdf('pedidas',id?{producerId:id}:{})})
 $('#requestsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('pedidos',formData(e.target))})

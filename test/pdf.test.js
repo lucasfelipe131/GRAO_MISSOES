@@ -160,3 +160,16 @@ test('relatório do briefing da praça: grãos com momento e cotação, riscos, 
  const strings=[...t.matchAll(/\(([^)]{3,80})\) Tj/g)].map(x=>x[1]);assert.ok(strings.some(x=>/COTA..O REGISTRADA/.test(x)))
  const empty=pracaReport({brief:null,now:new Date()});assert.equal(empty.count,0)
 })
+
+test('relatório dos preços do ano: gráfico, séries, médias mensais, sazonal e cobertura por grão',async()=>{
+ const {priceYearReport}=await import('../lib/reports.js');const {buildPriceYear,loadPraca}=await import('../lib/analysis.js')
+ const now=new Date('2026-09-29T12:00:00Z');const quotes=[]
+ for(let i=0;i<300;i+=5){const d=new Date(now.getTime()-i*864e5).toISOString();quotes.push({commodity:'soja',price:130+Math.sin(i/40)*10,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga (C.Vale)',sourceName:'C.Vale — São Luiz Gonzaga',sourceId:'cvale',observedAt:d,status:'active'});quotes.push({commodity:'soja',price:133+Math.sin(i/40)*10,priceUnit:'BRL/sc_60kg',region:'São Luiz Gonzaga (Coopatrigo)',sourceName:'Coopatrigo',sourceId:'coopatrigo',observedAt:d,status:'active'});quotes.push({commodity:'soja',price:155+Math.sin(i/40)*10,priceUnit:'BRL/sc_60kg',region:'Paranaguá/PR',sourceName:'CEPEA/ESALQ — Soja Paranaguá',observedAt:d,status:'active'})}
+ const priceYear=buildPriceYear({quotes,praca:loadPraca()},{now})
+ const out=priceYearReport({priceYear,filters:{},now,user:'teste'});const t=out.buffer.toString('latin1')
+ assert.equal(out.count,priceYear.length);assert.match(out.filename,/^precos-do-ano-2026-09-29\.pdf$/)
+ for(const needle of ['Pre','do ano','Soja','C.Vale','Concorrentes','Porto','Linha do ano','dia mensal','sazonal','Cobertura do hist','Coopatrigo','Leitura'])assert.ok(t.includes(needle),needle)
+ assert.ok((t.match(/ l S/g)||[]).length>100,'linhas do gráfico desenhadas')
+ const soja=priceYearReport({priceYear,filters:{commodity:'soja'},now});assert.equal(soja.count,1);assert.match(soja.filename,/precos-do-ano-soja-/)
+ const none=priceYearReport({priceYear:buildPriceYear({quotes:[],praca:loadPraca()},{now}),now});assert.ok(none.count>=1);assert.match(none.buffer.toString('latin1'),/sem cota/)
+})
