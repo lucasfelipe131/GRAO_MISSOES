@@ -701,5 +701,6 @@ if(formMap){
  $('#producerMapClear').addEventListener('click',()=>{pform.lat.value='';pform.lon.value='';$('#producerMapHint').textContent='Pin removido; salve o produtor para gravar.';drawFormMap()})
  document.addEventListener('tabchange',e=>{if(e.detail==='produtores')requestAnimationFrame(()=>focusFormMap())})
 }
-;(async()=>{try{const s=await fetch('/api/session',{headers:authHeaders()}).then(r=>r.json());if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
+;(async()=>{try{const s=await fetch('/api/session',{headers:authHeaders()}).then(r=>r.json());if(s.identityEnabled){$('#valSsoLogin').hidden=false;$('#loginForm').hidden=true;$('.codelogin').hidden=true;$('#login h1').textContent='Acesso único VAL';$('#login h1 + p').textContent='Entre com sua conta VAL e confirme o código do Authenticator. Suas permissões nesta plataforma são preservadas.'}if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
 })()
+

@@ -42,6 +42,7 @@
    <div class="loginbrand"><img src="val-mark.svg" alt="" width="54" height="54"><div><img src="val-word-dark.svg" alt="VAL" width="96" height="28" style="display:block"><b style="font-size:14px;letter-spacing:.12em;color:#3A7D34">SOG</b><small>Inteligência que gera valor • Sistema de Operações de Grãos • Missões</small></div></div>
    <h1>Entrar</h1>
    <p>Use o seu usuário e senha. O nível de acesso (gerencial, operador de compra de grãos ou encarregado de armazém) é definido no cadastro feito pela gerência.</p>
+   <p id="valSsoLogin" hidden><a class="primary" href="/auth/oidc/start">Entrar pela VAL com Authenticator</a></p>
    <form id="loginForm"><label>Usuário<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="nome.sobrenome"></label><label>Senha<input name="password" type="password" autocomplete="current-password"></label><button class="primary" type="submit">Entrar</button></form>
    <details class="codelogin"><summary>Entrar com código de acesso da equipe</summary><form id="codeForm"><label>Código de acesso<input name="code" type="password" autocomplete="off"></label><button class="secondary" type="submit">Entrar com código</button></form><p class="meta">O código é a chave configurada no servidor (gerencial, operador ou armazém). Com ele o gerencial pode criar os primeiros usuários em Administração.</p></details>
    <p class="error" id="loginError" role="alert" hidden></p>
@@ -409,3 +410,4 @@
 <script src="app.js"></script>
 </body>
 </html>
+
