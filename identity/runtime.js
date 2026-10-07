@@ -18,7 +18,16 @@ export function createSogIdentity({store,roles,env=process.env}){
  const tenantId=env.VAL_IDENTITY_TENANT_ID,issuer=env.VAL_IDENTITY_ISSUER
  const links=JSON.parse(env.VAL_IDENTITY_LINKS_JSON||'[]')
  if(!tenantId||!Array.isArray(links)||links.some(l=>!l.subjectId||!l.userId)||new Set(links.map(l=>l.subjectId)).size!==links.length)throw fault('identity_links_invalid',503)
- const resolveAccount=async claims=>{if(claims.tenant_id!==tenantId||claims.auth_level!=='AAL2')return null;const link=links.find(l=>l.subjectId===claims.sub),user=link&&(store.read().users||[]).find(u=>u.id===link.userId&&u.active!==false);return user&&roles[user.role]?{id:user.id,role:user.role,user,via:'val-sso'}:null}
+ // Explicit central grants avoid creating a second login or local password.
+ const access=JSON.parse(env.VAL_IDENTITY_ACCESS_JSON||'[]')
+ if(!Array.isArray(access)||access.some(g=>typeof g.subjectId!=='string'||!g.subjectId||!Object.hasOwn(roles,g.role))||new Set(access.map(g=>g.subjectId)).size!==access.length||access.some(g=>links.some(l=>l.subjectId===g.subjectId)))throw fault('identity_access_invalid',503)
+ const resolveAccount=async claims=>{
+  if(claims.tenant_id!==tenantId||claims.auth_level!=='AAL2')return null
+  const grant=access.find(g=>g.subjectId===claims.sub)
+  if(grant){const id='val:'+digest(issuer+'\n'+tenantId+'\n'+claims.sub);const user={id,username:grant.username||'val-user',name:grant.name||'Conta VAL',role:grant.role,active:true,federated:true};return {id,role:user.role,user,via:'val-sso'}}
+  const link=links.find(l=>l.subjectId===claims.sub),user=link&&(store.read().users||[]).find(u=>u.id===link.userId&&u.active!==false)
+  return user&&Object.hasOwn(roles,user.role)?{id:user.id,role:user.role,user,via:'val-sso'}:null
+ }
  const client=new FirstPartyClient({store:new EphemeralIdentityStore(),origin:env.VAL_SOG_ORIGIN,issuer,clientId:'val-sog',tenantId,resolveAccount,test:env.NODE_ENV==='test'&&env.VAL_IDENTITY_TEST==='true'})
  const redirect=(res,location,cookies)=>{res.writeHead(303,{Location:location,'Cache-Control':'no-store',...(cookies?{'Set-Cookie':cookies}:{})});res.end()}
  return {enabled:true,client,resolveAccount,async handle(req,res,url){
