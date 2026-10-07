@@ -91,6 +91,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
 
  const api=async(request,response,url)=>{
   const path=url.pathname
+  if(identity.enabled&&path==='/api/me/password')return json(response,403,{error:'Gerencie sua conta e autenticação na VAL.'})
   if(identity.enabled&&path==='/api/login')return json(response,403,{error:'Entre pela VAL com Authenticator.',loginUrl:'/auth/oidc/start'})
   if(identity.enabled&&path==='/api/logout'&&request.method==='POST'){await identity.logout(request,response);return json(response,200,{ok:true})}
   if(path==='/health'||path==='/api/health')return json(response,200,{status:'ok',service:'graos-missoes',praca:praca.id,protected:Boolean(accessCode)})
