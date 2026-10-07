@@ -2,12 +2,17 @@
   "name": "graos-missoes",
   "version": "0.1.0",
   "private": true,
-  "description": "Sistema de oportunidades de grãos: análise personalizada por pedido do produtor e alvos de fechamento para a praça de São Luiz Gonzaga/RS.",
+  "description": "Sistema de oportunidades de gr\u00e3os: an\u00e1lise personalizada por pedido do produtor e alvos de fechamento para a pra\u00e7a de S\u00e3o Luiz Gonzaga/RS.",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test"
+  },
+  "dependencies": {
+    "openid-client": "6.8.8"
   }
 }

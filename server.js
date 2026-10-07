@@ -1,3 +1,4 @@
+import {createSogIdentity} from './identity/runtime.js'
 import {createServer} from 'node:http'
 import {createReadStream,existsSync,statSync} from 'node:fs'
 import {dirname,extname,join,normalize,resolve} from 'node:path'
@@ -28,6 +29,7 @@ export const roles={
 }
 export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',accessCodes=null,fetchImpl=globalThis.fetch,sourcesOverride=null,autoSave=!/^(0|false|off|nao|não)$/i.test(String(process.env.AUTO_SAVE||'true')),seedHistory=true}={}){
  const store=createStore(dataDir)
+ const identity=createSogIdentity({store,roles})
  const praca=loadPraca()
  const sources=sourcesOverride||loadSources()
  const ownSource=sources.sources.find(item=>item.own)||null
@@ -69,7 +71,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const sameCode=(given,expected)=>given.length===expected.length&&timingSafeEqual(Buffer.from(given),Buffer.from(expected))
  const authSecret=()=>{if(process.env.SESSION_SECRET)return process.env.SESSION_SECRET;const data=store.read();if(data.authSecret)return data.authSecret;return store.update(d=>{d.authSecret=d.authSecret||randomUUID()+randomUUID();return d.authSecret})}
  const activeUsers=data=>(data.users||[]).filter(u=>u.active!==false)
- const isProtected=()=>Object.values(codes).some(list=>list.length)||activeUsers(store.read()).length>0
+ const isProtected=()=>identity.enabled||Object.values(codes).some(list=>list.length)||activeUsers(store.read()).length>0
  const identify=request=>{
   if(request._identity!==undefined)return request._identity
   const data=store.read();const protectedApp=isProtected()
@@ -83,12 +85,15 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const roleOf=request=>identify(request)?.role||null
  const authorized=request=>Boolean(roleOf(request))
  const areaOf=(path,method)=>{if(method==='GET'||path.startsWith('/api/reports/'))return null;if(path==='/api/me/password'||path==='/api/logout')return null;if(path.startsWith('/api/users'))return 'usuarios';if(path.startsWith('/api/storage'))return 'armazem';if(path==='/api/offer-settings')return 'parametros';if(path.startsWith('/api/quotes')||path.startsWith('/api/own-quotes')||path.startsWith('/api/port-quotes')||path.startsWith('/api/comparison'))return 'cotacoes';return 'comercial'}
- const sessionInfo=request=>{const id=identify(request);const role=id?.role||null;const data=store.read();return {protected:isProtected(),authorized:Boolean(role),role,roleLabel:role?roles[role].label:null,via:id?.via||null,user:id?.user?{id:id.user.id,username:id.user.username,name:id.user.name}:null,tabs:role?roles[role].tabs:[],write:role?roles[role].write:[],usersCount:(data.users||[]).length,codesConfigured:Object.values(codes).some(list=>list.length),roles:Object.fromEntries(Object.entries(roles).map(([k,v])=>[k,{label:v.label,tabs:v.tabs,write:v.write,configured:codes[k].length>0}]))}}
+ const sessionInfo=request=>{const id=identify(request);const role=id?.role||null;const data=store.read();return {identityEnabled:identity.enabled,loginUrl:identity.enabled?'/auth/oidc/start':null,protected:isProtected(),authorized:Boolean(role),role,roleLabel:role?roles[role].label:null,via:id?.via||null,user:id?.user?{id:id.user.id,username:id.user.username,name:id.user.name}:null,tabs:role?roles[role].tabs:[],write:role?roles[role].write:[],usersCount:(data.users||[]).length,codesConfigured:Object.values(codes).some(list=>list.length),roles:Object.fromEntries(Object.entries(roles).map(([k,v])=>[k,{label:v.label,tabs:v.tabs,write:v.write,configured:codes[k].length>0}]))}}
  const producerOf=(store,id)=>store.producers.find(item=>item.id===id)||null
  const withAnalysis=(store,item,now)=>{const producer=producerOf(store,item.producerId);return analyzeRequest({request:item,producer,quotes:store.quotes,praca},{now})}
 
  const api=async(request,response,url)=>{
   const path=url.pathname
+  if(identity.enabled&&path==='/api/me/password')return json(response,403,{error:'Gerencie sua conta e autenticação na VAL.'})
+  if(identity.enabled&&path==='/api/login')return json(response,403,{error:'Entre pela VAL com Authenticator.',loginUrl:'/auth/oidc/start'})
+  if(identity.enabled&&path==='/api/logout'&&request.method==='POST'){await identity.logout(request,response);return json(response,200,{ok:true})}
   if(path==='/health'||path==='/api/health')return json(response,200,{status:'ok',service:'graos-missoes',praca:praca.id,protected:Boolean(accessCode)})
   if(path==='/api/session'&&request.method==='GET')return json(response,200,sessionInfo(request))
   if(path==='/api/login'&&request.method==='POST'){
@@ -244,6 +249,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
 
  const server=createServer(async(request,response)=>{
   const url=new URL(request.url,'http://localhost')
+  if(identity.enabled){try{if(await identity.handle(request,response,url))return;if(url.pathname.startsWith('/api/')){request._identity=await identity.authenticate(request);identity.guard(request)}}catch(error){return json(response,Number(error.statusCode)||503,{error:'Não foi possível validar o acesso VAL.',loginUrl:'/auth/oidc/start'})}}
   if(url.pathname.startsWith('/api/')||url.pathname==='/health'){
    try{const handled=await api(request,response,url);if(handled===false)json(response,404,{error:'Rota não encontrada.'})}
    catch(error){json(response,Number(error.statusCode)||400,{error:error.message||'Não foi possível concluir a operação.'})}
@@ -266,3 +272,4 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   setTimeout(run,5000);setInterval(run,hours*3_600_000).unref()
  }
 }
+
