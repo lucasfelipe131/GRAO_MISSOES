@@ -1,6 +1,7 @@
 import {FirstPartyClient} from './relying-party.js'
 import {digest,seal,unseal,assertSameOrigin,fault} from './primitives.js'
 import {randomBytes} from 'node:crypto'
+import {ServiceIdentity} from './service-identity.js'
 
 // Single-replica, ephemeral sessions. Restart requires central SSO again.
 // Neither tokens nor PKCE verifiers are written into the business data volume.
@@ -29,8 +30,10 @@ export function createSogIdentity({store,roles,env=process.env}){
   return user&&Object.hasOwn(roles,user.role)?{id:user.id,role:user.role,user,via:'val-sso'}:null
  }
  const client=new FirstPartyClient({store:new EphemeralIdentityStore(),origin:env.VAL_SOG_ORIGIN,issuer,clientId:'val-sog',tenantId,resolveAccount,test:env.NODE_ENV==='test'&&env.VAL_IDENTITY_TEST==='true'})
+ const serviceIdentity=env.VAL_SERVICE_TRUST_JSON&&env.VAL_SERVICE_VERIFICATION_JWKS?new ServiceIdentity({store,issuer,audience:'val-sog',services:JSON.parse(env.VAL_SERVICE_TRUST_JSON),signingJwk:env.VAL_SERVICE_SIGNING_JWK?JSON.parse(env.VAL_SERVICE_SIGNING_JWK):undefined,verificationJwks:JSON.parse(env.VAL_SERVICE_VERIFICATION_JWKS)}):null
  const redirect=(res,location,cookies)=>{res.writeHead(303,{Location:location,'Cache-Control':'no-store',...(cookies?{'Set-Cookie':cookies}:{})});res.end()}
- return {enabled:true,client,resolveAccount,async handle(req,res,url){
+ return {enabled:true,client,serviceIdentity,resolveAccount,async handle(req,res,url){
+  if(url.pathname==='/api/identity/service/health'){if(req.method!=='GET')throw fault('method_not_allowed',405);if(url.search)throw fault('service_request_denied',401);const token=String(req.headers.authorization||'').match(/^Bearer (.+)$/)?.[1];if(!serviceIdentity||!token)throw fault('service_auth_denied',401);await serviceIdentity.verify(token,{tenantId,scope:'sog.integration.health',method:'GET',path:url.pathname});res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify({status:'ok',service:'val-sog',identity:'service'}));return true}
   if(url.pathname==='/auth/oidc/start'&&req.method==='GET'){const result=await client.start();redirect(res,result.url,result.cookie);return true}
   if(url.pathname==='/auth/oidc/callback'&&req.method==='GET'){const result=await client.callbackRequest(req);redirect(res,'/',[result.cookie,result.clearState]);return true}
   return false
