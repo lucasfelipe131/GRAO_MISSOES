@@ -60,10 +60,10 @@ test('código de acesso protege a API quando configurado',async()=>{
 })
 
 test('preço C.Vale manual, comparativo automático e salvamento das leituras',async()=>{
- const todayBr=new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}).format(new Date())
+ const todayBr=new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}).format(new Date(Date.now()-86400000))
  const html=`<html><body><table><tr><th>Data</th><th>Soja</th><th>Milho</th></tr><tr><td>${todayBr}</td><td>R$ 143,00</td><td>R$ 61,00</td></tr></table></body></html>`
  const site=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(html)});await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
- const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id}:s)}
+ const real=loadSources();const sourcesOverride={...real,indicators:[],regional:[],sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id,fetch:{...s.fetch,urls:[]}}:s)}
  const {server,base}=await start({sourcesOverride})
  try{
   const producer=(await call(base,'POST','/api/producers',{name:'Ana',area_soja:100,yield_soja:60})).data.producer
@@ -74,7 +74,7 @@ test('preço C.Vale manual, comparativo automático e salvamento das leituras',a
   assert.equal(refresh.status,200);assert.ok(refresh.data.comparison.okCount>=1)
   const coop=refresh.data.comparison.results.find(r=>r.sourceId==='coopatrigo');assert.equal(coop.prices.soja.price,143)
   const saved=await call(base,'POST','/api/comparison/save',{sourceId:'coopatrigo',commodity:'soja'})
-  assert.equal(saved.status,201);assert.equal(saved.data.quotes[0].automatic,true);assert.match(saved.data.quotes[0].notes,/Leitura automática/)
+  assert.equal(saved.status,201,JSON.stringify(saved.data));assert.equal(saved.data.quotes[0].automatic,true);assert.match(saved.data.quotes[0].notes,/Leitura automática/)
   const analysis=await call(base,'POST','/api/analyze',{producerId:producer.id,commodity:'soja',volume:1000,targetPrice:150,deliveryLocation:'São Luiz Gonzaga'})
   const comp=analysis.data.analysis.marketReading.competition
   assert.equal(comp.own.price,140.5);assert.equal(comp.best.sourceName,'Coopatrigo');assert.equal(comp.gapSc,2.5)
@@ -322,3 +322,4 @@ test('regiões: leitura por praça, busca por GPS ou nome, mapa de produtores e 
   const noImg=await fetch(base+'/api/reports/mapa.pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});assert.equal(noImg.status,200);assert.equal(noImg.headers.get('x-map-image'),'0')
  }finally{server.close();site.close()}
 })
+

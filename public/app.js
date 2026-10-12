@@ -57,7 +57,7 @@ $('#myPassword').addEventListener('click',async()=>{const cur=prompt('Senha atua
 const COMMODITY_COLORS={soja:'#3A7D34',milho:'#D28A00',trigo:'#8C7A00',canola:'#1E9E6A',arroz:'#5B6B7C',sorgo:'#B3457A',aveia:'#7A5AF8'}
 function applyRole(){
  const s=state.session;const tabs=s?.tabs||[];const write=s?.write||[]
- $('#who').hidden=!s?.role;if(s?.role){$('#roleBadge').textContent=s.roleLabel;const name=s.user?.name||s.user?.username||(s.via==='codigo'?'Código da equipe':'Equipe');$('#userName').textContent=name;$('#userAvatar').textContent=name.split(/\s+/).slice(0,2).map(p=>p[0]||'').join('').toUpperCase()||'VS';$('#myPassword').hidden=!s.user}
+ $('#who').hidden=!s?.role;if(s?.role){$('#roleBadge').textContent=s.roleLabel;const name=s.user?.name||s.user?.username||(s.via==='codigo'?'Código da equipe':'Equipe');$('#userName').textContent=name;$('#userAvatar').textContent=name.split(/\s+/).slice(0,2).map(p=>p[0]||'').join('').toUpperCase()||'VS';$('#myPassword').hidden=!s.user||s.identityEnabled}
  $$('.tabs button').forEach(b=>{b.hidden=Boolean(s?.role)&&!tabs.includes(b.dataset.tab)})
  if(s?.role&&!tabs.includes(currentTab)){goTab(tabs[0]||'painel')}
  renumberTabs()
@@ -701,5 +701,6 @@ if(formMap){
  $('#producerMapClear').addEventListener('click',()=>{pform.lat.value='';pform.lon.value='';$('#producerMapHint').textContent='Pin removido; salve o produtor para gravar.';drawFormMap()})
  document.addEventListener('tabchange',e=>{if(e.detail==='produtores')requestAnimationFrame(()=>focusFormMap())})
 }
-;(async()=>{try{const s=await fetch('/api/session',{headers:authHeaders()}).then(r=>r.json());if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
+;(async()=>{try{const s=await fetch('/api/session',{headers:authHeaders()}).then(r=>r.json());if(s.identityEnabled){$('#valReturn').hidden=false;$('#valSsoLogin').hidden=false;$('#loginForm').hidden=true;$('.codelogin').hidden=true;$('#login h1').textContent='Acesso único VAL';$('#login h1 + p').textContent='Entre com sua conta VAL e confirme o código do Authenticator. Não é necessário criar outra conta ou senha no SOG.'}if(s.protected&&!s.authorized){showLogin(true);return}state.session=s;await load()}catch(e){status('Servidor indisponível.',0)}})()
 })()
+

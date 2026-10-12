@@ -33,7 +33,7 @@ test('comparativo lê fontes em paralelo, tolera falhas e nunca inclui a fonte p
  await new Promise(r=>server.listen(0,r));const base=`http://127.0.0.1:${server.address().port}`
  const fake=[
   {id:'cvale',name:'C.Vale',own:true,url:base+'/coop',fetch:{strategy:'keyword',keywords:{soja:['soja']}},priceUnit:'BRL/sc_60kg'},
-  {id:'coopatrigo',name:'Coopatrigo',url:base+'/coop',fetch:sources.find(s=>s.id==='coopatrigo').fetch,priceUnit:'BRL/sc_60kg'},
+  {id:'coopatrigo',name:'Coopatrigo',url:base+'/coop',fetch:{...sources.find(s=>s.id==='coopatrigo').fetch,urls:[]},priceUnit:'BRL/sc_60kg'},
   {id:'cepea-soja-paranagua',name:'CEPEA',url:base+'/cepea',fetch:{strategy:'table-latest',commodity:'soja'},priceUnit:'BRL/sc_60kg'},
   {id:'quebrada',name:'Quebrada',url:base+'/erro',fetch:{strategy:'keyword',keywords:{soja:['soja']}},priceUnit:'BRL/sc_60kg'},
   {id:'lenta',name:'Lenta',url:base+'/lento',fetch:{strategy:'keyword',keywords:{soja:['soja']}},priceUnit:'BRL/sc_60kg'},
@@ -158,3 +158,4 @@ test('indicadores: dólar e Chicago exigem número decimal na linha do contrato 
  const server=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(req.url.includes('dolar')?dolar:'<html>vazio</html>')});await new Promise(r=>server.listen(0,r));const base='http://127.0.0.1:'+server.address().port
  try{const out=await runIndicators([{key:'dolar',label:'Dólar',url:base+'/nada',urls:[base+'/dolar'],unit:'BRL/USD',format:'R$ {v}',decimals:4,fetch:{range:[3,9],rowKeys:['dolar comercial']}},{key:'x',label:'X',url:base+'/nada',fetch:{range:[1,2]}}],{now:new Date('2026-09-28T12:00:00Z')});assert.equal(out.okCount,1);assert.equal(out.results[0].display,'R$ 5,3812');assert.equal(out.results[0].attempts.length,2);const cme=await runIndicators([{key:'s',label:'Chicago soja',url:base+'/cme',format:'US$ {usd}/bu',fetch:{range:[700,2200],rowPattern:pattern}}],{fetchImpl:async()=>new Response('<h1>Cotações Mercado Futuro da Soja</h1><table><tr><td>NOV 2026</td><td>1.288,50</td></tr></table>',{status:200,headers:{'Content-Type':'text/html'}})});assert.equal(cme.results[0].display,'US$ 12,89/bu');assert.equal(out.results[1].status,'empty')}finally{server.close()}
 })
+

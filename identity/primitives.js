@@ -1,0 +1,19 @@
+import {createHash,createHmac,createCipheriv,createDecipheriv,randomBytes,randomUUID,timingSafeEqual} from 'node:crypto'
+
+export const fault=(code,statusCode=403)=>Object.assign(new Error(code),{code,statusCode})
+export const digest=value=>createHash('sha256').update(String(value)).digest('hex')
+export const opaque=()=>randomBytes(32).toString('base64url')
+export const uuid=()=>randomUUID()
+export const equal=(a,b)=>{const x=Buffer.from(String(a||'')),y=Buffer.from(String(b||''));return x.length===y.length&&timingSafeEqual(x,y)}
+export const requireKey=key=>{if(!/^[a-f0-9]{64}$/i.test(key||''))throw fault('identity_vault_not_configured',503);return Buffer.from(key,'hex')}
+export function seal(value,key,aad){const iv=randomBytes(12),c=createCipheriv('aes-256-gcm',requireKey(key),iv);c.setAAD(Buffer.from(aad));const bytes=Buffer.concat([c.update(JSON.stringify(value)),c.final()]);return [iv,c.getAuthTag(),bytes].map(x=>x.toString('base64url')).join('.')}
+export function unseal(value,key,aad){try{const [iv,tag,bytes]=String(value).split('.').map(x=>Buffer.from(x,'base64url'));const c=createDecipheriv('aes-256-gcm',requireKey(key),iv);c.setAAD(Buffer.from(aad));c.setAuthTag(tag);return JSON.parse(Buffer.concat([c.update(bytes),c.final()]))}catch{throw fault('identity_record_invalid',401)}}
+export function canonicalOrigin(value,{test=false}={}){let u;try{u=new URL(value)}catch{throw fault('identity_origin_invalid',503)}if(u.username||u.password||u.search||u.hash||u.pathname!=='/'||u.protocol!=='https:'&&!(test&&u.protocol==='http:'&&['localhost','127.0.0.1'].includes(u.hostname)))throw fault('identity_tls_required',503);return u.origin}
+export function localReturn(value='/'){if(typeof value!=='string'||!value.startsWith('/')||value.startsWith('//')||/[\\\r\n]/.test(value)||/%(?:2f|5c|0a|0d)/i.test(value)||value.length>512)throw fault('return_url_denied');const u=new URL(value,'https://local.invalid');if(u.origin!=='https://local.invalid'||[...u.searchParams.keys()].some(k=>/token|password|secret|session|cpf|cnpj/i.test(k)))throw fault('return_url_denied');return value}
+export function cookieValue(req,name){return String(req.headers.cookie||'').split(';').map(v=>v.trim()).find(v=>v.startsWith(name+'='))?.slice(name.length+1)||''}
+export function sessionCookie(name,value,{secure=true,maxAge=43200}={}){return `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure?'; Secure':''}`}
+export function assertSameOrigin(req,origin,{allowBinary=false}={}){if(['GET','HEAD','OPTIONS'].includes(req.method))return;const site=req.headers['sec-fetch-site'];if(site&&site!=='same-origin'&&site!=='none')throw fault('cross_origin_write_denied');if(req.headers.origin!==origin)throw fault('cross_origin_write_denied');const type=String(req.headers['content-type']||'');const empty=!type&&!req.headers['transfer-encoding']&&Number(req.headers['content-length']||0)===0;if(!empty&&!type.startsWith('application/json')&&!(allowBinary&&type==='application/octet-stream'))throw fault('json_write_required',415)}
+export const minimizedDevice=req=>({deviceId:digest(String(req.headers['user-agent']||'')).slice(0,16),agent:/Firefox/i.test(req.headers['user-agent']||'')?'Firefox':/Edg\//.test(req.headers['user-agent']||'')?'Edge':/Chrome/.test(req.headers['user-agent']||'')?'Chrome':/Safari/.test(req.headers['user-agent']||'')?'Safari':'Outro'})
+const eventFields=new Set(['method','originApp','destinationApp','reason','count','policyRef','classification','state','authLevel','device','keyId','serviceId','scope','incidentId'])
+export function safeEventData(value={}){return Object.fromEntries(Object.entries(value).filter(([k,v])=>eventFields.has(k)&&['string','number','boolean'].includes(typeof v)).map(([k,v])=>[k,typeof v==='string'?v.slice(0,150):v]))}
+export const keyedId=(key,value)=>createHmac('sha256',requireKey(key)).update(String(value)).digest('hex')
