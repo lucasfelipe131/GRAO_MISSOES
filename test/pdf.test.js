@@ -203,3 +203,20 @@ test('relatório de recebimentos por unidade: comparativo, metas, gráfico diár
  const soja=receiptsByUnitReport({units,readings,receipts,filters:{commodity:'soja',from:'2026-09-20',to:'2026-09-27'},now});assert.equal(soja.count,8)
  const none=receiptsByUnitReport({units:[],receipts:[],now});assert.equal(none.count,0);assert.match(none.buffer.toString('latin1'),/Nenhuma unidade/)
 })
+
+test('relatório de qualidade por unidade: matriz, parâmetros contra o padrão, evolução, recebimentos, alertas e padrões',async()=>{
+ const {qualityByUnitReport}=await import('../lib/reports.js')
+ const now=new Date('2026-09-27T12:00:00Z')
+ const units=[{id:'u1',name:'Unidade São Luiz',municipality:'São Luiz Gonzaga',kind:'silo',capacityT:12000,goals:{soja:9000}},{id:'u2',name:'Bossoroca',capacityT:3000,goals:{}}]
+ const readings=[];for(let d=1;d<=27;d+=3)readings.push({id:'r'+d,unitId:'u1',commodity:'soja',date:`2026-09-${String(d).padStart(2,'0')}`,quantityT:6000+d*50,params:{moisture:13+d*0.07,temperature:20+d*0.25,impurities:0.8}})
+ readings.push({id:'t1',unitId:'u2',commodity:'trigo',date:'2026-09-26',quantityT:900,params:{moisture:12.5,ph:80}})
+ readings.push({id:'m1',unitId:'u1',commodity:'milho',date:'2026-09-10',quantityT:800,params:{}})
+ const receipts=[];for(let d=1;d<=20;d++)receipts.push({id:'x'+d,unitId:'u1',commodity:'soja',date:`2026-09-${String(d).padStart(2,'0')}`,quantityT:100,loads:3,params:{moisture:d%4?13.5:15.5}})
+ const out=qualityByUnitReport({units,readings,receipts,filters:{},now,user:'teste'});const t=out.buffer.toString('latin1')
+ assert.equal(out.count,3);assert.match(out.filename,/^qualidade-por-unidade-2026-09-27\.pdf$/)
+ for(const needle of ['Qualidade dos gr','unidade e gr','Unidade S','Bossoroca','Soja','Trigo','Umidade','Temperatura da massa','Evolu','Recebimentos no per','acima de 14,0%','Padr','IN MAPA'])assert.ok(new RegExp(needle).test(t),needle)
+ assert.ok(/Aten|Fora do padr/.test(t),'situação de atenção ou fora')
+ assert.ok((t.match(/ l S/g)||[]).length>20,'gráfico de evolução desenhado')
+ const only=qualityByUnitReport({units,readings,receipts,filters:{unitId:'u2'},now});assert.equal(only.count,1);assert.doesNotMatch(only.buffer.toString('latin1'),/Soja/)
+ const none=qualityByUnitReport({units:[],readings:[],receipts:[],now});assert.equal(none.count,0);assert.match(none.buffer.toString('latin1'),/Nenhuma unidade/)
+})

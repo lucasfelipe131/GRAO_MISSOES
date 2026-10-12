@@ -445,6 +445,7 @@ $('#requestsReportForm').addEventListener('submit',e=>{e.preventDefault();downlo
 $('#quotesReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('cotacoes',formData(e.target))})
 $('#producersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('produtores',formData(e.target))})
 $('#storageReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('armazenagem',formData(e.target))})
+$('#qualityByUnitPdf')?.addEventListener('click',()=>downloadPdf('qualidade-unidade',formData($('#storageReportForm'))))
 $('#receiptsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('recebimentos',formData(e.target))})
 $('#receiptsByUnitPdf')?.addEventListener('click',()=>downloadPdf('recebimentos-unidade',formData($('#receiptsReportForm'))))
 $$('[data-report=geral]').forEach(b=>b.addEventListener('click',()=>{const f=b.closest('form');const p=formData(f);downloadPdf('geral',{from:p.from,to:p.to})}))
