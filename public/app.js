@@ -446,6 +446,7 @@ $('#quotesReportForm').addEventListener('submit',e=>{e.preventDefault();download
 $('#producersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('produtores',formData(e.target))})
 $('#storageReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('armazenagem',formData(e.target))})
 $('#receiptsReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('recebimentos',formData(e.target))})
+$('#receiptsByUnitPdf')?.addEventListener('click',()=>downloadPdf('recebimentos-unidade',formData($('#receiptsReportForm'))))
 $$('[data-report=geral]').forEach(b=>b.addEventListener('click',()=>{const f=b.closest('form');const p=formData(f);downloadPdf('geral',{from:p.from,to:p.to})}))
 function resetUnitForm(){const f=$('#unitForm');f.reset();f.id.value='';$('#unitFormTitle').textContent='Cadastrar unidade de recebimento';$('#unitCancel').hidden=true}
 $('#unitCancel').addEventListener('click',resetUnitForm)

@@ -121,6 +121,7 @@ Todas as rotas de `/api/`, exceto `/api/session` e `/api/login`, exigem sessão 
 | `/api/login` | POST | público | usuário e senha (ou código) → sessão |
 | `/api/reports/ofertas.pdf` | GET | todos | relatório de ofertas em PDF (filtros from, to, status, producerId, commodity) |
 | `/api/reports/recebimentos.pdf` | GET | todos | relatório de recebimentos em PDF (from, to, unitId, commodity), com metas da safra |
+| `/api/reports/recebimentos-unidade.pdf` | GET | todos | recebimentos por unidade (from, to, unitId, commodity; sem datas, 30 dias): comparativo entre unidades e, por unidade, metas da safra, gráfico diário por grão com a linha de recebimento/dia, totais por grão e por produtor e a lista dos recebimentos |
 | `/api/reports/pedidos.pdf` | GET | todos | pedidos e análises dos produtores (from, to, status, producerId, commodity; detail=0 só a tabela) |
 | `/api/reports/pedidas.pdf` | GET | todos | histórico de pedidas dos produtores (from, to, producerId, commodity; detail=0 só os resumos): pedidas por grão, resumo por produtor e grão (média, mín., máx., última, vs C.Vale do dia, oferta − pedida, aceite, fechou vs pedida, tendência) e a lista das pedidas de cada produtor com as dicas de conversa |
 | `/api/reports/pedido/:id.pdf` | GET | todos | análise personalizada de um pedido para entregar ao produtor |

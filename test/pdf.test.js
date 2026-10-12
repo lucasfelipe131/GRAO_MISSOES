@@ -186,3 +186,20 @@ test('relatório do comparativo de compradores: matriz por grão, melhor comprad
  assert.doesNotMatch(t,/Velha/)
  const empty=comparisonReport({quotes:[],comparison:null,portSources:[],now});assert.equal(empty.count,0);assert.match(empty.buffer.toString('latin1'),/Nenhuma cota/)
 })
+
+test('relatório de recebimentos por unidade: comparativo, metas, gráfico diário, grãos, produtores e lista',async()=>{
+ const {receiptsByUnitReport}=await import('../lib/reports.js')
+ const now=new Date('2026-09-27T12:00:00Z')
+ const units=[{id:'u1',name:'Unidade São Luiz',municipality:'São Luiz Gonzaga',kind:'silo',capacityT:12000,receivingTDay:600,goals:{soja:9000,milho:1500},season:'2026/27',seasonStart:'2026-09-01',seasonEnd:'2027-01-31'},{id:'u2',name:'Bossoroca',capacityT:3000,goals:{}}]
+ const receipts=[];for(let d=1;d<=27;d++){receipts.push({id:'r'+d,unitId:'u1',commodity:'soja',date:`2026-09-${String(d).padStart(2,'0')}`,quantityT:100+d,loads:3,producerName:d%2?'João da Silva':'Maria',params:{moisture:d%5?13.5:15.2}});if(d%3===0)receipts.push({id:'m'+d,unitId:'u1',commodity:'milho',date:`2026-09-${String(d).padStart(2,'0')}`,quantityT:40,loads:1,producerName:'Pedro',params:{moisture:14}})}
+ receipts.push({id:'b1',unitId:'u2',commodity:'trigo',date:'2026-09-20',quantityT:80,loads:2,producerName:'Ana',params:{moisture:12.5}})
+ const readings=[{id:'rd1',unitId:'u1',commodity:'soja',date:'2026-09-26',quantityT:3000,params:{moisture:13}}]
+ const out=receiptsByUnitReport({units,readings,receipts,filters:{},now,user:'teste'});const t=out.buffer.toString('latin1')
+ assert.equal(out.count,37);assert.match(out.filename,/^recebimentos-por-unidade-30d-2026-09-27\.pdf$/)
+ for(const needle of ['Recebimentos por unidade','Comparativo entre unidades','Unidade S','Bossoroca','Metas da safra','Recebimento di','Por gr','Por produtor','Jo','Maria','Pedro','Ana','recebimento/dia 600 t','Em risco','No ritmo','Em andamento','Atingida'].filter(x=>!['Em risco','No ritmo','Em andamento','Atingida'].includes(x)))assert.ok(t.includes(needle),needle)
+ assert.ok(['Em risco','No ritmo','Em andamento','Atingida'].some(x=>t.includes(x)),'situação da meta')
+ assert.ok((t.match(/ re f/g)||[]).length>60,'barras do gráfico desenhadas')
+ const only=receiptsByUnitReport({units,readings,receipts,filters:{unitId:'u2'},now});assert.equal(only.count,1);assert.doesNotMatch(only.buffer.toString('latin1'),/Pedro/);assert.match(only.buffer.toString('latin1'),/1 unidade/)
+ const soja=receiptsByUnitReport({units,readings,receipts,filters:{commodity:'soja',from:'2026-09-20',to:'2026-09-27'},now});assert.equal(soja.count,8)
+ const none=receiptsByUnitReport({units:[],receipts:[],now});assert.equal(none.count,0);assert.match(none.buffer.toString('latin1'),/Nenhuma unidade/)
+})
