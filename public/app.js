@@ -436,6 +436,7 @@ async function downloadPdf(kind,params,{post=null}={}){
  catch(e){status(e.message,6000)}
 }
 $('#offersReportForm').addEventListener('submit',e=>{e.preventDefault();downloadPdf('ofertas',formData(e.target))})
+$('#offersByProducerPdf')?.addEventListener('click',()=>downloadPdf('ofertas-produtor',formData($('#offersReportForm'))))
 $('#pricesPdf')?.addEventListener('click',()=>downloadPdf('precos',{}))
 $('#cmpPdf')?.addEventListener('click',()=>downloadPdf('comparativo',{}))
 $('#cmpDashPdf')?.addEventListener('click',()=>downloadPdf('comparativo',{}))
