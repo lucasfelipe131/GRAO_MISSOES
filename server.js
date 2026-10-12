@@ -4,6 +4,7 @@ import {dirname,extname,join,normalize,resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
+import {createValBridge} from './lib/val-bridge.js'
 import {hashPassword,makeToken,normalizeUserInput,publicUser,verifyPassword,verifyToken} from './lib/auth.js'
 import {jpegSize} from './lib/pdf.js'
 import {askingReport,comparisonReport,dashboardReport,qualityByUnitReport,receiptsByUnitReport,generalReport,mapReport,marketReport,pracaReport,priceYearReport,regionReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport,storageReport} from './lib/reports.js'
@@ -26,8 +27,9 @@ export const roles={
  operador:{label:'Operador de compra de grãos',tabs:['painel','pedidos','cotacoes','produtores','ofertas','mapa','precos','armazenagem','praca'],write:['comercial','cotacoes']},
  armazem:{label:'Encarregado de armazém',tabs:['painel','cotacoes','mapa','precos','armazenagem','praca'],write:['armazem']}
 }
-export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',accessCodes=null,fetchImpl=globalThis.fetch,sourcesOverride=null,autoSave=!/^(0|false|off|nao|não)$/i.test(String(process.env.AUTO_SAVE||'true')),seedHistory=true}={}){
+export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',accessCodes=null,fetchImpl=globalThis.fetch,sourcesOverride=null,autoSave=!/^(0|false|off|nao|não)$/i.test(String(process.env.AUTO_SAVE||'true')),seedHistory=true,valBridge={}}={}){
  const store=createStore(dataDir)
+ const bridge=createValBridge({store,...valBridge})
  const praca=loadPraca()
  const sources=sourcesOverride||loadSources()
  const ownSource=sources.sources.find(item=>item.own)||null
@@ -245,7 +247,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const server=createServer(async(request,response)=>{
   const url=new URL(request.url,'http://localhost')
   if(url.pathname.startsWith('/api/')||url.pathname==='/health'){
-   try{const handled=await api(request,response,url);if(handled===false)json(response,404,{error:'Rota não encontrada.'})}
+   try{if(await bridge.handle(request,response,url))return;const handled=await api(request,response,url);if(handled===false)json(response,404,{error:'Rota não encontrada.'})}
    catch(error){json(response,Number(error.statusCode)||400,{error:error.message||'Não foi possível concluir a operação.'})}
    return
   }
