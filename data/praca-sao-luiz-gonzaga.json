@@ -54,6 +54,14 @@
       "confidence": 70
     },
     {
+      "name": "Cotripal",
+      "type": "cooperative",
+      "municipality": "Panambi",
+      "note": "Cooperativa de Panambi com bases de recebimento em Pejuçara, Condor, Santa Bárbara do Sul, Ijuí, Cruz Alta e outras unidades; cota soja, milho e trigo por tipo (1, 2 e 3), com preço por base conforme o frete. Lista de bases e descontos por tipo a confirmar com a cooperativa.",
+      "url": "https://www.cotripal.com.br/",
+      "confidence": 60
+    },
+    {
       "name": "Cotrisa",
       "type": "cooperative",
       "municipality": "Santo Ângelo",

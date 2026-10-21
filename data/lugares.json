@@ -1158,6 +1158,55 @@
    "lat": -10.885,
    "lon": -61.952,
    "kind": "praca"
+  },
+  {
+   "name": "Pejuçara",
+   "uf": "RS",
+   "lat": -28.428,
+   "lon": -53.658,
+   "kind": "municipio"
+  },
+  {
+   "name": "Condor",
+   "uf": "RS",
+   "lat": -28.208,
+   "lon": -53.49,
+   "kind": "municipio"
+  },
+  {
+   "name": "Saldanha Marinho",
+   "uf": "RS",
+   "lat": -28.394,
+   "lon": -53.095,
+   "kind": "municipio"
+  },
+  {
+   "name": "Fortaleza dos Valos",
+   "uf": "RS",
+   "lat": -28.799,
+   "lon": -53.224,
+   "kind": "municipio"
+  },
+  {
+   "name": "Nova Ramada",
+   "uf": "RS",
+   "lat": -28.064,
+   "lon": -53.699,
+   "kind": "municipio"
+  },
+  {
+   "name": "Bozano",
+   "uf": "RS",
+   "lat": -28.363,
+   "lon": -53.773,
+   "kind": "municipio"
+  },
+  {
+   "name": "Coronel Barros",
+   "uf": "RS",
+   "lat": -28.391,
+   "lon": -54.067,
+   "kind": "municipio"
   }
  ]
 }

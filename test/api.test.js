@@ -322,3 +322,27 @@ test('regiões: leitura por praça, busca por GPS ou nome, mapa de produtores e 
   const noImg=await fetch(base+'/api/reports/mapa.pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});assert.equal(noImg.status,200);assert.equal(noImg.headers.get('x-map-image'),'0')
  }finally{server.close();site.close()}
 })
+
+test('preço C.Vale do trigo por tipo e leitura automática da Cotripal com tipos 2 e 3',async()=>{
+ const html=`<html><body><h1>Cotações</h1><p>21/10/2026</p><p>Soja R$ 141,00</p><p>Milho R$ 59,00</p><p>Trigo Tipo 1 R$ 81,00</p><p>Trigo Tipo 2 R$ 73,00</p><p>Trigo Tipo 3 R$ 65,00</p></body></html>`
+ const site=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(html)});await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
+ const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.id==='cotripal'?{...s,url:siteBase+'/cotripal',fetch:{...s.fetch,urls:[]}}:s.fetch&&!s.own?{...s,url:'http://127.0.0.1:1/'+s.id,fetch:{...s.fetch,urls:[]}}:s)}
+ const {server,base}=await start({sourcesOverride})
+ try{
+  const own=await call(base,'POST','/api/own-quotes',{trigo:'80',trigo_tipo2:'72',trigo_tipo3:'',soja:''})
+  assert.equal(own.status,201);assert.equal(own.data.quotes.length,2);assert.deepEqual(own.data.quotes.map(q=>[q.commodity,q.grade,q.price]),[['trigo','tipo1',80],['trigo','tipo2',72]])
+  const manual=await call(base,'POST','/api/quotes',{sourceId:'cotrisal',commodity:'trigo',grade:'tipo3',price:'63',observedAt:new Date().toISOString()})
+  assert.equal(manual.status,201);assert.equal(manual.data.quote.grade,'tipo3');assert.equal(manual.data.quote.sourceName,'Cotrisal')
+  assert.equal((await call(base,'POST','/api/quotes',{sourceId:'cotripal',commodity:'trigo',grade:'tipo9',price:'63',observedAt:new Date().toISOString()})).status,400)
+  const refresh=await call(base,'POST','/api/comparison/refresh');const cot=refresh.data.comparison.results.find(r=>r.sourceId==='cotripal')
+  assert.equal(cot.status,'ok');assert.equal(cot.prices.trigo.price,81);assert.equal(cot.prices['trigo:tipo2'].price,73);assert.equal(cot.prices['trigo:tipo3'].price,65)
+  const saved=await call(base,'POST','/api/comparison/save',{sourceId:'cotripal',commodity:'trigo:tipo2'})
+  assert.equal(saved.status,201);assert.equal(saved.data.quotes[0].commodity,'trigo');assert.equal(saved.data.quotes[0].grade,'tipo2');assert.equal(saved.data.quotes[0].price,73);assert.equal(saved.data.quotes[0].automatic,true)
+  const boot=await call(base,'GET','/api/bootstrap')
+  assert.equal(boot.data.catalog.wheatGrades.length,3);assert.ok(boot.data.catalog.sources.find(s=>s.id==='cotripal').bases.length>=10)
+  const trigo=boot.data.market.commodities.find(c=>c.commodity==='trigo');assert.equal(trigo.own.price,80)
+  assert.ok(boot.data.market.wheat);assert.equal(boot.data.market.wheat.grades[1].own.price,72);assert.equal(boot.data.market.wheat.grades[1].ownDiscount,-8);assert.equal(boot.data.market.wheat.grades[2].best.sourceName,'Cotripal — Panambi');assert.equal(boot.data.market.wheat.grades[2].best.price,65);assert.equal(boot.data.market.wheat.grades[2].sources,2);assert.equal(boot.data.market.wheat.grades[2].own,null)
+  const quotesList=boot.data.quotes.filter(q=>q.commodity==='trigo');assert.ok(quotesList.every(q=>['','tipo1','tipo2','tipo3'].includes(q.grade)));assert.ok(quotesList.some(q=>q.grade==='tipo3'&&q.automatic))
+  const pdf=await fetch(base+'/api/reports/mercado.pdf');assert.equal(pdf.status,200);const t=Buffer.from(await pdf.arrayBuffer()).toString('latin1');assert.ok(/Trigo por tipo/.test(t))
+ }finally{server.close();site.close()}
+})
