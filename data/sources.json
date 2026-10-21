@@ -1,6 +1,6 @@
 {
-  "version": "fontes-v16",
-  "updatedAt": "2026-09-27",
+  "version": "fontes-v17",
+  "updatedAt": "2026-10-21",
   "sources": [
     {
       "id": "cvale",
@@ -36,6 +36,9 @@
           ]
         },
         "window": 160
+      },
+      "priceBasis": {
+        "trigo": "Tipo 1 (pH 78) é a base de negociação; tipos 2 e 3 com desconto conforme tabela da unidade."
       }
     },
     {
@@ -106,6 +109,8 @@
             "soja"
           ],
           "trigo": [
+            "trigo tipo 1",
+            "trigo t1",
             "trigo"
           ],
           "milho": [
@@ -124,7 +129,21 @@
           "canola",
           "triguilho",
           "triticale"
-        ]
+        ],
+        "grades": {
+          "trigo": {
+            "tipo2": [
+              "trigo tipo 2",
+              "trigo t2",
+              "tipo 2"
+            ],
+            "tipo3": [
+              "trigo tipo 3",
+              "trigo t3",
+              "tipo 3"
+            ]
+          }
+        }
       }
     },
     {
@@ -158,6 +177,8 @@
             "milho"
           ],
           "trigo": [
+            "trigo tipo 1",
+            "trigo t1",
             "trigo (ph 78)",
             "trigo ph 78",
             "trigo"
@@ -166,7 +187,205 @@
             "canola"
           ]
         },
-        "window": 120
+        "window": 120,
+        "grades": {
+          "trigo": {
+            "tipo2": [
+              "trigo tipo 2",
+              "trigo t2",
+              "tipo 2"
+            ],
+            "tipo3": [
+              "trigo tipo 3",
+              "trigo t3",
+              "tipo 3"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "cotripal",
+      "name": "Cotripal — Panambi",
+      "type": "cooperative",
+      "region": "Panambi/RS (Cotripal)",
+      "url": "https://www.cotripal.com.br/",
+      "priceUnit": "BRL/sc_60kg",
+      "marketKind": "spot",
+      "commodities": [
+        "soja",
+        "milho",
+        "trigo"
+      ],
+      "paymentTerms": "",
+      "confidence": 65,
+      "cadence": "diária",
+      "howTo": "Abra a página de cotações da Cotripal, escolha a base (unidade de entrega) na lista e copie o valor em R$ por saca: a cotação muda por base conforme o frete até Panambi. Para trigo, registre o tipo 1 (pH 78) como base de negociação e os tipos 2 e 3 com o desconto publicado. Confira o horário mostrado na página.",
+      "primary": true,
+      "bases": [
+        {
+          "name": "Panambi",
+          "uf": "RS",
+          "region": "Panambi/RS (Cotripal)",
+          "note": "matriz — sede e moinho",
+          "kmFromHome": 186,
+          "kmToPanambi": 0
+        },
+        {
+          "name": "Pejuçara",
+          "uf": "RS",
+          "region": "Pejuçara/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 166,
+          "kmToPanambi": 28
+        },
+        {
+          "name": "Condor",
+          "uf": "RS",
+          "region": "Condor/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 189,
+          "kmToPanambi": 12
+        },
+        {
+          "name": "Santa Bárbara do Sul",
+          "uf": "RS",
+          "region": "Santa Bárbara do Sul/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 218,
+          "kmToPanambi": 34
+        },
+        {
+          "name": "Ijuí",
+          "uf": "RS",
+          "region": "Ijuí/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 133,
+          "kmToPanambi": 54
+        },
+        {
+          "name": "Ajuricaba",
+          "uf": "RS",
+          "region": "Ajuricaba/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 153,
+          "kmToPanambi": 36
+        },
+        {
+          "name": "Jóia",
+          "uf": "RS",
+          "region": "Jóia/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 113,
+          "kmToPanambi": 93
+        },
+        {
+          "name": "Augusto Pestana",
+          "uf": "RS",
+          "region": "Augusto Pestana/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 124,
+          "kmToPanambi": 70
+        },
+        {
+          "name": "Coronel Barros",
+          "uf": "RS",
+          "region": "Coronel Barros/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 114,
+          "kmToPanambi": 73
+        },
+        {
+          "name": "Bozano",
+          "uf": "RS",
+          "region": "Bozano/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 151,
+          "kmToPanambi": 36
+        },
+        {
+          "name": "Nova Ramada",
+          "uf": "RS",
+          "region": "Nova Ramada/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 168,
+          "kmToPanambi": 42
+        },
+        {
+          "name": "Chiapetta",
+          "uf": "RS",
+          "region": "Chiapetta/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 148,
+          "kmToPanambi": 78
+        },
+        {
+          "name": "Cruz Alta",
+          "uf": "RS",
+          "region": "Cruz Alta/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 175,
+          "kmToPanambi": 52
+        },
+        {
+          "name": "Saldanha Marinho",
+          "uf": "RS",
+          "region": "Saldanha Marinho/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 237,
+          "kmToPanambi": 54
+        },
+        {
+          "name": "Fortaleza dos Valos",
+          "uf": "RS",
+          "region": "Fortaleza dos Valos/RS (Cotripal)",
+          "note": "",
+          "kmFromHome": 228,
+          "kmToPanambi": 81
+        }
+      ],
+      "basesNote": "Bases = unidades de recebimento da Cotripal onde o preço é formado; a lista deve ser confirmada com a cooperativa e o preço de cada base vem publicado por ela. km = estimativa rodoviária a partir de São Luiz Gonzaga e até a matriz em Panambi.",
+      "priceBasis": {
+        "trigo": "Tipo 1: pH mín. 78, umidade 13%, FN ≥ 250 s (base de negociação). Tipo 2: pH mín. 76, FN ≥ 220 s. Tipo 3: pH mín. 72, FN ≥ 200 s. Tipos 2 e 3 entram com desconto sobre o tipo 1; DON e giberela conforme tabela.",
+        "soja": "Padrão: umidade 14%, impurezas 1%, avariados até 8%.",
+        "milho": "Padrão: umidade 14%, impurezas 1%, ardidos até 6%."
+      },
+      "fetch": {
+        "strategy": "keyword",
+        "urls": [
+          "https://www.cotripal.com.br/cotacoes",
+          "https://www.cotripal.com.br/cotacao",
+          "https://www.cotripal.com.br/"
+        ],
+        "keywords": {
+          "soja": [
+            "soja"
+          ],
+          "milho": [
+            "milho"
+          ],
+          "trigo": [
+            "trigo tipo 1",
+            "trigo t1",
+            "trigo ph 78",
+            "trigo"
+          ]
+        },
+        "grades": {
+          "trigo": {
+            "tipo2": [
+              "trigo tipo 2",
+              "trigo t2",
+              "tipo 2"
+            ],
+            "tipo3": [
+              "trigo tipo 3",
+              "trigo t3",
+              "tipo 3"
+            ]
+          }
+        },
+        "window": 160
       }
     },
     {

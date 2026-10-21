@@ -154,3 +154,32 @@ test('mercado agora: C.Vale, melhor concorrente, portos, variação do dia e da 
  const canola=m.commodities.find(c=>c.commodity==='canola');assert.equal(canola.praca.best.crusher,true)
  assert.equal(m.indicators[0].key,'dolar');assert.equal(m.indicators[0].ageHours,3);assert.equal(m.lastRead,'2026-09-28T14:00:00Z');assert.ok(m.headlines.some(h=>/Soja: C\.Vale R\$.141,00/.test(h)))
 })
+
+test('trigo por tipo: tipos 2 e 3 ficam fora da referência e aparecem em “wheat” com o desconto sobre o tipo 1',()=>{
+ const now=new Date('2026-10-21T12:00:00.000Z')
+ const q=normalizeQuote({sourceId:'cvale',commodity:'trigo',grade:'2',price:72,observedAt:'2026-10-21T10:00:00Z'})
+ assert.equal(q.grade,'tipo2');assert.equal(q.commodity,'trigo')
+ assert.equal(normalizeQuote({sourceId:'cvale',commodity:'trigo',grade:'Tipo 3',price:60,observedAt:'2026-10-21T10:00:00Z'}).grade,'tipo3')
+ assert.equal(normalizeQuote({sourceId:'cvale',commodity:'soja',grade:'tipo2',price:140,observedAt:'2026-10-21T10:00:00Z'}).grade,'')
+ assert.throws(()=>normalizeQuote({sourceId:'cvale',commodity:'trigo',grade:'4',price:60,observedAt:'2026-10-21T10:00:00Z'}),/tipo do trigo/)
+ const mk=(over)=>({commodity:'trigo',priceUnit:'BRL/sc_60kg',observedAt:'2026-10-21T10:00:00Z',status:'active',...over})
+ const quotes=[
+  mk({sourceId:'cvale',sourceName:'C.Vale — São Luiz Gonzaga',region:'São Luiz Gonzaga (C.Vale)',price:80,grade:'tipo1'}),
+  mk({sourceId:'cvale',sourceName:'C.Vale — São Luiz Gonzaga',region:'São Luiz Gonzaga (C.Vale)',price:72,grade:'tipo2'}),
+  mk({sourceId:'cvale',sourceName:'C.Vale — São Luiz Gonzaga',region:'São Luiz Gonzaga (C.Vale)',price:64,grade:'tipo3'}),
+  mk({sourceId:'cotripal',sourceName:'Cotripal — Panambi',region:'Pejuçara/RS (Cotripal)',price:82}),
+  mk({sourceId:'cotripal',sourceName:'Cotripal — Panambi',region:'Pejuçara/RS (Cotripal)',price:70,grade:'tipo2'}),
+  mk({sourceId:'',sourceName:'Moinho X',region:'Cruz Alta',price:95,grade:'tipo3'})
+ ]
+ const m=buildMarketNow({quotes,praca},{now});const trigo=m.commodities.find(c=>c.commodity==='trigo')
+ assert.equal(trigo.own.price,80);assert.equal(trigo.praca.best.sourceName,'Cotripal — Panambi');assert.equal(trigo.praca.best.price,82);assert.equal(trigo.praca.sources,1)
+ assert.ok(m.wheat);assert.equal(m.wheat.grades.length,3)
+ const [t1,t2,t3]=m.wheat.grades
+ assert.equal(t1.own.price,80);assert.equal(t1.ownDiscount,null);assert.equal(t2.own.price,72);assert.equal(t2.ownDiscount,-8);assert.equal(t2.best.price,70);assert.equal(t2.marketDiscount,-12)
+ assert.equal(t3.own.price,64);assert.equal(t3.best.sourceName,'Moinho X');assert.equal(t3.ownDiscount,-16)
+ assert.ok(m.headlines.some(h=>/Trigo por tipo/.test(h)&&/Tipo 2 C\.Vale R\$\s72,00/.test(h)))
+ const year=buildPriceYear({quotes,praca},{now}).find(c=>c.commodity==='trigo');assert.ok(year.series.own.every(p=>p.p===80))
+ const sources=loadSources();const cotripal=sources.sources.find(s=>s.id==='cotripal')
+ assert.ok(cotripal&&cotripal.bases.length>=10&&cotripal.bases[0].name==='Panambi'&&cotripal.bases.every(b=>b.region&&b.kmFromHome>0));assert.match(cotripal.priceBasis.trigo,/Tipo 1/)
+ assert.ok(praca.buyers.some(b=>b.name==='Cotripal'))
+})

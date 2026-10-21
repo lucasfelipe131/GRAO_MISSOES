@@ -220,3 +220,17 @@ test('relatório de qualidade por unidade: matriz, parâmetros contra o padrão,
  const only=qualityByUnitReport({units,readings,receipts,filters:{unitId:'u2'},now});assert.equal(only.count,1);assert.doesNotMatch(only.buffer.toString('latin1'),/Soja/)
  const none=qualityByUnitReport({units:[],readings:[],receipts:[],now});assert.equal(none.count,0);assert.match(none.buffer.toString('latin1'),/Nenhuma unidade/)
 })
+
+test('relatório de ofertas por produtor: resumo por produtor, cartões e lista das ofertas',async()=>{
+ const {offersByProducerReport}=await import('../lib/reports.js')
+ const now=new Date('2026-09-29T12:00:00Z');const mk=(id,pid,name,d,status,price,ask,vol,closed)=>({id,producerId:pid,producerName:name,createdAt:`2026-09-${String(d).padStart(2,'0')}T10:00:00Z`,status,closedPrice:closed??null,notes:d===5?'ligar na terça':'',offer:{commodity:'soja',commodityLabel:'Soja',volumeSc:vol,deliveryMonth:'2026-11',deliveryLabel:'nov/26',destination:{name:'Rio Grande'},reference:{price:160},freight:{perSc:21},margin:{perSc:3},offerPrice:price,askingPrice:ask,offerTotal:price*vol}})
+ const offers=[mk('o1','p1','João da Silva',5,'aceita',145,150,1000,146),mk('o2','p1','João da Silva',10,'recusada',146,155,500),mk('o3','p1','João da Silva',20,'enviada',147,null,800),mk('o4','p2','Maria',12,'aceita',144,144,2000,144)]
+ const producers=[{id:'p1',name:'João da Silva',municipality:'Bossoroca'},{id:'p2',name:'Maria',municipality:'Santo Ângelo'},{id:'p3',name:'Sem oferta'}]
+ const out=offersByProducerReport({offers,producers,askingHistory:[],filters:{},now,user:'teste'});const t=out.buffer.toString('latin1')
+ assert.equal(out.count,4);assert.match(out.filename,/^ofertas-por-produtor-inicio-hoje\.pdf$/)
+ for(const needle of ['Ofertas por produtor','Resumo por produtor','Jo','Maria','Bossoroca','Rio Grande','nov/26','Aceita','Recusada','Enviada','ligar na ter','50%','100%'])assert.ok(t.includes(needle),needle)
+ assert.doesNotMatch(t,/Sem oferta/)
+ const only=offersByProducerReport({offers,producers,filters:{producerId:'p2'},now});assert.equal(only.count,1);assert.doesNotMatch(only.buffer.toString('latin1'),/Bossoroca/)
+ const summaryOnly=offersByProducerReport({offers,producers,filters:{},detail:false,now});assert.equal(summaryOnly.count,4);assert.doesNotMatch(summaryOnly.buffer.toString('latin1'),/ligar na ter/)
+ const none=offersByProducerReport({offers:[],producers,now});assert.equal(none.count,0);assert.match(none.buffer.toString('latin1'),/Nenhuma oferta/)
+})

@@ -158,3 +158,11 @@ test('indicadores: dólar e Chicago exigem número decimal na linha do contrato 
  const server=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(req.url.includes('dolar')?dolar:'<html>vazio</html>')});await new Promise(r=>server.listen(0,r));const base='http://127.0.0.1:'+server.address().port
  try{const out=await runIndicators([{key:'dolar',label:'Dólar',url:base+'/nada',urls:[base+'/dolar'],unit:'BRL/USD',format:'R$ {v}',decimals:4,fetch:{range:[3,9],rowKeys:['dolar comercial']}},{key:'x',label:'X',url:base+'/nada',fetch:{range:[1,2]}}],{now:new Date('2026-09-28T12:00:00Z')});assert.equal(out.okCount,1);assert.equal(out.results[0].display,'R$ 5,3812');assert.equal(out.results[0].attempts.length,2);const cme=await runIndicators([{key:'s',label:'Chicago soja',url:base+'/cme',format:'US$ {usd}/bu',fetch:{range:[700,2200],rowPattern:pattern}}],{fetchImpl:async()=>new Response('<h1>Cotações Mercado Futuro da Soja</h1><table><tr><td>NOV 2026</td><td>1.288,50</td></tr></table>',{status:200,headers:{'Content-Type':'text/html'}})});assert.equal(cme.results[0].display,'US$ 12,89/bu');assert.equal(out.results[1].status,'empty')}finally{server.close()}
 })
+
+test('Cotripal: trigo tipo 1 é a cotação base e tipos 2 e 3 viram chaves “trigo:tipo2” e “trigo:tipo3”',()=>{
+ const html=`<html><body><h1>Cotações Cotripal</h1><p>Base Panambi — 21/10/2026</p><table><tr><td>Soja</td><td>R$ 140,00</td></tr><tr><td>Milho</td><td>R$ 58,50</td></tr><tr><td>Trigo Tipo 1 (pH 78)</td><td>R$ 80,00</td></tr><tr><td>Trigo Tipo 2</td><td>R$ 72,00</td></tr><tr><td>Trigo Tipo 3</td><td>R$ 64,00</td></tr></table></body></html>`
+ const r=extractFromHtml(html,sources.find(s=>s.id==='cotripal'))
+ assert.equal(r.prices.soja.price,140);assert.equal(r.prices.milho.price,58.5);assert.equal(r.prices.trigo.price,80)
+ assert.equal(r.prices['trigo:tipo2'].price,72);assert.equal(r.prices['trigo:tipo2'].grade,'tipo2');assert.equal(r.prices['trigo:tipo3'].price,64);assert.equal(r.pageDate,'2026-10-21')
+ const coop=extractFromHtml(coopHtml,sources.find(s=>s.id==='coopatrigo'));assert.equal(coop.prices.trigo.price,76);assert.equal(coop.prices['trigo:tipo2'],undefined)
+})
