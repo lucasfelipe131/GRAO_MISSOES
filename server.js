@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url'
 import {randomUUID,timingSafeEqual} from 'node:crypto'
 import {createStore} from './lib/store.js'
 import {createValBridge} from './lib/val-bridge.js'
+import {createSogIdentity} from './identity/runtime.js'
 import {hashPassword,makeToken,normalizeUserInput,publicUser,verifyPassword,verifyToken} from './lib/auth.js'
 import {jpegSize} from './lib/pdf.js'
 import {askingReport,comparisonReport,dashboardReport,offersByProducerReport,qualityByUnitReport,receiptsByUnitReport,generalReport,mapReport,marketReport,pracaReport,priceYearReport,regionReport,normalizeReportFilters,offersReport,producerReport,producersReport,quotesReport,receiptsReport,requestReport,requestsReport,storageReport} from './lib/reports.js'
@@ -27,9 +28,10 @@ export const roles={
  operador:{label:'Operador de compra de grãos',tabs:['painel','pedidos','cotacoes','produtores','ofertas','mapa','precos','armazenagem','praca'],write:['comercial','cotacoes']},
  armazem:{label:'Encarregado de armazém',tabs:['painel','cotacoes','mapa','precos','armazenagem','praca'],write:['armazem']}
 }
-export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',accessCodes=null,fetchImpl=globalThis.fetch,sourcesOverride=null,autoSave=!/^(0|false|off|nao|não)$/i.test(String(process.env.AUTO_SAVE||'true')),seedHistory=true,valBridge={}}={}){
+export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),accessCode=process.env.ACCESS_CODE||'',accessCodes=null,fetchImpl=globalThis.fetch,sourcesOverride=null,autoSave=!/^(0|false|off|nao|não)$/i.test(String(process.env.AUTO_SAVE||'true')),seedHistory=true,valBridge={},identityOptions={}}={}){
  const store=createStore(dataDir)
- const bridge=createValBridge({store,...valBridge})
+ const identity=createSogIdentity({store,roles,...identityOptions})
+ const bridge=createValBridge({store,...valBridge,identity})
  const praca=loadPraca()
  const sources=sourcesOverride||loadSources()
  const ownSource=sources.sources.find(item=>item.own)||null
@@ -73,9 +75,10 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const sameCode=(given,expected)=>given.length===expected.length&&timingSafeEqual(Buffer.from(given),Buffer.from(expected))
  const authSecret=()=>{if(process.env.SESSION_SECRET)return process.env.SESSION_SECRET;const data=store.read();if(data.authSecret)return data.authSecret;return store.update(d=>{d.authSecret=d.authSecret||randomUUID()+randomUUID();return d.authSecret})}
  const activeUsers=data=>(data.users||[]).filter(u=>u.active!==false)
- const isProtected=()=>Object.values(codes).some(list=>list.length)||activeUsers(store.read()).length>0
+ const isProtected=()=>identity.enabled||Object.values(codes).some(list=>list.length)||activeUsers(store.read()).length>0
  const identify=request=>{
   if(request._identity!==undefined)return request._identity
+  if(identity.enabled){request._identity=null;return null}
   const data=store.read();const protectedApp=isProtected()
   if(!protectedApp){request._identity={role:'gerencial',user:null,via:'aberto'};return request._identity}
   const auth=String(request.headers.authorization||'');const token=auth.startsWith('Bearer ')?auth.slice(7).trim():String(request.headers['x-session']||'')
@@ -87,7 +90,7 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const roleOf=request=>identify(request)?.role||null
  const authorized=request=>Boolean(roleOf(request))
  const areaOf=(path,method)=>{if(method==='GET'||path.startsWith('/api/reports/'))return null;if(path==='/api/me/password'||path==='/api/logout')return null;if(path.startsWith('/api/users'))return 'usuarios';if(path.startsWith('/api/storage'))return 'armazem';if(path==='/api/offer-settings')return 'parametros';if(path.startsWith('/api/quotes')||path.startsWith('/api/own-quotes')||path.startsWith('/api/port-quotes')||path.startsWith('/api/comparison'))return 'cotacoes';return 'comercial'}
- const sessionInfo=request=>{const id=identify(request);const role=id?.role||null;const data=store.read();return {protected:isProtected(),authorized:Boolean(role),role,roleLabel:role?roles[role].label:null,via:id?.via||null,user:id?.user?{id:id.user.id,username:id.user.username,name:id.user.name}:null,tabs:role?roles[role].tabs:[],write:role?roles[role].write:[],usersCount:(data.users||[]).length,codesConfigured:Object.values(codes).some(list=>list.length),roles:Object.fromEntries(Object.entries(roles).map(([k,v])=>[k,{label:v.label,tabs:v.tabs,write:v.write,configured:codes[k].length>0}]))}}
+ const sessionInfo=request=>{const id=identify(request);const role=id?.role||null;const data=store.read();return {identityEnabled:identity.enabled,loginUrl:identity.enabled?'/auth/oidc/start':null,valReturnUrl:identity.enabled?(id?.context?.returnUrl||identity.client.issuer+'/'):null,manageAccessUrl:identity.enabled?identity.client.issuer+'/?security=1':null,selectedProducerId:identity.enabled?(id?.context?.producerId||null):null,protected:isProtected(),authorized:Boolean(role),role,roleLabel:role?roles[role].label:null,via:id?.via||null,user:id?.user?{id:id.user.id,username:id.user.username,name:id.user.name}:null,tabs:role?roles[role].tabs:[],write:role?roles[role].write:[],usersCount:(data.users||[]).length,codesConfigured:Object.values(codes).some(list=>list.length),roles:Object.fromEntries(Object.entries(roles).map(([k,v])=>[k,{label:v.label,tabs:v.tabs,write:v.write,configured:codes[k].length>0}]))}}
  const producerOf=(store,id)=>store.producers.find(item=>item.id===id)||null
  const withAnalysis=(store,item,now)=>{const producer=producerOf(store,item.producerId);return analyzeRequest({request:item,producer,quotes:store.quotes,praca},{now})}
 
@@ -95,6 +98,8 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
   const path=url.pathname
   if(path==='/health'||path==='/api/health')return json(response,200,{status:'ok',service:'graos-missoes',praca:praca.id,protected:Boolean(accessCode)})
   if(path==='/api/session'&&request.method==='GET')return json(response,200,sessionInfo(request))
+  if(identity.enabled&&(path==='/api/login'||path==='/api/me/password'))return json(response,403,{error:'Entre com o acesso único da VAL.'})
+  if(identity.enabled&&path==='/api/logout'&&request.method==='POST'){await identity.logout(request,response);return json(response,200,{ok:true,identityEnabled:true,logoutUrl:'/?signed_out=1'})}
   if(path==='/api/login'&&request.method==='POST'){
    const payload=await body(request);const username=text(payload.username,40).toLowerCase();const password=String(payload.password??'')
    if(payload.code&&!username){request.headers['x-access-code']=String(payload.code);request._identity=undefined;const info=sessionInfo(request);if(!info.authorized)return json(response,401,{error:'Código de acesso inválido.'});return json(response,200,{...info,token:null,code:String(payload.code)})}
@@ -250,13 +255,15 @@ export function createApp({dataDir=process.env.DATA_DIR||join(root,'.data'),acce
  const server=createServer(async(request,response)=>{
   const url=new URL(request.url,'http://localhost')
   if(url.pathname.startsWith('/api/')||url.pathname==='/health'){
-   try{if(await bridge.handle(request,response,url))return;const handled=await api(request,response,url);if(handled===false)json(response,404,{error:'Rota não encontrada.'})}
+   try{if(await bridge.handle(request,response,url))return;if(identity.enabled){if(await identity.handle(request,response,url))return;request._identity=await identity.authenticate(request);identity.guard(request)}const handled=await api(request,response,url);if(handled===false)json(response,404,{error:'Rota não encontrada.'})}
    catch(error){json(response,Number(error.statusCode)||400,{error:error.message||'Não foi possível concluir a operação.'})}
    return
   }
+  if(identity.enabled&&url.pathname.startsWith('/auth/oidc/')){try{if(await identity.handle(request,response,url))return;return json(response,404,{error:'Rota não encontrada.'})}catch(error){return json(response,Number(error.statusCode)||400,{error:'Não foi possível entrar pela VAL. Volte à VAL e tente novamente.'})}}
   if(request.method!=='GET')return json(response,405,{error:'Método não permitido.'})
   serveStatic(response,url)
  })
+ server.identity=identity
  server.refreshComparison=refreshComparison
  return server
 }
