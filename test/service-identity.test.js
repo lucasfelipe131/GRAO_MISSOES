@@ -10,6 +10,18 @@ import {digest} from '../identity/primitives.js'
 import {passwordSsoPolicy,PASSWORD_SSO} from '../identity/password-sso.js'
 
 const scope='sog.integration.health',path='/api/identity/service/health'
+test('temporary password policy permits scoped service writes with live proof and retains request/revocation checks',async()=>fixture(async f=>{
+ const tenantId=PASSWORD_SSO.tenantId,actorId='existing-integration-account',scope='sog.link.write',path='/api/integrations/val/link',body='{}'
+ const env={VAL_MFA_DISABLED:'true'},policy=passwordSsoPolicy(env,{issuer:PASSWORD_SSO.issuer,tenantId,origin:'https://web-production-704a3.up.railway.app',clientId:'val-sog'})
+ let proof={active:true,actorId,tenantId,sessionId:'central',authLevel:'AAL1',roleRef:'admin',acr:PASSWORD_SSO.acr,amr:['pwd'],passwordOnlyPolicy:PASSWORD_SSO.temporaryPolicy,passwordAuthenticatedAt:Date.now()-3600000,mfaAuthenticatedAt:null}
+ const verifier=new ServiceIdentity({...f.options,passwordSso:policy,services:f.services.map(s=>({...s,tenants:[tenantId],allowed_scopes:[scope]})),fetcher:async()=>Response.json(proof)})
+ const request={tenantId,scope,path,body,method:'POST',actorId,requireDelegation:true,recentMfa:true}
+ const token=()=>f.sign({tenant_id:tenantId,scope,request_hash:digest('POST\n'+path+'\n'+body),delegated_sub:actorId,session_id:'central',act:{sub:'val-api'}})
+ assert.equal((await verifier.verify(await token(),request)).delegated_sub,actorId)
+ await assert.rejects(verifier.verify(await token(),{...request,body:'changed'}),/service_auth_denied/)
+ proof={...proof,active:false};await assert.rejects(verifier.verify(await token(),request),/service_auth_denied/)
+ proof={...proof,active:true};env.VAL_MFA_DISABLED='false';await assert.rejects(verifier.verify(await token(),request),/service_auth_denied/)
+}))
 test('selected password session may delegate scoped reads, never bridge writes or recent MFA',async()=>fixture(async f=>{
  const tenantId=PASSWORD_SSO.tenantId,actorId='selected',scope='sog.context.read',path='/api/integrations/val/context'
  const env={VAL_TEST_PASSWORD_SSO:'true',VAL_PASSWORD_SSO_SUBJECTS_JSON:JSON.stringify([{subjectId:actorId,roleRef:'technical_reviewer'}])}
