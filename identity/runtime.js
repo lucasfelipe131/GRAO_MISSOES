@@ -46,12 +46,21 @@ export function createSogIdentity({store,roles,env=process.env,fetcher=fetch}){
   if(matches.length!==1||!data.producers.some(p=>p.id===producerId))throw fault('producer_scope_denied')
   return producerId
  }
+ const validatedReturn=(value,{requireReference=false}={})=>{
+  let back
+  try{if(typeof value!=='string')throw Error();back=new URL(value)}catch{throw fault('return_origin_denied',403)}
+  const references=back.searchParams.getAll('producer_ref')
+  if(back.origin!==client.issuer||back.username||back.password||back.pathname!=='/'||back.hash||[...back.searchParams.keys()].some(k=>k!=='producer_ref')||references.length>1||references.some(ref=>!/^[A-Za-z0-9_-]{43}$/.test(ref))||requireReference&&references.length!==1)throw fault('return_origin_denied',403)
+  return back.href
+ }
  const minimalContext=(context,subjectId)=>{
   if(!context||typeof context.linked!=='boolean'||context.linked!==(context.producerId!=null)||typeof context.returnUrl!=='string')throw fault('context_handoff_denied')
-  const back=new URL(context.returnUrl)
-  if(back.origin!==client.issuer||back.username||back.password||back.pathname!=='/'||back.hash||[...back.searchParams.keys()].some(k=>k!=='producer_ref')||back.searchParams.has('producer_ref')&&!/^[A-Za-z0-9_-]{43}$/.test(back.searchParams.get('producer_ref')))throw fault('return_origin_denied')
+  validatedReturn(context.returnUrl)
   if(context.producerId!==null&&(typeof context.producerId!=='string'||!/^[a-zA-Z0-9:_-]{1,180}$/.test(context.producerId)))throw fault('producer_scope_denied')
-  return {linked:context.linked,producerId:context.producerId===null?null:scopedProducer(context.producerId,subjectId),returnUrl:back.href}
+  if(context.valClientId!=null&&(typeof context.valClientId!=='string'||!/^[a-zA-Z0-9:_-]{1,180}$/.test(context.valClientId)))throw fault('context_handoff_denied')
+  // VAL's client id stays in the encrypted RP context; no browser-selected
+  // identifier or frozen one-use return URL is used to restore the producer.
+  return {linked:context.linked,producerId:context.producerId===null?null:scopedProducer(context.producerId,subjectId),returnUrl:'/auth/oidc/return',...(context.valClientId!=null?{valClientId:context.valClientId}:{})}
  }
  return {enabled:true,tenantId,client,serviceIdentity,resolveAccount,async canWriteLinks(subjectId){return (await resolveAccount({sub:subjectId,tenant_id:tenantId,auth_level:'AAL2'}))?.role==='gerencial'},async handle(req,res,url){
   if(url.pathname==='/api/identity/service/health'){
@@ -69,12 +78,27 @@ export function createSogIdentity({store,roles,env=process.env,fetcher=fetch}){
    const result=await client.start({contextRef,stepUp,returnTo:stepUp?'/?identity_confirmed=1':'/'})
    redirect(res,result.url,result.cookie);return true
   }
+  if(url.pathname==='/auth/oidc/return'){
+   if(req.method!=='GET')throw fault('method_not_allowed',405)
+   const account=await client.session(req)
+   if(!account)throw fault('central_session_inactive',401)
+   // session() may rotate tokens. Reread the encrypted vault afterwards and
+   // bind the fresh request to the same live local account and central session.
+   const session=await client.store.get('rp-session',cookieValue(req,client.cookieName))
+   if(!session||session.tenantId!==tenantId||session.userId!==account.identity.sub||session.localId!==account.id||session.centralSessionId!==account.identity.session_id)throw fault('central_session_inactive',401)
+   const valClientId=session.context?.valClientId
+   if(valClientId==null){redirect(res,client.issuer+'/');return true}
+   if(typeof valClientId!=='string'||!/^[a-zA-Z0-9:_-]{1,180}$/.test(valClientId))throw fault('return_context_denied',403)
+   let returned
+   try{returned=await identityJson(fetcher,client.issuer+'/identity/return',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+session.tokens.access_token},body:JSON.stringify({client_id:'val-sog',val_client_id:valClientId})})}catch{throw fault('return_context_denied',403)}
+   redirect(res,validatedReturn(returned.returnUrl,{requireReference:true}));return true
+  }
   if(url.pathname==='/auth/oidc/callback'&&req.method==='GET'){
    const result=await client.callbackRequest(req)
    try{
     const session=await client.store.get('rp-session',result.sessionId)
     if(!session)throw fault('context_handoff_denied')
-    let context={producerId:null,linked:false,returnUrl:client.issuer+'/'}
+    let context={producerId:null,linked:false,returnUrl:'/auth/oidc/return'}
     if(result.contextRef)context=minimalContext(await identityJson(fetcher,client.issuer+'/identity/context',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+session.tokens.access_token},body:JSON.stringify({client_id:'val-sog',context_ref:result.contextRef})}),session.userId)
     await client.store.update('rp-session',result.sessionId,value=>({...value,context}))
     redirect(res,result.returnTo,[result.cookie,result.clearState]);return true
