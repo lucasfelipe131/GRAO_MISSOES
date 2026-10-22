@@ -63,8 +63,12 @@ test('preço C.Vale manual, comparativo automático e salvamento das leituras',a
  const todayBr=new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}).format(new Date())
  const html=`<html><body><table><tr><th>Data</th><th>Soja</th><th>Milho</th></tr><tr><td>${todayBr}</td><td>R$ 143,00</td><td>R$ 61,00</td></tr></table></body></html>`
  const site=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(html)});await new Promise(r=>site.listen(0,r));const siteBase=`http://127.0.0.1:${site.address().port}`
- const real=loadSources();const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id}:s)}
- const {server,base}=await start({sourcesOverride})
+ const real=loadSources();const requested=[]
+ // fetchSource tries nested fallback URLs before source.url. Keep this API
+ // scenario entirely on its fixture, including future configuration changes.
+ const sourcesOverride={...real,sources:real.sources.map(s=>s.fetch&&!s.own?{...s,url:siteBase+'/'+s.id,fetch:{...s.fetch,urls:[]}}:s),indicators:[],regional:[]}
+ const fetchImpl=async(url,options)=>{requested.push(String(url));if(new URL(url).origin!==siteBase)throw Error('Unexpected external URL in price API fixture');return fetch(url,options)}
+ const {server,base}=await start({sourcesOverride,fetchImpl})
  try{
   const producer=(await call(base,'POST','/api/producers',{name:'Ana',area_soja:100,yield_soja:60})).data.producer
   const own=await call(base,'POST','/api/own-quotes',{soja:'140,50',milho:'',trigo:'',paymentTerms:'72 h'})
@@ -72,6 +76,7 @@ test('preço C.Vale manual, comparativo automático e salvamento das leituras',a
   assert.equal((await call(base,'POST','/api/own-quotes',{soja:''})).status,400)
   const refresh=await call(base,'POST','/api/comparison/refresh')
   assert.equal(refresh.status,200);assert.ok(refresh.data.comparison.okCount>=1)
+  assert.ok(requested.length>0);assert.ok(requested.every(url=>new URL(url).origin===siteBase),'all market reads must stay on the local fixture')
   const coop=refresh.data.comparison.results.find(r=>r.sourceId==='coopatrigo');assert.equal(coop.prices.soja.price,143)
   const saved=await call(base,'POST','/api/comparison/save',{sourceId:'coopatrigo',commodity:'soja'})
   assert.equal(saved.status,201);assert.equal(saved.data.quotes[0].automatic,true);assert.match(saved.data.quotes[0].notes,/Leitura automática/)
