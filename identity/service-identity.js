@@ -11,7 +11,7 @@ const maximumReplayEntries=10000
 // Tokens and signing material never enter the business store. Only replay
 // hashes, expiry and bounded authentication audit metadata are persisted.
 export class ServiceIdentity {
- constructor({store,issuer,audience='val-sog',services,signingJwk,verificationJwks,clock=()=>Date.now(),fetcher=fetch,proofTimeoutMs=8000}){Object.assign(this,{store,issuer,audience,services,signingJwk,verificationJwks,clock,fetcher,proofTimeoutMs})}
+ constructor({store,issuer,audience='val-sog',services,signingJwk,verificationJwks,clock=()=>Date.now(),fetcher=fetch,proofTimeoutMs=8000,passwordSso}){Object.assign(this,{store,issuer,audience,services,signingJwk,verificationJwks,clock,fetcher,proofTimeoutMs,passwordSso})}
  policy(id,tenantId,scope,audience){
   const matches=Array.isArray(this.services)?this.services.filter(s=>s.service_id===id):[]
   const p=matches.length===1&&matches[0]
@@ -66,7 +66,7 @@ export class ServiceIdentity {
    if(requireDelegation){
     if(typeof actorId!=='string'||!actorId||v.delegated_sub!==actorId||typeof v.session_id!=='string'||!v.session_id||v.session_id.length>180||!v.act||typeof v.act!=='object'||Array.isArray(v.act)||v.act.sub!==v.sub)throw fault('service_delegation_denied',401)
     const proof=await identityJson(this.fetcher,this.issuer+'/identity/service/validate',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({audience:this.audience,tenantId,scope,method,path,body})},{timeoutMs:this.proofTimeoutMs})
-    if(proof.active!==true||proof.tenantId!==tenantId||proof.actorId!==actorId||proof.sessionId!==v.session_id||proof.authLevel!=='AAL2'||!Number.isFinite(proof.mfaAuthenticatedAt)||proof.mfaAuthenticatedAt<=0||proof.mfaAuthenticatedAt>this.clock()+5000||recentMfa&&this.clock()-proof.mfaAuthenticatedAt>300000)throw fault('central_delegation_denied',401)
+    if(proof.active!==true||proof.tenantId!==tenantId||proof.actorId!==actorId||proof.sessionId!==v.session_id||!((proof.authLevel==='AAL2'&&Number.isFinite(proof.mfaAuthenticatedAt)&&proof.mfaAuthenticatedAt>0&&proof.mfaAuthenticatedAt<=this.clock()+5000&&(!recentMfa||this.clock()-proof.mfaAuthenticatedAt<=300000))||(!recentMfa&&method==='GET'&&scope==='sog.context.read'&&this.passwordSso?.permitsProof(proof))))throw fault('central_delegation_denied',401)
    }else if(v.delegated_sub||v.session_id||v.act)throw fault('service_delegation_denied',401)
    this.consume(v)
    return v
