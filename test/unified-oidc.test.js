@@ -25,12 +25,12 @@ async function fixture(fn){
     assert.equal(input.get('grant_type'),'authorization_code');assert.equal(input.get('client_id'),'val-sog');assert.equal(input.get('redirect_uri'),pending.callback)
     assert.equal(Buffer.from(digest(input.get('code_verifier')),'hex').toString('base64url'),pending.challenge);tokenGrants++
     const now=Math.floor(Date.now()/1000)
-    const idToken=await new SignJWT({tenant_id:'tenant-a',auth_level:'AAL2',session_id:'central-session-a',mfa_authenticated_at:Date.now(),role_ref:'admin',nonce:noncePatch||pending.nonce,...claimPatch}).setProtectedHeader({alg:'ES256',kid:jwk.kid}).setIssuer(issuer).setAudience('val-sog').setSubject('owner-a').setIssuedAt(now).setExpirationTime(now+300).sign(pair.privateKey)
+    const idToken=await new SignJWT({tenant_id:'tenant-a',auth_level:'AAL2',session_id:'central-session-a',mfa_authenticated_at:Math.floor(Date.now()/1000),role_ref:'admin',nonce:noncePatch||pending.nonce,...claimPatch}).setProtectedHeader({alg:'ES256',kid:jwk.kid}).setIssuer(issuer).setAudience('val-sog').setSubject('owner-a').setIssuedAt(now).setExpirationTime(now+300).sign(pair.privateKey)
     return send(res,200,{token_type:'Bearer',access_token:'synthetic-access-token',refresh_token:'synthetic-refresh-token',expires_in:300,id_token:idToken})
    }
    if(req.url==='/identity/validate'){
     assert.equal(req.headers.authorization,'Bearer synthetic-access-token');assert.equal(JSON.parse(raw).client_id,'val-sog');validationCalls++
-    return send(res,alive?200:401,{active:alive,iss:issuer,aud:'val-sog',sub:'owner-a',tenant_id:'tenant-a',session_id:'central-session-a',auth_level:'AAL2',mfa_authenticated_at:Date.now(),role_ref:'admin',...claimPatch})
+    return send(res,alive?200:401,{active:alive,iss:issuer,aud:'val-sog',sub:'owner-a',tenant_id:'tenant-a',session_id:'central-session-a',auth_level:'AAL2',mfa_authenticated_at:Math.floor(Date.now()/1000),role_ref:'admin',...claimPatch})
    }
    if(req.url==='/identity/context'){
     assert.equal(req.headers.authorization,'Bearer synthetic-access-token');const input=JSON.parse(raw);assert.equal(input.client_id,'val-sog');const context=contexts.get(input.context_ref);contexts.delete(input.context_ref)

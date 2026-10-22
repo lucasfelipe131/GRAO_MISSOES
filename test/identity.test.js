@@ -2,6 +2,13 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {EphemeralIdentityStore,createSogIdentity} from '../identity/runtime.js'
 
+test('additional SSO grant preserves existing grants and cannot change an existing role',async()=>{
+ const env={VAL_IDENTITY_ENABLED:'true',VAL_IDENTITY_TENANT_ID:'tenant',VAL_IDENTITY_ISSUER:'https://val-web-staging-production.up.railway.app',VAL_SOG_ORIGIN:'https://web-production-704a3.up.railway.app',VAL_IDENTITY_ACCESS_JSON:JSON.stringify([{subjectId:'existing',role:'operador'}]),VAL_UNIFIED_ACCESS_JSON:JSON.stringify([{subjectId:'selected',role:'operador'},{subjectId:'existing',role:'operador'}])};
+ const options={env,roles:{operador:{},gerencial:{}},store:{read:()=>({users:[]})}},identity=createSogIdentity(options);
+ for(const sub of ['existing','selected'])assert.equal((await identity.resolveAccount({sub,tenant_id:'tenant',auth_level:'AAL2'})).role,'operador');
+ assert.throws(()=>createSogIdentity({...options,env:{...env,VAL_UNIFIED_ACCESS_JSON:JSON.stringify([{subjectId:'existing',role:'gerencial'}])}}),/identity_access_conflict/);
+});
+
 test('central identity enters SOG without any local account or password',async()=>{
  const env={VAL_IDENTITY_ENABLED:'true',VAL_IDENTITY_TENANT_ID:'tenant-1',VAL_IDENTITY_ISSUER:'https://val-web-staging-production.up.railway.app',VAL_SOG_ORIGIN:'https://web-production-704a3.up.railway.app',VAL_IDENTITY_ACCESS_JSON:JSON.stringify([{subjectId:'central-1',role:'operador',username:'lucas.felipe',name:'Lucas'}])}
  const options={store:{read(){throw Error('Local account store must not be needed')}},roles:{operador:{}},env}

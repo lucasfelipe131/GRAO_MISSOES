@@ -1,3 +1,4 @@
+import {passwordSsoPolicy} from './password-sso.js'
 import {FirstPartyClient} from './relying-party.js'
 import {digest,seal,unseal,assertSameOrigin,fault,cookieValue,canonicalOrigin} from './primitives.js'
 import {randomBytes} from 'node:crypto'
@@ -19,20 +20,24 @@ export class EphemeralIdentityStore {
 export function createSogIdentity({store,roles,env=process.env,fetcher=fetch}){
  if(env.VAL_IDENTITY_ENABLED!=='true')return {enabled:false}
  const tenantId=env.VAL_IDENTITY_TENANT_ID,issuer=canonicalOrigin(env.VAL_IDENTITY_ISSUER,{test:env.NODE_ENV==='test'&&env.VAL_IDENTITY_TEST==='true'})
+ const passwordSso=passwordSsoPolicy(env,{issuer,tenantId,origin:canonicalOrigin(env.VAL_SOG_ORIGIN,{test:env.NODE_ENV==='test'&&env.VAL_IDENTITY_TEST==='true'}),clientId:'val-sog'})
  const links=JSON.parse(env.VAL_IDENTITY_LINKS_JSON||'[]')
  if(!tenantId||!Array.isArray(links)||links.some(l=>!l.subjectId||!l.userId)||new Set(links.map(l=>l.subjectId)).size!==links.length)throw fault('identity_links_invalid',503)
  // Explicit central grants avoid creating a second login or local password.
- const access=JSON.parse(env.VAL_IDENTITY_ACCESS_JSON||'[]')
+ const existingAccess=JSON.parse(env.VAL_IDENTITY_ACCESS_JSON||'[]'),additionalAccess=JSON.parse(env.VAL_UNIFIED_ACCESS_JSON||'[]')
+ if(!Array.isArray(existingAccess)||!Array.isArray(additionalAccess))throw fault('identity_access_invalid',503)
+ if(additionalAccess.some(g=>existingAccess.some(old=>old.subjectId===g?.subjectId&&old.role!==g?.role)))throw fault('identity_access_conflict',503)
+ const access=[...existingAccess,...additionalAccess.filter(g=>!existingAccess.some(old=>old.subjectId===g?.subjectId))]
  if(!Array.isArray(access)||access.some(g=>typeof g.subjectId!=='string'||!g.subjectId||!Object.hasOwn(roles,g.role))||new Set(access.map(g=>g.subjectId)).size!==access.length||access.some(g=>links.some(l=>l.subjectId===g.subjectId)))throw fault('identity_access_invalid',503)
  const resolveAccount=async claims=>{
-  if(claims.tenant_id!==tenantId||claims.auth_level!=='AAL2')return null
+  if(claims.tenant_id!==tenantId||!(claims.auth_level==='AAL2'||passwordSso.permits(claims)))return null
   const grant=access.find(g=>g.subjectId===claims.sub)
   if(grant){const id='val:'+digest(issuer+'\n'+tenantId+'\n'+claims.sub);const user={id,username:grant.username||'val-user',name:grant.name||'Conta VAL',role:grant.role,active:true,federated:true};return {id,role:user.role,user,via:'val-sso'}}
   const link=links.find(l=>l.subjectId===claims.sub),data=link?(store.file?JSON.parse(readFileSync(store.file,'utf8')):store.read()):null,user=link&&(data.users||[]).find(u=>u.id===link.userId&&u.active!==false)
   return user&&Object.hasOwn(roles,user.role)?{id:user.id,role:user.role,user,via:'val-sso'}:null
  }
- const client=new FirstPartyClient({store:new EphemeralIdentityStore(),origin:env.VAL_SOG_ORIGIN,issuer,clientId:'val-sog',tenantId,resolveAccount,fetcher,test:env.NODE_ENV==='test'&&env.VAL_IDENTITY_TEST==='true'})
- const serviceIdentity=env.VAL_SERVICE_TRUST_JSON&&env.VAL_SERVICE_VERIFICATION_JWKS?new ServiceIdentity({store,issuer,fetcher,audience:'val-sog',services:JSON.parse(env.VAL_SERVICE_TRUST_JSON),signingJwk:env.VAL_SERVICE_SIGNING_JWK?JSON.parse(env.VAL_SERVICE_SIGNING_JWK):undefined,verificationJwks:JSON.parse(env.VAL_SERVICE_VERIFICATION_JWKS)}):null
+ const client=new FirstPartyClient({store:new EphemeralIdentityStore(),origin:env.VAL_SOG_ORIGIN,issuer,clientId:'val-sog',tenantId,resolveAccount,passwordSso,fetcher,test:env.NODE_ENV==='test'&&env.VAL_IDENTITY_TEST==='true'})
+ const serviceIdentity=env.VAL_SERVICE_TRUST_JSON&&env.VAL_SERVICE_VERIFICATION_JWKS?new ServiceIdentity({store,issuer,fetcher,passwordSso,audience:'val-sog',services:JSON.parse(env.VAL_SERVICE_TRUST_JSON),signingJwk:env.VAL_SERVICE_SIGNING_JWK?JSON.parse(env.VAL_SERVICE_SIGNING_JWK):undefined,verificationJwks:JSON.parse(env.VAL_SERVICE_VERIFICATION_JWKS)}):null
  const redirect=(res,location,cookies)=>{res.writeHead(303,{Location:location,'Cache-Control':'no-store',...(cookies?{'Set-Cookie':cookies}:{})});res.end()}
  const scopedProducer=(producerId,subjectId)=>{
   const data=JSON.parse(readFileSync(store.file,'utf8'))

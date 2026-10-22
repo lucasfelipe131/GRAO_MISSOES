@@ -7,8 +7,22 @@ import {generateKeyPair,exportJWK,SignJWT} from 'jose'
 import {createStore} from '../lib/store.js'
 import {ServiceIdentity} from '../identity/service-identity.js'
 import {digest} from '../identity/primitives.js'
+import {passwordSsoPolicy,PASSWORD_SSO} from '../identity/password-sso.js'
 
 const scope='sog.integration.health',path='/api/identity/service/health'
+test('selected password session may delegate scoped reads, never bridge writes or recent MFA',async()=>fixture(async f=>{
+ const tenantId=PASSWORD_SSO.tenantId,actorId='selected',scope='sog.context.read',path='/api/integrations/val/context'
+ const env={VAL_TEST_PASSWORD_SSO:'true',VAL_PASSWORD_SSO_SUBJECTS_JSON:JSON.stringify([{subjectId:actorId,roleRef:'technical_reviewer'}])}
+ const policy=passwordSsoPolicy(env,{issuer:PASSWORD_SSO.issuer,tenantId,origin:'https://web-production-704a3.up.railway.app',clientId:'val-sog'})
+ let proof={active:true,actorId,tenantId,sessionId:'central',authLevel:'AAL1',roleRef:'technical_reviewer',acr:PASSWORD_SSO.acr,amr:['pwd'],passwordOnlyPolicy:PASSWORD_SSO.policy,passwordAuthenticatedAt:Date.now(),mfaAuthenticatedAt:null}
+ const verifier=new ServiceIdentity({...f.options,passwordSso:policy,services:f.services.map(s=>({...s,tenants:[tenantId],allowed_scopes:[scope,'sog.link.write']})),fetcher:async()=>new Response(JSON.stringify(proof))})
+ const request={tenantId,scope,path,method:'GET',actorId,requireDelegation:true}
+ const token=()=>f.sign({tenant_id:tenantId,scope,request_hash:digest('GET\n'+path+'\n'),delegated_sub:actorId,session_id:'central',act:{sub:'val-api'}})
+ assert.equal((await verifier.verify(await token(),request)).delegated_sub,actorId)
+ await assert.rejects(verifier.verify(await token(),{...request,recentMfa:true}),/service_auth_denied/)
+ proof={...proof,roleRef:'admin'};await assert.rejects(verifier.verify(await token(),request),/service_auth_denied/)
+ proof={...proof,roleRef:'technical_reviewer'};env.VAL_TEST_PASSWORD_SSO='false';await assert.rejects(verifier.verify(await token(),request),/service_auth_denied/)
+}))
 async function fixture(fn){
  const root=await mkdtemp(join(tmpdir(),'val-sog-service-'))
  const pairs=await Promise.all(['val-api-key','sog-api-key','oidc-only-key'].map(async kid=>{const pair=await generateKeyPair('ES256',{extractable:true});return {key:pair.privateKey,private:{...await exportJWK(pair.privateKey),kid},public:{...await exportJWK(pair.publicKey),kid}}}))
